@@ -11,7 +11,10 @@ public:
 
 	// 定数
 	// ----------------------------
-	
+
+	// ミニゲーム数
+	static constexpr int M_MAX_SELECT = 8;
+
 	// ----------------------------
 
 	// コンストラクタ
@@ -27,4 +30,12 @@ public:
 
 private:
 
+	// ミニゲーム選択状態
+	int mSelectIndex_;
+
+	// ミニゲーム選択操作
+	void SelectGameUpdate(void);
+
+	// ミニゲーム選択UI
+	void SelectGameDrawUI(void);
 };
