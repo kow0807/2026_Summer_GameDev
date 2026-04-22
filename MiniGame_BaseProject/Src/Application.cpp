@@ -5,6 +5,7 @@
 #include "Manager/InputManager.h"
 #include "Manager/ResourceManager.h"
 #include "Manager/SceneManager.h"
+#include "Manager/Setting.h"
 #include "Application.h"
 
 Application* Application::instance_ = nullptr;
@@ -34,7 +35,10 @@ Application& Application::GetInstance(void)
 void Application::Init(void)
 {
 	// アプリケーションの初期設定
-	SetWindowText("Vestige");
+	SetWindowText("ひとあそび");
+
+	// 設定の初期化
+	Setting::CreateInstance();
 
 	// ウィンドウサイズ
 	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);

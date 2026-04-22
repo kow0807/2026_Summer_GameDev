@@ -13,10 +13,6 @@ Setting::Setting(void)
 {
 }
 
-Setting::~Setting(void)
-{
-}
-
 void Setting::CreateInstance(void)
 {
 	if (instance_ == nullptr)

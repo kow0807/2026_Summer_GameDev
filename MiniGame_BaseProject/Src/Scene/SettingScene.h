@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 #include "SceneBase.h"
-#include "../Manager/SettingManager.h"
 
 class SettingScene : public SceneBase
 {
