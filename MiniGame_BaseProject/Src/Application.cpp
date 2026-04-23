@@ -115,7 +115,7 @@ void Application::Run(void)
 
 void Application::Destroy(void)
 {
-
+	Setting::GetInstance().Destroy();
 	InputManager::GetInstance().Destroy();
 	ResourceManager::GetInstance().Destroy();
 	SceneManager::GetInstance().Destroy();

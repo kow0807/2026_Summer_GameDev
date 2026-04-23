@@ -9,11 +9,21 @@ class GameScene : public SceneBase
 
 public:
 
+	enum class M_STATE
+	{
+		FIRST_PRESS,
+		QUIZ,
+		REVERSI,
+		BUTTON_MASH,
+		FLASH_CALC,
+		QUORIDOR,
+		HARE_AND_HOUNDS,
+		MINI_SHOGI,
+		MAX
+	};
+
 	// 定数
 	// ----------------------------
-
-	// ミニゲーム数
-	static constexpr int M_MAX_SELECT = 8;
 
 	// ----------------------------
 
@@ -30,8 +40,7 @@ public:
 
 private:
 
-	// ミニゲーム選択状態
-	int mSelectIndex_;
+	M_STATE mState_;
 
 	// ミニゲーム選択操作
 	void SelectGameUpdate(void);
