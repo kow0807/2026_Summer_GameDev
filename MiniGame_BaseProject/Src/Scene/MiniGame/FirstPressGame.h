@@ -5,6 +5,15 @@
 class FirstPressGame : public GameBase
 {
 public:
+
+	enum class GameState
+	{
+		WAIT,
+		READY,
+		GO,
+		RESULT
+	};
+
 	FirstPressGame(void);
 	~FirstPressGame(void);
 
@@ -16,5 +25,24 @@ public:
 
 private:
 
+	GameState gameState_;
+
+	// フレームカウント
+	int timer_;
+
+	// ランダム待機時間
+	int waitTime_;
+
+	// 押したかどうか
+	bool isPressed_;
+
+	// 押したフレーム
+	int pressFrame_;
+
+	// CPUの押したフレーム
+	int cpuPressFrame_;
+
+	// CPUが押したかどうか
+	bool cpuPressed_;
 };
 

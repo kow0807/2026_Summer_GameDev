@@ -84,7 +84,6 @@ void GameScene::DrawUI(void)
 		break;
 
 	case SELECT_STATE::PLAYING:
-		DrawFormatString(100, 100, GetColor(255, 255, 255), "ƒQ[ƒ€’†I");
 		if(gameBase_)
 		{
 			gameBase_->DrawUI();
