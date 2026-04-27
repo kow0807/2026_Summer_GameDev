@@ -1,7 +1,9 @@
 #pragma once
+#include <memory>
 #include "SceneBase.h"
 class PixelMaterial;
 class PixelRenderer;
+class GameBase;
 
 
 class GameScene : public SceneBase
@@ -53,6 +55,9 @@ private:
 
 	bool isYes_;
 
+	// ミニゲームの基底クラス
+	std::unique_ptr<GameBase> gameBase_;
+
 	// ミニゲーム選択操作
 	void SelectGameUpdate(void);
 	void ExplanationUpdate(void);
@@ -63,4 +68,7 @@ private:
 	// ミニゲーム選択UI
 	void SelectGameDrawUI(void);
 	void ExplanationDrawUI(void);
+
+	//　ミニゲーム生成
+	void CreateMiniGame(void);
 };

@@ -7,10 +7,14 @@
 #include "../Manager/InputManager.h"
 #include "../Renderer/PixelMaterial.h"
 #include "../Renderer/PixelRenderer.h"
+#include "../Scene/MiniGame/GameBase.h"
+#include "../Scene/MiniGame/FirstPressGame.h"
+#include "../Scene/MiniGame/Quoridor.h"
 #include "GameScene.h"
 
 GameScene::GameScene(void)
-	: miniState_(MINI_STATE::FIRST_PRESS),
+	: 
+	miniState_(MINI_STATE::FIRST_PRESS),
 	selectState_(SELECT_STATE::GAME_SELECT),
 	isYes_(true)
 {
@@ -81,6 +85,10 @@ void GameScene::DrawUI(void)
 
 	case SELECT_STATE::PLAYING:
 		DrawFormatString(100, 100, GetColor(255, 255, 255), "ゲーム中！");
+		if(gameBase_)
+		{
+			gameBase_->DrawUI();
+		}
 		break;
 	}
 }
@@ -129,6 +137,8 @@ void GameScene::ExplanationUpdate()
 	{
 		if (isYes_)
 		{
+			//　生成と初期化
+			CreateMiniGame();
 			selectState_ = SELECT_STATE::PLAYING;
 		}
 		else
@@ -145,73 +155,29 @@ void GameScene::GameUpdate()
 	// 仮：スペースで戻る
 	if (ins.IsTrgDown(KEY_INPUT_SPACE))
 	{
+		// ミニゲームのリセット
+		gameBase_->Reset();
+
+		// ポインター破棄
+		gameBase_.reset();
 		selectState_ = SELECT_STATE::GAME_SELECT;
 	}
 
-	switch (miniState_)
+	if(!gameBase_)
 	{
-	case MINI_STATE::FIRST_PRESS:
-		break;
-
-	case MINI_STATE::QUIZ:
-		break;
-
-	case MINI_STATE::REVERSI:
-		break;
-
-	case MINI_STATE::BUTTON_MASH:
-		break;
-
-	case MINI_STATE::FLASH_CALC:
-		break;
-
-	case MINI_STATE::QUORIDOR:
-		break;
-
-	case MINI_STATE::HARE_AND_HOUNDS:
-		break;
-
-	case MINI_STATE::MINI_SHOGI:
-		break;
+		return;
 	}
+	gameBase_->Update();
 }
 
 void GameScene::DrawGame()
 {
-	switch (miniState_)
+	if (!gameBase_)
 	{
-	case MINI_STATE::FIRST_PRESS:
-		DrawFormatString(100, 200, GetColor(255, 255, 255), "早押しゲーム");
-		break;
-
-	case MINI_STATE::QUIZ:
-		DrawFormatString(100, 200, GetColor(255, 255, 255), "クイズゲーム");
-		break;
-
-	case MINI_STATE::REVERSI:
-		DrawFormatString(100, 200, GetColor(255, 255, 255), "オセロ");
-		break;
-
-	case MINI_STATE::BUTTON_MASH:
-		DrawFormatString(100, 200, GetColor(255, 255, 255), "連打");
-		break;
-
-	case MINI_STATE::FLASH_CALC:
-		DrawFormatString(100, 200, GetColor(255, 255, 255), "フラッシュ暗算");
-		break;
-
-	case MINI_STATE::QUORIDOR:
-		DrawFormatString(100, 200, GetColor(255, 255, 255), "コリドール");
-		break;
-
-	case MINI_STATE::HARE_AND_HOUNDS:
-		DrawFormatString(100, 200, GetColor(255, 255, 255), "ウサギと猟犬");
-		break;
-
-	case MINI_STATE::MINI_SHOGI:
-		DrawFormatString(100, 200, GetColor(255, 255, 255), "5五将棋");
-		break;
+		return;
 	}
+
+	gameBase_->Draw();
 }
 
 void GameScene::SelectGameDrawUI(void)
@@ -310,4 +276,35 @@ void GameScene::ExplanationDrawUI()
 
 	DrawString(300, 300, "はい", yesColor);
 	DrawString(450, 300, "いいえ", noColor);
+}
+
+void GameScene::CreateMiniGame(void)
+{
+	// gameBase_のポインタ生成ができていないところを選択した場合
+	// 中身がないので例外スローになる。追加する際はここに生成コードを追加せよ
+	
+	switch (miniState_)
+	{
+	case MINI_STATE::FIRST_PRESS:
+		gameBase_ = std::make_unique<FirstPressGame>();
+		gameBase_->Init();
+		break;
+	case MINI_STATE::QUIZ:
+		break;
+	case MINI_STATE::REVERSI:
+		break;
+	case MINI_STATE::BUTTON_MASH:
+		break;
+	case MINI_STATE::FLASH_CALC:
+		break;
+	case MINI_STATE::QUORIDOR:
+		gameBase_ = std::make_unique<Quoridor>();
+		break;
+	case MINI_STATE::HARE_AND_HOUNDS:
+		break;
+	case MINI_STATE::MINI_SHOGI:
+		break;
+	}
+
+	gameBase_->Init();
 }
