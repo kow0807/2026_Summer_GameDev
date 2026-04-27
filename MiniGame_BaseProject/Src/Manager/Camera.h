@@ -26,6 +26,8 @@ public:
 	static constexpr float PAT_CAMERA_MIN_RY = -100.0f;							// パットの時のカメラの制限(y下限)
 	static constexpr float CAMERA_MAX_ANGLE_X = 60.0f;							// カメラのX回転上限度角	
 	static constexpr float CAMERA_MIN_ANGLE_X = -60.0f;							// カメラのX回転下限度角
+	static constexpr float CAMERA_FREE_MOVE_SPEED = 20.0f;						// フリーモードのカメラ移動速度
+
 
 	// カメラモード
 	enum class MODE
@@ -35,7 +37,9 @@ public:
 		FOLLOW,
 		FOLLOW_MOUSE,
 		SELF_SHOT,
-		EVENT
+		EVENT,
+		MINI_GAME,
+		FREE// デバッグ用
 	};
 
 	enum class GAME_CAMERA
@@ -43,6 +47,13 @@ public:
 		NONE,
 		MOUSE,
 		TARGET
+	};
+
+	enum class GAME_TYPE
+	{
+		NONE,
+		QUORIDOR,
+		HARE_AND_HOUNDS
 	};
 
 	Camera(void);
@@ -64,12 +75,11 @@ public:
 	Quaternion GetQuaRot(void) const;
 	// X回転を抜いたカメラ角度
 	Quaternion GetQuaRotOutX(void) const;
-	// カメラの前方方向
-	VECTOR GetForward(void) const;
 
 	// カメラモードの変更
 	void ChangeMode(MODE mode);
 	void ChangeGameCamera(GAME_CAMERA gameCamera);
+	void ChangeGameTypeCamera(GAME_TYPE gameType);
 
 	// 追従対象の設定
 	void SetFollow(const Transform* follow);
@@ -84,6 +94,24 @@ public:
 
 	// イベントカメラの状態をリセット
 	void ResetEventCameraState(void);
+
+	// カメラの前方方向
+	VECTOR GetForward(void) const;
+
+	// カメラの右方向
+	VECTOR GetRight(void) const;
+
+	// カメラの上方向
+	VECTOR GetUp(void) const;
+
+	// 座標設定
+	void SetPos(const VECTOR& pos);
+
+	// 角度設定
+	void SetAngles(const VECTOR& angles);
+
+	// カメラ操作設定
+	void SetOperatable(bool flag);
 
 private:
 
@@ -101,11 +129,17 @@ private:
 	// ゲーム中のカメラ
 	GAME_CAMERA gameCamera_;
 
+	// ゲームの種類
+	GAME_TYPE gameType_;
+
 	// カメラの位置
 	VECTOR pos_;
 
 	// カメラ角度(rad)
 	VECTOR angles_;
+
+	// カメラ移動方向
+	VECTOR moveDir_;
 
 	// X軸回転が無い角度
 	Quaternion rotOutX_;
@@ -128,6 +162,9 @@ private:
 	// カメラの初期化を行うかどうか
 	bool isInitialized_;
 
+	// カメラが操作可能であるか
+	bool isOperatable_;
+
 	// カメラを初期位置に戻す
 	void SetDefault(void);
 
@@ -143,6 +180,9 @@ private:
 	void SetBeforeDrawFollowMouse(void);
 	void SetBeforeDrawSelfShot(void);
 	void SetBeforeDrawEvent(void);
+	void SetBeforDrawMiniGame(void);
+	void SetBeforeDrawFree(void);
 
+	// ゲーム種別更新ステップ
+	void SetBeforeDrawQuoridor(void);
 };
-

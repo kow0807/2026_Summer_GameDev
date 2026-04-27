@@ -12,6 +12,7 @@ public:
 	// リソース名
 	enum class SRC
 	{
+		BOARD,			// ボード
 	};
 
 	// 明示的にインステンスを生成する
