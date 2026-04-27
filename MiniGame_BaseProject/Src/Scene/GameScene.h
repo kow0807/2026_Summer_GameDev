@@ -9,7 +9,7 @@ class GameScene : public SceneBase
 
 public:
 
-	enum class M_STATE
+	enum class MINI_STATE
 	{
 		FIRST_PRESS,
 		QUIZ,
@@ -20,6 +20,13 @@ public:
 		HARE_AND_HOUNDS,
 		MINI_SHOGI,
 		MAX
+	};
+
+	enum class SELECT_STATE
+	{
+		GAME_SELECT,
+		EXPLANATION,
+		PLAYING
 	};
 
 	// 定数
@@ -40,11 +47,20 @@ public:
 
 private:
 
-	M_STATE mState_;
+	MINI_STATE miniState_;
+
+	SELECT_STATE selectState_;
+
+	bool isYes_;
 
 	// ミニゲーム選択操作
 	void SelectGameUpdate(void);
+	void ExplanationUpdate(void);
+	void GameUpdate(void);
+
+	void DrawGame(void);
 
 	// ミニゲーム選択UI
 	void SelectGameDrawUI(void);
+	void ExplanationDrawUI(void);
 };
