@@ -1,7 +1,10 @@
 #pragma once
+#include <memory>
 #include "../Common/Transform.h"
 class ResourceManager;
 class SceneManager;
+class ModelMaterial;
+class ModelRenderer;
 
 class ActorBase
 {
@@ -28,5 +31,12 @@ protected:
 
 	// モデル制御の基本情報
 	Transform transform_;
+
+	// モデル描画用
+	std::unique_ptr<ModelMaterial> mMaterial_;
+	std::unique_ptr<ModelRenderer> mRenderer_;
+
+	// モデル初期化
+	void InitModel(VECTOR pos, VECTOR scl, VECTOR quaRotLocal);
 
 };

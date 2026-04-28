@@ -3,6 +3,7 @@
 #include "../../Manager/InputManager.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Setting.h"
+#include "../../Object/Actor/Quoridor/Board.h"
 #include "Quoridor.h"
 
 Quoridor::Quoridor(void)
@@ -22,11 +23,18 @@ void Quoridor::Init(void)
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::MINI_GAME);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
 	SceneManager::GetInstance().GetCamera()->ChangeGameTypeCamera(Camera::GAME_TYPE::QUORIDOR);
+
+	board_ = std::make_unique<Board>();
+	board_->Init();
 }
 
 void Quoridor::Update(void)
 {
 
+	board_->Update();
+
+
+	//-----------------------------------------------------------
 	Player& player = players_[currentTurn_];	
 
 	// “ü—ÍŠÖ˜A
@@ -54,6 +62,8 @@ void Quoridor::Update(void)
 
 void Quoridor::Draw(void)
 {
+
+	board_->Draw();
 	DrawBoard();
 	DrawPlayers();
 }

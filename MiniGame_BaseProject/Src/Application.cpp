@@ -66,6 +66,10 @@ void Application::Init(void)
 	// ƒV[ƒ“ŠÇ—‰Šú‰»
 	SceneManager::CreateInstance();
 
+	SetUseLighting(true);
+	SetLightDirection(VGet(0.0f, -1.0f, 0.0f));
+	SetLightEnable(true);
+
 	frameCount_ = 0;
 	fps_ = 0;
 }

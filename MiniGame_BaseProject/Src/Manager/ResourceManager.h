@@ -13,6 +13,7 @@ public:
 	enum class SRC
 	{
 		BOARD,			// ボード
+		WOOD_BOARD_TEXTURE,
 	};
 
 	// 明示的にインステンスを生成する

@@ -37,6 +37,10 @@ void ResourceManager::Init(void)
 	// 板
 	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Board/Board.mv1");
 	resourcesMap_.emplace(SRC::BOARD, res);
+
+	// 板のテクスチャ
+	res = std::make_shared<RES>(RES_T::IMG, PATH_MDL + "Board/texture/WoodFloor.jpg");
+	resourcesMap_.emplace(SRC::WOOD_BOARD_TEXTURE, res);
 }
 
 void ResourceManager::Release(void)

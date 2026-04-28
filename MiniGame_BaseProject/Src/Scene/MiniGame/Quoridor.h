@@ -1,5 +1,8 @@
 #pragma once
+#include <memory>
 #include "GameBase.h"
+
+class Board;
 
 class Quoridor : public GameBase
 {
@@ -21,7 +24,6 @@ public:
 	void Reset(void) override;
 
 private:
-
 
 	struct Player
 	{
@@ -57,5 +59,7 @@ private:
 
 	// デバック用
 	void DrawBox3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
+
+	std::unique_ptr<Board> board_;
 };
 

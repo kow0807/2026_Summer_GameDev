@@ -267,4 +267,8 @@
     <None Include="Src\Shader\Common\Vertex\VertexShader3DHeader.hlsli" />
     <None Include="Src\Shader\Common\VertexToPixelHeader.hlsli" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Src\Shader\Model\WoodBoard_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\WoodBoard_PS.hlsl" />
+  </ItemGroup>
 </Project>

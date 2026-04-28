@@ -679,7 +679,7 @@ void Camera::SetBeforeDrawFree(void)
 void Camera::SetBeforeDrawQuoridor(void)
 {
 	// î’ñ Ç…çáÇÌÇπÇÈ
-	const int CELL_SIZE = 50.0f;
+	const float CELL_SIZE = 50.0f;
 	const int BOARD_SIZE = 9;
 
 	float center = (BOARD_SIZE - 1) * CELL_SIZE * 0.5;
