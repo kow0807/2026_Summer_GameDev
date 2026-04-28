@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Object\Actor\Quoridor\Board.cpp" />
     <ClCompile Include="Src\Scene\MiniGame\Quoridor.cpp" />
     <ClCompile Include="Src\Scene\MiniGame\FirstPressGame.cpp" />
     <ClCompile Include="Src\Scene\MiniGame\GameBase.cpp" />
@@ -53,6 +54,7 @@
     <ClCompile Include="Src\Renderer\VertexMaterial.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Object\Actor\Quoridor\Board.h" />
     <ClInclude Include="Src\Scene\MiniGame\Quoridor.h" />
     <ClInclude Include="Src\Scene\MiniGame\FirstPressGame.h" />
     <ClInclude Include="Src\Scene\MiniGame\GameBase.h" />

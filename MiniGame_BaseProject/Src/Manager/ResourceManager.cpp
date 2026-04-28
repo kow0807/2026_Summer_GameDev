@@ -34,6 +34,9 @@ void ResourceManager::Init(void)
 	//res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Title.png");
 	//resourcesMap_.emplace(SRC::TITLE, res);
 
+	// ”Â
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Board/Board.mv1");
+	resourcesMap_.emplace(SRC::BOARD, res);
 }
 
 void ResourceManager::Release(void)
