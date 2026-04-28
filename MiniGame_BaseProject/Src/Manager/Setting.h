@@ -6,8 +6,8 @@ public:
 
 	struct WindowSize
 	{
-		int width;
-		int height;
+		int width_;
+		int height_;
 	};
 
 	// 明示的にインスタンスを生成

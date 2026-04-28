@@ -7,6 +7,7 @@
 #include "../Manager/InputManager.h"
 #include "../Manager/ResourceManager.h"
 #include "../Manager/SceneManager.h"
+#include "../Manager/Setting.h"
 #include "../Object/Common/Transform.h"
 #include "Camera.h"
 
@@ -17,13 +18,16 @@ Camera::Camera(void)
 	cameraUp_({}),
 	mode_(Camera::MODE::NONE),
 	gameCamera_(GAME_CAMERA::NONE),
+	gameType_(GAME_TYPE::NONE),
 	pos_({}),
 	targetPos_({}),
+	moveDir_({}),
 	lockonFrame_(0),
 	followTransform_(nullptr),
 	followEnemyTransform_(nullptr),
 	lockonSe_(-1),
-	isInitialized_(false)
+	isInitialized_(false),
+	isOperatable_(true)
 {
 }
 
@@ -33,7 +37,6 @@ Camera::~Camera(void)
 
 void Camera::Init(void)
 {
-
 	ChangeMode(MODE::FIXED_POINT);
 	ChangeGameCamera(GAME_CAMERA::MOUSE);
 }
@@ -92,6 +95,12 @@ void Camera::SetBeforeDraw(void)
 	case Camera::MODE::EVENT:
 		SetBeforeDrawEvent();
 		break;
+	case Camera::MODE::MINI_GAME:
+		SetBeforDrawMiniGame();
+		break;
+	case Camera::MODE::FREE:
+		SetBeforeDrawFree();
+		break;
 	}
 
 	// カメラの設定(位置と注視点による制御)
@@ -108,7 +117,8 @@ void Camera::SetBeforeDraw(void)
 
 void Camera::Draw(void)
 {
-	//DrawFormatString(10, 100, 0x000000, "%2f", angles_.x);
+	/*DrawFormatString(10, 100, 0x000000, "(%2f, %2f, %2f)", angles_.x, angles_.y, angles_.z);
+	DrawFormatString(10, 120, 0x000000, "(%2f, %2f, %2f)", pos_.x, pos_.y, pos_.z);*/
 }
 
 void Camera::SetFollow(const Transform* follow)
@@ -168,6 +178,38 @@ VECTOR Camera::GetForward(void) const
 	return VNorm(VSub(targetPos_, pos_));
 }
 
+VECTOR Camera::GetRight(void) const
+{
+	VECTOR forward = GetForward();
+	VECTOR up = VGet(0.0f, 1.0f, 0.0f);	// ワールド座標系の上方向
+	VECTOR right = VNorm(VCross(up, forward));
+
+	return right;
+}
+
+VECTOR Camera::GetUp(void) const
+{
+	VECTOR forward = GetForward();
+	VECTOR right = GetRight();
+	VECTOR up = VNorm(VCross(forward, right));
+	return up;
+}
+
+void Camera::SetPos(const VECTOR& pos)
+{
+	pos_ = pos;
+}
+
+void Camera::SetAngles(const VECTOR& angles)
+{
+	angles_ = angles;
+}
+
+void Camera::SetOperatable(bool flag)
+{
+	isOperatable_ = flag;
+}
+
 void Camera::ChangeMode(MODE mode)
 {
 
@@ -206,6 +248,23 @@ void Camera::ChangeGameCamera(GAME_CAMERA gameCamera)
 		//angles_.x = -9.0f;
 		break;
 	case Camera::GAME_CAMERA::TARGET:
+		break;
+	}
+}
+
+void Camera::ChangeGameTypeCamera(GAME_TYPE gameType)
+{
+	gameType_ = gameType;
+
+	switch (gameType_)
+	{
+	case Camera::GAME_TYPE::NONE:
+		break;
+	case Camera::GAME_TYPE::QUORIDOR:
+		break;
+	case Camera::GAME_TYPE::HARE_AND_HOUNDS:
+		break;
+	default:
 		break;
 	}
 }
@@ -460,4 +519,181 @@ void Camera::ResetEventCameraState(void)
 
 void Camera::SetBeforeDrawEvent(void)
 {
+}
+
+void Camera::SetBeforDrawMiniGame(void)
+{
+	switch (gameType_)
+	{
+	case Camera::GAME_TYPE::NONE:
+		break;
+	case Camera::GAME_TYPE::QUORIDOR:
+		SetBeforeDrawQuoridor();
+		break;
+	case Camera::GAME_TYPE::HARE_AND_HOUNDS:
+		break;
+	default:
+		break;
+	}
+
+}
+
+void Camera::SetBeforeDrawFree(void)
+{
+	int mouseX, mouseY;
+	GetMousePoint(&mouseX, &mouseY);
+
+	int centerX = Setting::GetInstance().GetWindowSize().width_ / 2;
+	int centerY = Setting::GetInstance().GetWindowSize().height_ / 2;
+
+	int dx = mouseX - centerX;
+	int dy = mouseY - centerY;
+
+	// マウス感度
+	float sensitivity = 0.002f;
+
+	// 操作可能時のみ
+	if (isOperatable_)
+	{
+		// 視点角度に反映
+		angles_.y += dx * sensitivity;	// 水平回転
+		angles_.x -= dy * sensitivity;	// 垂直回転
+
+		// 垂直回転の制限
+		if (angles_.x > AsoUtility::Deg2RadF(89.0f))angles_.x = AsoUtility::Deg2RadF(89.0f);
+		if (angles_.x < AsoUtility::Deg2RadF(-89.0f))angles_.x = AsoUtility::Deg2RadF(-89.0f);
+
+		// 移動方向のリセット
+		moveDir_ = AsoUtility::VECTOR_ZERO;
+
+		// 入力関連
+		auto& ins = InputManager::GetInstance();
+
+		DINPUT_JOYSTATE pad;
+		GetJoypadDirectInputState(DX_INPUT_PAD1, &pad);
+
+		// 前後左右入力
+		if (ins.IsNew(KEY_INPUT_W) || pad.Y < -500) moveDir_ = VAdd(moveDir_, GetForward());
+		if (ins.IsNew(KEY_INPUT_S) || pad.Y > 500) moveDir_ = VAdd(moveDir_, VScale(GetForward(), -1.0f));
+		if (ins.IsNew(KEY_INPUT_D) || pad.X > 500) moveDir_ = VAdd(moveDir_, GetRight());
+		if (ins.IsNew(KEY_INPUT_A) || pad.X < -500) moveDir_ = VAdd(moveDir_, VScale(GetRight(), -1.0f));
+		if (ins.IsNew(KEY_INPUT_Q)) moveDir_ = VAdd(moveDir_, VScale(GetUp(), -1.0f));
+		if (ins.IsNew(KEY_INPUT_E)) moveDir_ = VAdd(moveDir_, GetUp());
+
+		pos_ = VAdd(pos_, moveDir_);
+
+		// 前方方向ベクトルを計算
+		VECTOR forward = {
+			cosf(angles_.x) * sinf(angles_.y),
+			sinf(angles_.x),
+			cosf(angles_.x) * cosf(angles_.y)
+		};
+
+		// 注視点を更新(カメラ位置 + 前方方向ベクトル)
+		targetPos_ = VAdd(pos_, VScale(forward, 200.0f));
+
+		// 上方向は常にY+
+		cameraUp_ = AsoUtility::DIR_U;
+
+		// 毎フレームマウスを中央に戻す
+		SetMousePoint(centerX, centerY);
+
+		// 値を小さくするほど、回転速度が遅くなります。
+		const float GAMEPAD_SENSITIVITY = 0.025f;
+
+		// スティックの最大値で割るための定数（-1000 ～ 1000 の範囲を想定）
+		const float MAX_ANALOG_VALUE = 1000.0f;
+
+		// デッドゾーンの閾値（スティックの遊び、ノイズ対策）
+		const int DEADZONE_THRESHOLD = 200; // -200 から 200 の範囲は無視
+
+		DINPUT_JOYSTATE input;
+
+		// 入力状態を取得
+		if (GetJoypadDirectInputState(DX_INPUT_PAD1, &input) == 0)
+		{
+			int rx = input.Rx;
+
+			// デッドゾーン処理
+			if (abs(rx) < DEADZONE_THRESHOLD)
+			{
+				rx = 0;
+			}
+
+			if (rx != 0)
+			{
+				// スティック値を正規化 (-1.0f ～ 1.0f)
+				float normalizedRx = (float)rx / MAX_ANALOG_VALUE;
+
+				// 視点角度に反映: angles_.y は水平回転
+				angles_.y += normalizedRx * GAMEPAD_SENSITIVITY;
+			}
+
+			// -----------------------------------------------------------------
+			// 2. 垂直回転 (右スティックの Y軸: Ry)
+			// -----------------------------------------------------------------
+			int ry = input.Ry;
+
+			// デッドゾーン処理
+			if (abs(ry) < DEADZONE_THRESHOLD)
+			{
+				ry = 0;
+			}
+
+			if (ry != 0)
+			{
+				// スティック値を正規化 (-1.0f ～ 1.0f)
+				float normalizedRy = (float)ry / MAX_ANALOG_VALUE;
+
+				// 垂直回転の加算（元のコードの角度制限部分を統合し、感度を適用）
+				// Rx, Ryは正の値で右/下方向を指すことが多いが、
+				// カメラの Y軸回転(angles_.x)は '下方向' が角度減少、'上方向' が角度増加になるように調整が必要
+				// マウス操作と合わせる場合: マウス 'dy' は '下移動' で正、'angles_.x' は減少 (-dy)
+				// ゲームパッド 'ry' は '下倒し' で正、'angles_.x' は減少 (-normalizedRy) とします。
+				float deltaAngleX = -normalizedRy * GAMEPAD_SENSITIVITY;
+
+				// 角度制限を考慮して加算
+				float newAngleX = angles_.x + deltaAngleX;
+
+				// 垂直回転の制限
+				float minRad = AsoUtility::Deg2RadF(-89.0f);
+				float maxRad = AsoUtility::Deg2RadF(89.0f);
+
+				if (newAngleX > maxRad)
+				{
+					angles_.x = maxRad;
+				}
+				else if (newAngleX < minRad)
+				{
+					angles_.x = minRad;
+				}
+				else
+				{
+					angles_.x = newAngleX;
+				}
+			}
+		}
+	}
+}
+
+void Camera::SetBeforeDrawQuoridor(void)
+{
+	// 盤面に合わせる
+	const int CELL_SIZE = 50.0f;
+	const int BOARD_SIZE = 9;
+
+	float center = (BOARD_SIZE - 1) * CELL_SIZE * 0.5;
+
+	// カメラ位置
+	pos_ = VGet(
+		center + 60.0f,
+		300.0f,
+		center - 80.0f
+	);
+
+	// 注視点 (盤面中央)
+	targetPos_ = VGet(center, 0.0f, center);
+
+	// 上方向
+	cameraUp_ = VGet(0, 0, 1);
 }
