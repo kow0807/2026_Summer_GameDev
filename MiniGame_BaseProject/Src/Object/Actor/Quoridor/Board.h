@@ -1,28 +1,29 @@
 #pragma once
-#include "../ActorBase.h"
+#include "QuoridorPlayer.h"
 
-class Board : public ActorBase
+class Board
 {
 public:
+    // 定数
+    // ----------------------------
+    const static int BOARD_SIZE = 9; // ボードのサイズ
+    const static int MAX_WALLS = 20; // 壁の最大数
+    constexpr static float CELL_SIZE = 50.0f; // セルのサイズ
 
-	// 定数
-	static constexpr VECTOR DEFAULT_POSITION = { 0.0f, -50.0f, 0.0f };
-	static constexpr VECTOR DEFAULT_SCALE = { 0.25f, 0.25f, 0.25f };
-	static constexpr VECTOR DEFAULT_ROTATION = { 0.0f, 0.0f, 0.0f };
+    Board(void);
+    ~Board(void);
 
-	// コンストラクタ
-	Board(void);
-	// デストラクタ
-	virtual ~Board(void);
-	virtual void Init(void) override;
-	virtual void Update(void) override;
-	virtual void Draw(void) override;
+    void Init(void);
 
-	void SetPosition(const VECTOR& pos);
+    bool CanMove(int x, int y, int dx, int dy);
+    bool IsOccupied(int x, int y, Player players[2]);
+
+    bool PlaceWall(int x, int y, bool isVertical, Player players[2]);
+    bool CanReachGoal(Player& p, int goalY, Player players[2]);
 
 private:
 
-	// 描画用変数
-
-
+    bool verticalWalls_[BOARD_SIZE - 1][BOARD_SIZE];
+    bool horizontalWalls_[BOARD_SIZE][BOARD_SIZE - 1];
 };
+

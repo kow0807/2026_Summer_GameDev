@@ -1,7 +1,9 @@
 #pragma once
 #include <memory>
 #include "GameBase.h"
+#include "../../Object/Actor/Quoridor/QuoridorPlayer.h"
 
+class Desk;
 class Board;
 
 class Quoridor : public GameBase
@@ -25,14 +27,6 @@ public:
 
 private:
 
-	struct Player
-	{
-		// プレイヤーの位置
-		int x_, y_;
-
-		unsigned int color_;
-	};
-	
 	// プレイヤー
 	Player players_[2];
 
@@ -52,14 +46,23 @@ private:
 	// 座標変換
 	VECTOR GetWorldPos(int x, int y);
 
+	// 壁用
+	VECTOR GetCellCenter(int x, int y);
 
 	// 描画関連
 	void DrawBoard(void);
 	void DrawPlayers(void);
+	void DrawWall(void);
 
 	// デバック用
 	void DrawBox3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
 
+	// デスク(テーブル代わり)
+	std::unique_ptr<Desk> desk_;
+
+	// ボード
 	std::unique_ptr<Board> board_;
+
+
 };
 

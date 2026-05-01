@@ -1,10 +1,11 @@
-#include <DxLib.h>
-#include "../../../Manager/ResourceManager.h"
-#include "../../../Renderer/ModelMaterial.h"
-#include "../../../Renderer/ModelRenderer.h"
+#include <queue>
+#include <cstring>
 #include "Board.h"
 
 Board::Board(void)
+    :
+    verticalWalls_(false),
+    horizontalWalls_(false)
 {
 }
 
@@ -12,34 +13,108 @@ Board::~Board(void)
 {
 }
 
-void Board::Init(void)
+void Board::Init()
 {
-	transform_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::BOARD));
-	InitModel(DEFAULT_POSITION, DEFAULT_SCALE, DEFAULT_ROTATION);
-	transform_.Update();
-
-	// モデル描画用の初期化
-	mMaterial_ = std::make_unique<ModelMaterial>("WoodBoard_VS.cso", 0, "WoodBoard_PS.cso", 0);
-	mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE).handleId_);
-
-	mRenderer_ = std::make_unique<ModelRenderer>(transform_.modelId, *mMaterial_);
-
-	//// デバッグ用
-	//printfDx("VS: %d\n", mMaterial_->GetShaderVS());
-	//printfDx("PS: %d\n", mMaterial_->GetShaderPS());
+    memset(verticalWalls_, 0, sizeof(verticalWalls_));
+    memset(horizontalWalls_, 0, sizeof(horizontalWalls_));
 }
 
-void Board::Update(void)
+bool Board::CanMove(int x, int y, int dx, int dy)
 {
-	transform_.Update();
+    int nx = x + dx;
+    int ny = y + dy;
+
+    if (nx < 0 || nx >= BOARD_SIZE ||
+        ny < 0 || ny >= BOARD_SIZE)
+        return false;
+
+    if (dx == 1 && verticalWalls_[x][y]) return false;
+    if (dx == -1 && verticalWalls_[x - 1][y]) return false;
+    if (dy == 1 && horizontalWalls_[x][y]) return false;
+    if (dy == -1 && horizontalWalls_[x][y - 1]) return false;
+
+    return true;
 }
 
-void Board::Draw(void)
+bool Board::IsOccupied(int x, int y, Player players[2])
 {
-	mRenderer_->Draw();
+    for (int i = 0; i < 2; i++)
+    {
+        if (players[i].x_ == x && players[i].y_ == y)
+            return true;
+    }
+    return false;
 }
 
-void Board::SetPosition(const VECTOR& pos)
+bool Board::CanReachGoal(Player& p, int goalY, Player players[2])
 {
-	transform_.pos = pos;
+    bool visited[BOARD_SIZE][BOARD_SIZE] = {};
+
+    std::queue<std::pair<int, int>> q;
+    q.push({ p.x_, p.y_ });
+    visited[p.x_][p.y_] = true;
+
+    int dx[4] = { 1,-1,0,0 };
+    int dy[4] = { 0,0,1,-1 };
+
+    while (!q.empty())
+    {
+        auto [x, y] = q.front(); q.pop();
+
+        if (y == goalY) return true;
+
+        for (int i = 0; i < 4; i++)
+        {
+            int nx = x + dx[i];
+            int ny = y + dy[i];
+
+            if (nx < 0 || nx >= BOARD_SIZE ||
+                ny < 0 || ny >= BOARD_SIZE)
+                continue;
+
+            if (visited[nx][ny]) continue;
+            if (!CanMove(x, y, dx[i], dy[i])) continue;
+
+            visited[nx][ny] = true;
+            q.push({ nx, ny });
+        }
+    }
+
+    return false;
+}
+
+bool Board::PlaceWall(int x, int y, bool isVertical, Player players[2])
+{
+    // 仮置き
+    if (isVertical)
+    {
+        if (x < 0 || x >= BOARD_SIZE - 1 || y < 0 || y >= BOARD_SIZE)
+            return false;
+
+        if (verticalWalls_[x][y]) return false;
+        verticalWalls_[x][y] = true;
+    }
+    else
+    {
+        if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE - 1)
+            return false;
+
+        if (horizontalWalls_[x][y]) return false;
+        horizontalWalls_[x][y] = true;
+    }
+
+    // BFSチェック
+    if (!CanReachGoal(players[0], BOARD_SIZE - 1, players) ||
+        !CanReachGoal(players[1], 0, players))
+    {
+        // 戻す
+        if (isVertical)
+            verticalWalls_[x][y] = false;
+        else
+            horizontalWalls_[x][y] = false;
+
+        return false;
+    }
+
+    return true;
 }

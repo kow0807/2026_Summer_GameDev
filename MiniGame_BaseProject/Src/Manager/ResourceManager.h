@@ -13,7 +13,8 @@ public:
 	enum class SRC
 	{
 		BOARD,			// ボード
-		WOOD_BOARD_TEXTURE,
+		WOOD_BOARD_TEXTURE,		// 木のボードのテクスチャ
+		WOOD_BOARD_TEXTURE_N,	// 木のボードのテクスチャ(ノーマルマップ)
 	};
 
 	// 明示的にインステンスを生成する

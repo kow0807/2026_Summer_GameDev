@@ -46,6 +46,7 @@ void Application::Init(void)
 
 	// DxLibの初期化
 	SetUseDirect3DVersion(DX_DIRECT3D_11);
+	SetFullSceneAntiAliasingMode(4, 0);
 	isInitFail_ = false;
 	if (DxLib_Init() == -1)
 	{
@@ -66,6 +67,7 @@ void Application::Init(void)
 	// シーン管理初期化
 	SceneManager::CreateInstance();
 
+	// ライティングの初期化
 	SetUseLighting(true);
 	SetLightDirection(VGet(0.0f, -1.0f, 0.0f));
 	SetLightEnable(true);

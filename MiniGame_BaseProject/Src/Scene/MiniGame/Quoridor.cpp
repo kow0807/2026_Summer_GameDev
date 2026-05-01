@@ -1,15 +1,17 @@
+#include <queue>
 #include <DxLib.h>
 #include "../../Manager/ResourceManager.h"
 #include "../../Manager/InputManager.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Setting.h"
+#include "../../Object/Actor/Quoridor/Desk.h"
 #include "../../Object/Actor/Quoridor/Board.h"
 #include "Quoridor.h"
 
 Quoridor::Quoridor(void)
 {
-	players_[0] = { 4, 0, GetColor(255, 0, 0) };
-	players_[1] = { 4, 8, GetColor(0, 0, 255) };
+	players_[0] = { 4, 0, GetColor(255, 0, 0), 0, 1 ,1,0 };
+	players_[1] = { 4, 8, GetColor(0, 0, 255), 0, -1 ,-1,0 };
 
 	currentTurn_ = 0;
 }
@@ -24,6 +26,10 @@ void Quoridor::Init(void)
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
 	SceneManager::GetInstance().GetCamera()->ChangeGameTypeCamera(Camera::GAME_TYPE::QUORIDOR);
 
+	desk_ = std::make_unique<Desk>();
+	desk_->Init();
+	desk_->SetPosition({50.0f, -50.0f, 230.0f});
+
 	board_ = std::make_unique<Board>();
 	board_->Init();
 }
@@ -31,25 +37,75 @@ void Quoridor::Init(void)
 void Quoridor::Update(void)
 {
 
-	board_->Update();
-
+	desk_->Update();
 
 	//-----------------------------------------------------------
-	Player& player = players_[currentTurn_];	
+	Player& player = players_[currentTurn_];
 
 	// 入力関連
 	auto& ins = InputManager::GetInstance();
 
-	if (ins.IsTrgUp(KEY_INPUT_UP)) player.y_--;
-	if (ins.IsTrgUp(KEY_INPUT_DOWN)) player.y_++;
-	if (ins.IsTrgUp(KEY_INPUT_LEFT)) player.x_--;
-	if (ins.IsTrgUp(KEY_INPUT_RIGHT)) player.x_++;
+	// 移動方向
+	int DirX = 0;
+	int DirY = 0;
+
+	if (ins.IsTrgUp(KEY_INPUT_UP)) DirY += player.forwardDirY_;
+	if (ins.IsTrgUp(KEY_INPUT_DOWN)) DirY -= player.forwardDirY_;
+	if (ins.IsTrgUp(KEY_INPUT_LEFT)) DirX -= player.rightDirX_;
+	if (ins.IsTrgUp(KEY_INPUT_RIGHT)) DirX += player.rightDirX_;
+
+	// 相手プレイヤー取得
+	Player& enemy = players_[(currentTurn_ + 1) % 2];
+
+	if (DirX != 0 ||
+		DirY != 0)
+	{
+		// ジャンプ判定
+		int nextX = player.x_ + DirX;
+		int nextY = player.y_ + DirY;
+
+		// 壁確認
+		if (!board_->CanMove(player.x_, player.y_, DirX, DirY))
+		{
+			return;
+		}
+
+		// 隣に敵がいるか
+		if (nextX == enemy.x_ &&
+			nextY == enemy.y_)
+		{
+			if (board_->CanMove(nextX, nextY, DirX, DirY))
+			{
+				// 敵のさらに先の位置
+				player.x_ = player.x_ + DirX * 2;
+				player.y_ = player.y_ + DirY * 2;
+			}
+		}
+		else
+		{
+			// 通常移動
+			player.x_ = nextX;
+			player.y_ = nextY;
+		}
+
+	}
+
+	// 設置確認
+	if (ins.IsTrgUp(KEY_INPUT_1))
+	{
+		board_->PlaceWall(player.x_, player.y_, true, players_);
+	}
+	if(ins.IsTrgUp(KEY_INPUT_2))
+	{
+		board_->PlaceWall(player.x_, player.y_, false, players_);
+	}
 
 	// 範囲制限
 	if (player.x_ < 0) player.x_ = 0;
 	if (player.x_ >= BOARD_SIZE) player.x_ = BOARD_SIZE - 1;
 	if (player.y_ < 0) player.y_ = 0;
 	if (player.y_ >= BOARD_SIZE) player.y_ = BOARD_SIZE - 1;
+
 
 	if(ins.IsTrgUp(KEY_INPUT_RETURN))
 	{
@@ -63,9 +119,10 @@ void Quoridor::Update(void)
 void Quoridor::Draw(void)
 {
 
-	board_->Draw();
+	desk_->Draw();
 	DrawBoard();
 	DrawPlayers();
+	DrawWall();
 }
 
 void Quoridor::DrawUI(void)
@@ -84,6 +141,11 @@ void Quoridor::Reset(void)
 VECTOR Quoridor::GetWorldPos(int x, int y)
 {
 	return VECTOR(x * CELL_SIZE, 0.0f, y * CELL_SIZE);
+}
+
+VECTOR Quoridor::GetCellCenter(int x, int y)
+{
+	return VGet(x * CELL_SIZE, 0.0f, y * CELL_SIZE);
 }
 
 void Quoridor::DrawBoard(void)
@@ -124,6 +186,21 @@ void Quoridor::DrawPlayers(void)
 			true
 		);
 	}
+}
+
+void Quoridor::DrawWall(void)
+{
+	int x, y;
+	x = 0;
+	y = 0;
+
+	// 縦壁
+	VECTOR vPos = VAdd(
+		GetCellCenter(x, y), 
+		VGet(CELL_SIZE / 2.0f, 0, 0));
+
+	// 横壁
+	VECTOR hPos=VAdd(GetCellCenter(x,y), VGet(0, 0, CELL_SIZE / 2.0f));
 }
 
 void Quoridor::DrawBox3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag)
