@@ -1,5 +1,9 @@
 #pragma once
+#include <vector>
+#include <memory>
 #include "QuoridorPlayer.h"
+
+class Wall;
 
 class Board
 {
@@ -21,9 +25,19 @@ public:
     bool PlaceWall(int x, int y, bool isVertical, Player players[2]);
     bool CanReachGoal(Player& p, int goalY, Player players[2]);
 
+	void DrawWalls(void);
+
+    bool CanPlaceWall(int x, int y, bool isVertical);
+
 private:
 
     bool verticalWalls_[BOARD_SIZE - 1][BOARD_SIZE];
     bool horizontalWalls_[BOARD_SIZE][BOARD_SIZE - 1];
+
+    std::vector<std::unique_ptr<Wall>> walls_;
+
+    // デバック用
+    void DrawBox3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
+	void DrawCube3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
 };
 

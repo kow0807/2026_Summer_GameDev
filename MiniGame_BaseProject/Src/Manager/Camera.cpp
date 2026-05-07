@@ -687,9 +687,10 @@ void Camera::SetBeforeDrawQuoridor(void)
 	// ƒJƒƒ‰ˆÊ’u
 	pos_ = VGet(
 		center + 60.0f,
-		300.0f,
+		400.0f,
 		center - 80.0f
 	);
+
 
 	// ’‹“_ (”Õ–Ê’†‰›)
 	targetPos_ = VGet(center, 0.0f, center);

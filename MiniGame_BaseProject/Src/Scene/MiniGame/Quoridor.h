@@ -5,6 +5,7 @@
 
 class Desk;
 class Board;
+class Wall;
 
 class Quoridor : public GameBase
 {
@@ -16,6 +17,13 @@ public:
 	const static int MAX_WALLS = 20; // 壁の最大数
 	constexpr static float CELL_SIZE = 50.0f; // セルのサイズ
 
+	enum class MODE
+	{
+		NONE,
+		MOVE,
+		WALL
+	};
+
 	Quoridor(void);
 	~Quoridor(void);
 
@@ -26,6 +34,9 @@ public:
 	void Reset(void) override;
 
 private:
+
+	// プレイヤーモード
+	MODE mode_;
 
 	// プレイヤー
 	Player players_[2];
@@ -43,6 +54,15 @@ private:
 	// プレイヤーのターン
 	int currentTurn_;
 
+	// プレイヤーターンフラグ
+	bool isChageTurn_;
+
+	// 壁カーソル
+	int wallCursorX_;
+	int wallCursorY_;
+
+	bool wallVertical_;
+
 	// 座標変換
 	VECTOR GetWorldPos(int x, int y);
 
@@ -53,9 +73,14 @@ private:
 	void DrawBoard(void);
 	void DrawPlayers(void);
 	void DrawWall(void);
+	void DrawWallCursor(void);
+
+	VECTOR MakeMin(VECTOR a, VECTOR b);
+	VECTOR MakeMax(VECTOR a, VECTOR b);
 
 	// デバック用
 	void DrawBox3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
+	void DrawCube3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
 
 	// デスク(テーブル代わり)
 	std::unique_ptr<Desk> desk_;
@@ -63,6 +88,13 @@ private:
 	// ボード
 	std::unique_ptr<Board> board_;
 
+	// プレビュー用
+	std::unique_ptr<Wall> previewWall_;
+
+	// 壁サイズ
+	float wallLength_ = CELL_SIZE * 2.0f;
+	float thickness_ = 5.0f;
+	float height_ = 20.0f;
 
 };
 

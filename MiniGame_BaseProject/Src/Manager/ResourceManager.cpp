@@ -45,6 +45,19 @@ void ResourceManager::Init(void)
 	// 板のテクスチャ(ノーマルマップ)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_MDL + "Board/texture/WoodFloor_4K_N.jpg");
 	resourcesMap_.emplace(SRC::WOOD_BOARD_TEXTURE_N, res);
+
+	// 木の壁
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Wall/Wall.mv1");
+	resourcesMap_.emplace(SRC::WOOD_WALL, res);
+
+	// 木の壁のテクスチャ
+	res = std::make_shared<RES>(RES_T::IMG, PATH_MDL + "Wall/texture/WoodWall_Color.jpg");
+	resourcesMap_.emplace(SRC::WOOD_WALL_TEXTURE, res);
+
+	// 木の壁のテクスチャ（ノーマルマップ)
+	res = std::make_shared<RES>(RES_T::IMG, PATH_MDL + "Wall/texture/WoodWall_4K_NormalDX.jpg");
+	resourcesMap_.emplace(SRC::WOOD_WALL_TEXTURE_N, res);
+
 }
 
 void ResourceManager::Release(void)

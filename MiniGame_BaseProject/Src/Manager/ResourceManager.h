@@ -15,6 +15,9 @@ public:
 		BOARD,			// ボード
 		WOOD_BOARD_TEXTURE,		// 木のボードのテクスチャ
 		WOOD_BOARD_TEXTURE_N,	// 木のボードのテクスチャ(ノーマルマップ)
+		WOOD_WALL,		// 木の壁
+		WOOD_WALL_TEXTURE,		// 木の壁のテクスチャ
+		WOOD_WALL_TEXTURE_N		// 木の壁のテクスチャ(ノーマルマップ)
 	};
 
 	// 明示的にインステンスを生成する

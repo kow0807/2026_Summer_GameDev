@@ -54,6 +54,7 @@
     <ClCompile Include="Src\Scene\TitleScene.cpp" />
     <ClCompile Include="Src\Utility\AsoUtility.cpp" />
     <ClCompile Include="Src\Renderer\VertexMaterial.cpp" />
+    <ClCompile Include="Src\Object\Actor\Quoridor\Wall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Object\Actor\Quoridor\QuoridorPlayer.h" />
@@ -91,6 +92,7 @@
     <ClInclude Include="Src\Scene\TitleScene.h" />
     <ClInclude Include="Src\Utility\AsoUtility.h" />
     <ClInclude Include="Src\Renderer\VertexMaterial.h" />
+    <ClInclude Include="Src\Object\Actor\Quoridor\Wall.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Shader\Common\Pixel\PixelShader2DHeader.hlsli" />
