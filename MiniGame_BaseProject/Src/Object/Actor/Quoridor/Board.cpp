@@ -1,6 +1,8 @@
 #include <queue>
 #include <cstring>
 #include <DxLib.h>
+#include "BoardBase.h"
+#include "Grid.h"
 #include "Wall.h"
 #include "Board.h"
 
@@ -19,9 +21,42 @@ void Board::Init()
 {
     memset(verticalWalls_, 0, sizeof(verticalWalls_));
     memset(horizontalWalls_, 0, sizeof(horizontalWalls_));
+    
+	boardBase_ = std::make_unique<BoardBase>();
+	boardBase_->Init();
+
+    for (int y = 0; y < BOARD_SIZE; y++)
+    {
+        for (int x = 0; x < BOARD_SIZE; x++)
+        {
+            auto grid = std::make_unique<Grid>();
+
+            grid->Init();
+            grid->SetBoardPosition(x, y);
+
+            grids_.push_back(std::move(grid));
+        }
+    }
+
+    walls_.clear();
 }
 
-bool Board::CanMove(int x, int y, int dx, int dy)
+void Board::Draw(void)
+{
+    boardBase_->Draw();
+
+    for (auto& grid : grids_)
+    {
+        grid->Draw();
+    }
+
+    DrawWalls();
+}
+
+// ---------------------------------------------------------------------------
+// 移動可否
+// ---------------------------------------------------------------------------
+bool Board::CanMove(int x, int y, int dx, int dy) const
 {
     int nx = x + dx;
     int ny = y + dy;
@@ -30,15 +65,21 @@ bool Board::CanMove(int x, int y, int dx, int dy)
         ny < 0 || ny >= BOARD_SIZE)
         return false;
 
+    // dx=+1 : x と x+1 の間の縦壁
     if (dx == 1 && verticalWalls_[x][y]) return false;
     if (dx == -1 && verticalWalls_[x - 1][y]) return false;
+
+    // dy=+1 : y と y+1 の間の横壁
     if (dy == 1 && horizontalWalls_[x][y]) return false;
     if (dy == -1 && horizontalWalls_[x][y - 1]) return false;
 
     return true;
 }
 
-bool Board::IsOccupied(int x, int y, Player players[2])
+// ---------------------------------------------------------------------------
+// 占有チェック
+// ---------------------------------------------------------------------------
+bool Board::IsOccupied(int x, int y, const Player players[2]) const
 {
     for (int i = 0; i < 2; i++)
     {
@@ -48,7 +89,10 @@ bool Board::IsOccupied(int x, int y, Player players[2])
     return false;
 }
 
-bool Board::CanReachGoal(Player& p, int goalY, Player players[2])
+// ---------------------------------------------------------------------------
+// BFS ゴール到達確認
+// ---------------------------------------------------------------------------
+bool Board::CanReachGoal(const Player& p, int goalY, const Player players[2]) const
 {
     bool visited[BOARD_SIZE][BOARD_SIZE] = {};
 
@@ -56,8 +100,8 @@ bool Board::CanReachGoal(Player& p, int goalY, Player players[2])
     q.push({ p.x_, p.y_ });
     visited[p.x_][p.y_] = true;
 
-    int dx[4] = { 1,-1,0,0 };
-    int dy[4] = { 0,0,1,-1 };
+    const int dx[4] = { 1,-1, 0, 0 };
+    const int dy[4] = { 0, 0, 1,-1 };
 
     while (!q.empty())
     {
@@ -85,227 +129,184 @@ bool Board::CanReachGoal(Player& p, int goalY, Player players[2])
     return false;
 }
 
-void Board::DrawWalls(void)
+// ---------------------------------------------------------------------------
+// 移動先候補（1方向分）
+// ---------------------------------------------------------------------------
+std::vector<std::pair<int, int>> Board::GetMoveCandidates(
+    int x, int y,
+    int dx, int dy,
+    const Player players[2]) const
 {
-    SetUseBackCulling(FALSE);
+    std::vector<std::pair<int, int>> result;
 
- //   constexpr float WALL_THICKNESS = 10.0f;
- //   constexpr float WALL_HEIGHT = 40.0f;
-	//constexpr float WALL_MARGIN = 15.0f;
+    // 壁・盤外チェック
+    if (!CanMove(x, y, dx, dy)) return result;
 
- //   for (int y = 0; y < BOARD_SIZE; y++)
- //   {
- //       for (int x = 0; x < BOARD_SIZE; x++)
- //       {
- //           //----------------------------------------
- //           // 縦壁
+    int nx = x + dx;
+    int ny = y + dy;
 
- //           if (x < BOARD_SIZE - 1 &&
- //               y < BOARD_SIZE - 1 &&
- //               verticalWalls_[x][y])
- //           {
- //               // 重複描画防止
- //               if (y > 0 &&
- //                   verticalWalls_[x][y - 1])
- //               {
- //                   continue;
- //               }
-
- //               VECTOR pos = VAdd(
- //                   VGet(
- //                       x * CELL_SIZE,
- //                       0,
- //                       y * CELL_SIZE
- //                   ),
- //                   VGet(
- //                       CELL_SIZE / 2,
- //                       0,
- //                       CELL_SIZE / 2
- //                   )
- //               );
-
- //               VECTOR min = VAdd(
- //                   pos,
- //                   VGet(
- //                       -WALL_THICKNESS,
- //                       0,
- //                       -CELL_SIZE + WALL_MARGIN
- //                   )
- //               );
-
- //               VECTOR max = VAdd(
- //                   pos,
- //                   VGet(
- //                       WALL_THICKNESS,
- //                       WALL_HEIGHT,
- //                       CELL_SIZE - WALL_MARGIN
- //                   )
- //               );
-
- //               DrawCube3D(
- //                   min,
- //                   max,
- //                   GetColor(30, 30, 30),
- //                   TRUE
- //               );
- //           }
-
- //           //----------------------------------------
- //           // 横壁
-
- //           if (x < BOARD_SIZE - 1 &&
- //               y < BOARD_SIZE - 1 &&
- //               horizontalWalls_[x][y])
- //           {
- //               // 重複描画防止
- //               if (x > 0 &&
- //                   horizontalWalls_[x - 1][y])
- //               {
- //                   continue;
- //               }
-
- //               VECTOR pos = VAdd(
- //                   VGet(
- //                       x * CELL_SIZE,
- //                       0,
- //                       y * CELL_SIZE
- //                   ),
- //                   VGet(
- //                       CELL_SIZE / 2,
- //                       0,
- //                       CELL_SIZE / 2
- //                   )
- //               );
-
- //               VECTOR min = VAdd(
- //                   pos,
- //                   VGet(
- //                       -CELL_SIZE + WALL_MARGIN,
- //                       0,
- //                       -WALL_THICKNESS
- //                   )
- //               );
-
- //               VECTOR max = VAdd(
- //                   pos,
- //                   VGet(
- //                       CELL_SIZE - WALL_MARGIN,
- //                       WALL_HEIGHT,
- //                       WALL_THICKNESS
- //                   )
- //               );
-
- //               DrawCube3D(
- //                   min,
- //                   max,
- //                   GetColor(30, 30, 30),
- //                   TRUE
- //               );
- //           }
- //       }
- //   }
-
-    for (auto& wall : walls_)
+    // 隣に相手がいるか判定
+    bool enemyThere = false;
+    for (int i = 0; i < 2; i++)
     {
-        wall->Draw();
+        if (players[i].x_ == nx && players[i].y_ == ny)
+        {
+            enemyThere = true;
+            break;
+        }
     }
 
-    SetUseBackCulling(TRUE);
-}
-
-bool Board::CanPlaceWall(int x, int y, bool isVertical)
-{
-    //----------------------------------------
-    // 縦壁
-    if (isVertical)
+    if (!enemyThere)
     {
-        // 範囲
-        if (x < 0 ||
-            x >= BOARD_SIZE - 1 ||
-            y < 0 ||
-            y >= BOARD_SIZE - 1)
-        {
-            return false;
-        }
-
-        //----------------------------------------
-        // 重複禁止
-
-        if (verticalWalls_[x][y] ||
-            verticalWalls_[x][y + 1])
-        {
-            return false;
-        }
-
-        //----------------------------------------
-        // 交差禁止
-
-        if (horizontalWalls_[x][y] &&
-            horizontalWalls_[x + 1][y])
-        {
-            return false;
-        }
+        // 通常移動
+        result.push_back({ nx, ny });
+        return result;
     }
-    //----------------------------------------
-    // 横壁
+
+    // 相手がいる場合:
+    // 直進できるか？
+    if (CanMove(nx, ny, dx, dy))
+    {
+        // 2マス跳び
+        result.push_back({ nx + dx, ny + dy });
+    }
     else
     {
-        if (x < 0 ||
-            x >= BOARD_SIZE - 1 ||
-            y < 0 ||
-            y >= BOARD_SIZE - 1)
+        // 直進不可（壁 or 盤外）→ 左右斜めジャンプ
+        // 左右 = 直進方向を90度回転した2方向
+        const int sideDir[2][2] = { {-dy, dx}, {dy, -dx} };
+
+        for (int s = 0; s < 2; s++)
         {
-            return false;
+            int sx = sideDir[s][0];
+            int sy = sideDir[s][1];
+
+            if (CanMove(nx, ny, sx, sy))
+            {
+                result.push_back({ nx + sx, ny + sy });
+            }
         }
+    }
 
-        //----------------------------------------
+    return result;
+}
+
+// ---------------------------------------------------------------------------
+// 全方向の移動先候補
+// ---------------------------------------------------------------------------
+std::vector<std::pair<int, int>> Board::GetAllMoveCandidates(
+    const Player& player,
+    const Player players[2]) const
+{
+    std::vector<std::pair<int, int>> result;
+
+    const int dx[4] = { 1,-1, 0, 0 };
+    const int dy[4] = { 0, 0, 1,-1 };
+
+    for (int i = 0; i < 4; i++)
+    {
+        auto cands = GetMoveCandidates(
+            player.x_, player.y_,
+            dx[i], dy[i],
+            players
+        );
+        for (auto& c : cands)
+            result.push_back(c);
+    }
+
+    return result;
+}
+
+// ---------------------------------------------------------------------------
+// 勝利判定
+// ---------------------------------------------------------------------------
+int Board::CheckWinner(const Player players[2]) const
+{
+    // プレイヤー0: 上(y=0)からスタート → y==BOARD_SIZE-1 で勝利
+    if (players[0].y_ == BOARD_SIZE - 1) return 0;
+    // プレイヤー1: 下(y=8)からスタート → y==0 で勝利
+    if (players[1].y_ == 0)              return 1;
+    return -1;
+}
+
+// ---------------------------------------------------------------------------
+// 壁設置可否プレビュー
+// ---------------------------------------------------------------------------
+bool Board::CanPlaceWall(int x, int y, bool isVertical) const
+{
+    if (isVertical)
+    {
+        // 縦壁: x: 0..7, y: 0..7
+        if (x < 0 || x >= BOARD_SIZE - 1 ||
+            y < 0 || y >= BOARD_SIZE - 1)
+            return false;
+
+        // 重複禁止（2マス分）
+        if (verticalWalls_[x][y] ||
+            verticalWalls_[x][y + 1])
+            return false;
+
+        // 交差禁止
+        if (horizontalWalls_[x][y] &&
+            horizontalWalls_[x + 1][y])
+            return false;
+    }
+    else
+    {
+        // 横壁: x: 0..7, y: 0..7
+        if (x < 0 || x >= BOARD_SIZE - 1 ||
+            y < 0 || y >= BOARD_SIZE - 1)
+            return false;
+
         // 重複禁止
-
         if (horizontalWalls_[x][y] ||
             horizontalWalls_[x + 1][y])
-        {
             return false;
-        }
 
-        //----------------------------------------
         // 交差禁止
-
         if (verticalWalls_[x][y] &&
             verticalWalls_[x][y + 1])
-        {
             return false;
-        }
     }
 
     return true;
 }
 
+// ---------------------------------------------------------------------------
+// 壁設置（BFSチェック付き）
+// 失敗時は状態を変えずに false を返す
+// ---------------------------------------------------------------------------
 bool Board::PlaceWall(int x, int y, bool isVertical, Player players[2])
 {
+    // --- 設置プレビュー判定 ---
+    if (!CanPlaceWall(x, y, isVertical)) return false;
+
+    // --- プレイヤーの壁残数チェック ---
+    int turn = -1;
+    // PlaceWall は Quoridor.cpp 側で currentTurn_ を渡す設計にする
+    // ここでは players[0]/players[1] のどちらが手番かを外から管理しているので
+    // 残数チェックは呼び出し側で行う（Quoridor.cpp 参照）
+
+    // --- 仮設置 ---
     if (isVertical)
     {
         verticalWalls_[x][y] = true;
         verticalWalls_[x][y + 1] = true;
-
-        auto wall = std::make_unique<Wall>();
-        wall->Init();
-        walls_.push_back(std::move(wall));
     }
     else
     {
         horizontalWalls_[x][y] = true;
         horizontalWalls_[x + 1][y] = true;
-
-        auto wall = std::make_unique<Wall>();
-        wall->Init();
-        walls_.push_back(std::move(wall));
     }
 
-    // BFSチェック
-    if (!CanReachGoal(players[0], BOARD_SIZE - 1, players) ||
-        !CanReachGoal(players[1], 0, players))
+    // --- BFSで両プレイヤーの通路確認 ---
+    bool reachable =
+        CanReachGoal(players[0], BOARD_SIZE - 1, players) &&
+        CanReachGoal(players[1], 0, players);
+
+    if (!reachable)
     {
-        // 戻す
+        // 設置を取り消す
         if (isVertical)
         {
             verticalWalls_[x][y] = false;
@@ -316,135 +317,137 @@ bool Board::PlaceWall(int x, int y, bool isVertical, Player players[2])
             horizontalWalls_[x][y] = false;
             horizontalWalls_[x + 1][y] = false;
         }
-
         return false;
     }
+
+    // --- Wallオブジェクト生成 ---
+    auto wall = std::make_unique<Wall>();
+    wall->Init();
+    wall->SetType(isVertical ? Wall::TYPE::VERTICAL : Wall::TYPE::HORIZONTAL);
+    wall->SetBoardPosition(x, y);
+    wall->RefreshTransform();
+    walls_.push_back(std::move(wall));
 
     return true;
 }
 
+// ---------------------------------------------------------------------------
+// 壁描画
+// ---------------------------------------------------------------------------
+void Board::DrawWalls(void)
+{
+    SetUseBackCulling(FALSE);
 
+    for (auto& wall : walls_)
+    {
+        wall->Draw();
+    }
+
+    SetUseBackCulling(TRUE);
+}
+
+// ---------------------------------------------------------------------------
+// デバッグ用描画ユーティリティ（そのまま維持）
+// ---------------------------------------------------------------------------
 void Board::DrawBox3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag)
 {
-
-    // 8頂点
     VECTOR vertexs[8] =
     {
         {min.x,min.y,min.z},
         {max.x,min.y,min.z},
         {max.x,max.y,min.z},
         {min.x,max.y,min.z},
-
         {min.x,min.y,max.z},
         {max.x,min.y,max.z},
         {max.x,max.y,max.z},
         {min.x,max.y,max.z},
     };
 
-    // 面ごとに描画
     auto drawFace = [&](int a, int b, int c, int d)
         {
             DrawTriangle3D(vertexs[a], vertexs[b], vertexs[c], color, fillFlag);
             DrawTriangle3D(vertexs[a], vertexs[c], vertexs[d], color, fillFlag);
         };
 
-    // 前面
     drawFace(0, 1, 2, 3);
-
-    // 背面
     drawFace(4, 5, 6, 7);
-
-    // 左
     drawFace(0, 3, 7, 4);
-
-    // 右
     drawFace(1, 2, 6, 5);
-
-    // 上
     drawFace(3, 2, 6, 7);
-
-    // 下
     drawFace(0, 1, 5, 4);
 }
 
 void Board::DrawCube3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag)
 {
-
-    //----------------------------------------
-    // 頂点
-
     VECTOR v[8] =
     {
-        // 前面
-        VGet(min.x, min.y, min.z), // 0
-        VGet(max.x, min.y, min.z), // 1
-        VGet(max.x, max.y, min.z), // 2
-        VGet(min.x, max.y, min.z), // 3
-
-        // 背面
-        VGet(min.x, min.y, max.z), // 4
-        VGet(max.x, min.y, max.z), // 5
-        VGet(max.x, max.y, max.z), // 6
-        VGet(min.x, max.y, max.z), // 7
+        VGet(min.x, min.y, min.z),
+        VGet(max.x, min.y, min.z),
+        VGet(max.x, max.y, min.z),
+        VGet(min.x, max.y, min.z),
+        VGet(min.x, min.y, max.z),
+        VGet(max.x, min.y, max.z),
+        VGet(max.x, max.y, max.z),
+        VGet(min.x, max.y, max.z),
     };
 
-    //----------------------------------------
-    // 四角形描画関数
-
-    auto DrawQuad =
-        [&](
-            int a,
-            int b,
-            int c,
-            int d
-            )
+    auto DrawQuad = [&](int a, int b, int c, int d)
         {
-            DrawTriangle3D(
-                v[a],
-                v[b],
-                v[c],
-                color,
-                fillFlag
-            );
-
-            DrawTriangle3D(
-                v[a],
-                v[c],
-                v[d],
-                color,
-                fillFlag
-            );
+            DrawTriangle3D(v[a], v[b], v[c], color, fillFlag);
+            DrawTriangle3D(v[a], v[c], v[d], color, fillFlag);
         };
 
-    //----------------------------------------
-    // 前面
-
     DrawQuad(0, 1, 2, 3);
-
-    //----------------------------------------
-    // 背面
-    // 順番逆転
-
     DrawQuad(5, 4, 7, 6);
-
-    //----------------------------------------
-    // 左面
-
     DrawQuad(4, 0, 3, 7);
-
-    //----------------------------------------
-    // 右面
-
     DrawQuad(1, 5, 6, 2);
-
-    //----------------------------------------
-    // 上面
-
     DrawQuad(3, 2, 6, 7);
-
-    //----------------------------------------
-    // 底面
-
     DrawQuad(4, 5, 1, 0);
+}
 
+void Board::DrawDebugCollision(void)
+{
+    constexpr float CELL = 50.0f;
+
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 120);
+
+    for (int y = 0; y < BOARD_SIZE; y++)
+    {
+        for (int x = 0; x < BOARD_SIZE - 1; x++)
+        {
+            if (!verticalWalls_[x][y]) continue;
+
+            VECTOR center = VGet(
+                x * CELL + CELL * 0.5f,
+                5.0f,
+                y * CELL
+            );
+
+            VECTOR min = VAdd(center, VGet(-3.0f, 0.0f, 0.0f));
+            VECTOR max = VAdd(center, VGet(3.0f, 30.0f, CELL));
+
+            DrawCube3D(min, max, GetColor(255, 0, 0), TRUE);
+        }
+    }
+
+    for (int y = 0; y < BOARD_SIZE - 1; y++)
+    {
+        for (int x = 0; x < BOARD_SIZE; x++)
+        {
+            if (!horizontalWalls_[x][y]) continue;
+
+            VECTOR center = VGet(
+                x * CELL,
+                5.0f,
+                y * CELL + CELL * 0.5f
+            );
+
+            VECTOR min = VAdd(center, VGet(0.0f, 0.0f, -3.0f));
+            VECTOR max = VAdd(center, VGet(CELL, 30.0f, 3.0f));
+
+            DrawCube3D(min, max, GetColor(0, 0, 255), TRUE);
+        }
+    }
+
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }

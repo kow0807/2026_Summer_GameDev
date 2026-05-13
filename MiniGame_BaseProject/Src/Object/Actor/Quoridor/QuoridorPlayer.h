@@ -11,4 +11,7 @@ struct Player
 	// プレイヤーの向き
 	int forwardDirX_, forwardDirY_;
 	int rightDirX_, rightDirY_;
+
+	// 残り壁数
+	int remainingWalls_;
 };

@@ -165,6 +165,15 @@
     <ClCompile Include="Src\Object\Actor\Quoridor\Wall.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Object\Actor\Quoridor\BoardBase.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\Quoridor\Grid.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\Quoridor\PlayerPiece.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Common\Fader.h">
@@ -275,6 +284,15 @@
     <ClInclude Include="Src\Object\Actor\Quoridor\Wall.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Object\Actor\Quoridor\BoardBase.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\Quoridor\Grid.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\Quoridor\PlayerPiece.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Shader\Common\Pixel\PixelShader2DHeader.hlsli" />
@@ -286,7 +304,15 @@
     <None Include="Src\Shader\Common\VertexToPixelHeader.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Src\Shader\Model\WoodBoard_VS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\WoodBoard_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Desk_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Desk_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Wall_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Wall_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Piece_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Piece_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Grid_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Grid_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\BoardBase_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\BoardBase_PS.hlsl" />
   </ItemGroup>
 </Project>

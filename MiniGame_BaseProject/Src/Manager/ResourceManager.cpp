@@ -34,30 +34,29 @@ void ResourceManager::Init(void)
 	//res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Title.png");
 	//resourcesMap_.emplace(SRC::TITLE, res);
 
-	// 板
-	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Board/Board.mv1");
-	resourcesMap_.emplace(SRC::BOARD, res);
+	// クオリドールの盤面のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Base/Base.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_BASE, res);
 
-	// 板のテクスチャ
-	res = std::make_shared<RES>(RES_T::IMG, PATH_MDL + "Board/texture/WoodFloor_4K.jpg");
-	resourcesMap_.emplace(SRC::WOOD_BOARD_TEXTURE, res);
+	// クオリドールの机のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Desk/Desk.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_DESK, res);
 
-	// 板のテクスチャ(ノーマルマップ)
-	res = std::make_shared<RES>(RES_T::IMG, PATH_MDL + "Board/texture/WoodFloor_4K_N.jpg");
-	resourcesMap_.emplace(SRC::WOOD_BOARD_TEXTURE_N, res);
+	// クオリドールの盤面の升目のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Grid/Grid.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_GRID, res);
 
-	// 木の壁
-	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Wall/Wall.mv1");
-	resourcesMap_.emplace(SRC::WOOD_WALL, res);
+	// クオリドールの駒のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Piece/Piece.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_PIECE, res);
 
-	// 木の壁のテクスチャ
-	res = std::make_shared<RES>(RES_T::IMG, PATH_MDL + "Wall/texture/WoodWall_Color.jpg");
-	resourcesMap_.emplace(SRC::WOOD_WALL_TEXTURE, res);
+	// クオリドールの矢印のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Triangle/ETriangle.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_TRIANGLE, res);
 
-	// 木の壁のテクスチャ（ノーマルマップ)
-	res = std::make_shared<RES>(RES_T::IMG, PATH_MDL + "Wall/texture/WoodWall_4K_NormalDX.jpg");
-	resourcesMap_.emplace(SRC::WOOD_WALL_TEXTURE_N, res);
-
+	// クオリドールの壁のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Wall/Wall.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_WALL, res);
 }
 
 void ResourceManager::Release(void)

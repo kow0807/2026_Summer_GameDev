@@ -17,19 +17,35 @@ Wall::~Wall(void)
 
 void Wall::Init(void)
 {
-	transform_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::WOOD_WALL));
-
-	UpdateTransform();
+	transform_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::QUORIDOR_WALL));
 
 	// モデル描画用の初期化
 	mMaterial_ = std::make_unique<ModelMaterial>("WoodBoard_VS.cso", 0, "WoodBoard_PS.cso", 0);
 
-	// テクスチャのセット
-	mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE).handleId_);
-	mMaterial_->SetTextureBuf(1, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE_N).handleId_);
+	//// テクスチャのセット
+	//mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE).handleId_);
+	//mMaterial_->SetTextureBuf(1, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE_N).handleId_);
 
 	mRenderer_ = std::make_unique<ModelRenderer>(transform_.modelId, *mMaterial_);
 
+}
+
+void Wall::InitTransform(void)
+{
+	transform_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::QUORIDOR_WALL));
+
+	UpdateTransform();
+
+	// モデル描画用の初期化
+	mMaterial_ = std::make_unique<ModelMaterial>("Wall_VS.cso", 0, "Wall_PS.cso", 1);
+
+	//// テクスチャのセット
+	//mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE).handleId_);
+	//mMaterial_->SetTextureBuf(1, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE_N).handleId_);
+
+	mMaterial_->AddConstBufPS(FLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f });
+
+	mRenderer_ = std::make_unique<ModelRenderer>(transform_.modelId, *mMaterial_);
 }
 
 void Wall::Update(void)
@@ -43,6 +59,8 @@ void Wall::Draw(void)
 
 	SetMaxAnisotropy(16);
 	mRenderer_->Draw();
+	MV1DrawModel(transform_.modelId);
+
 }
 
 int Wall::GetX(void) const
@@ -123,9 +141,9 @@ void Wall::UpdateTransform(void)
 	if (type_ == TYPE::VERTICAL)
 	{
 		transform_.pos = VGet(
-			x_ * CELL_SIZE + CELL_SIZE * 0.5f,
+			(x_ + 1) * CELL_SIZE - CELL_SIZE * 0.5f,
 			0.0f,
-			y_ * CELL_SIZE + CELL_SIZE
+			y_ * CELL_SIZE + CELL_SIZE * 0.5f
 		);
 
 		transform_.quaRotLocal = Quaternion::Euler({ AsoUtility::Deg2RadF(0.0f),
@@ -135,7 +153,7 @@ void Wall::UpdateTransform(void)
 	else
 	{
 		transform_.pos = VGet(
-			x_ * CELL_SIZE + CELL_SIZE,
+			x_ * CELL_SIZE + CELL_SIZE * 0.5f,
 			0.0f,
 			y_ * CELL_SIZE + CELL_SIZE * 0.5f
 		);

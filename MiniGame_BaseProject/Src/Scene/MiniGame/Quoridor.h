@@ -14,7 +14,7 @@ public:
 	// 定数
 	// ----------------------------
 	const static int BOARD_SIZE = 9; // ボードのサイズ
-	const static int MAX_WALLS = 20; // 壁の最大数
+	const static int MAX_WALLS = 10; // 各プレイヤーの壁最大数
 	constexpr static float CELL_SIZE = 50.0f; // セルのサイズ
 
 	enum class MODE
@@ -41,60 +41,49 @@ private:
 	// プレイヤー
 	Player players_[2];
 
-	// 壁の配置を管理するための配列
-	// 縦壁を管理するための配列
-	bool verticalWalls_[BOARD_SIZE - 1][BOARD_SIZE];
-
-	// 横壁を管理するための配列
-	bool horizontalWalls_[BOARD_SIZE][BOARD_SIZE - 1];
-
-	// 上、右、下、左の順で壁の有無を管理
-	bool walls_[BOARD_SIZE][BOARD_SIZE][4];
-
 	// プレイヤーのターン
 	int currentTurn_;
 
 	// プレイヤーターンフラグ
-	bool isChageTurn_;
+	bool isChangeTurn_;
 
 	// 壁カーソル
 	int wallCursorX_;
 	int wallCursorY_;
-
 	bool wallVertical_;
 
-	// 座標変換
-	VECTOR GetWorldPos(int x, int y);
+	// ゲームオーバー
+	bool isGameOver_;
+	int  winner_;
 
-	// 壁用
-	VECTOR GetCellCenter(int x, int y);
+	// 移動先候補（ハイライト用）
+	std::vector<std::pair<int, int>> moveCandidates_;
+
+	// 座標変換
+	VECTOR GetWorldPos(int x, int y) const;
+	VECTOR GetCellCenter(int x, int y) const;
 
 	// 描画関連
 	void DrawBoard(void);
 	void DrawPlayers(void);
 	void DrawWall(void);
-	void DrawWallCursor(void);
+	void DrawMoveCandidates(void);
+	void DrawGameOver(void);
+
+	// ボックス描画ユーティリティ
+	void DrawBox3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
+	void DrawCube3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
 
 	VECTOR MakeMin(VECTOR a, VECTOR b);
 	VECTOR MakeMax(VECTOR a, VECTOR b);
 
-	// デバック用
-	void DrawBox3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
-	void DrawCube3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
+	// 候補リスト更新
+	void RefreshMoveCandidates(void);
+	
+	bool IsBlink(void) const;
 
-	// デスク(テーブル代わり)
+
 	std::unique_ptr<Desk> desk_;
-
-	// ボード
 	std::unique_ptr<Board> board_;
-
-	// プレビュー用
 	std::unique_ptr<Wall> previewWall_;
-
-	// 壁サイズ
-	float wallLength_ = CELL_SIZE * 2.0f;
-	float thickness_ = 5.0f;
-	float height_ = 20.0f;
-
 };
-

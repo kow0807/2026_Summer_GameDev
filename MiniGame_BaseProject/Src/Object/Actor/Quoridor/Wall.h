@@ -21,6 +21,9 @@ public:
 	virtual ~Wall(void);
 	
 	virtual void Init(void) override;
+	
+	void InitTransform(void);
+	
 	virtual void Update(void) override;
 	virtual void Draw(void) override;
 

@@ -590,7 +590,7 @@ void Camera::SetBeforeDrawFree(void)
 		};
 
 		// 注視点を更新(カメラ位置 + 前方方向ベクトル)
-		targetPos_ = VAdd(pos_, VScale(forward, 200.0f));
+		targetPos_ = VAdd(pos_, VScale(forward, 400.0f));
 
 		// 上方向は常にY+
 		cameraUp_ = AsoUtility::DIR_U;
@@ -688,7 +688,7 @@ void Camera::SetBeforeDrawQuoridor(void)
 	pos_ = VGet(
 		center + 60.0f,
 		400.0f,
-		center - 80.0f
+		center - 60.0f
 	);
 
 
@@ -697,4 +697,8 @@ void Camera::SetBeforeDrawQuoridor(void)
 
 	// 上方向
 	cameraUp_ = VGet(0, 0, 1);
+
+
+	angles_ = VGet(AsoUtility::Deg2RadF(90.0f), AsoUtility::Deg2RadF(0.0f), 0.0f);
+	rot_ = angles_;
 }
