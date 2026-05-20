@@ -679,16 +679,16 @@ void Camera::SetBeforeDrawFree(void)
 void Camera::SetBeforeDrawQuoridor(void)
 {
 	// î’ñ Ç…çáÇÌÇπÇÈ
-	const float CELL_SIZE = 50.0f;
+	const float CELL_SIZE = 25.0f;
 	const int BOARD_SIZE = 9;
 
 	float center = (BOARD_SIZE - 1) * CELL_SIZE * 0.5;
 
 	// ÉJÉÅÉâà íu
 	pos_ = VGet(
-		center + 60.0f,
+		center + 30.0f,
 		400.0f,
-		center - 60.0f
+		center - 30.0f
 	);
 
 

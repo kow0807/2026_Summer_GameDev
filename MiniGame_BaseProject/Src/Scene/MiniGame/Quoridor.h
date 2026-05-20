@@ -1,12 +1,15 @@
 #pragma once
 #include <memory>
+#include <string>
 #include "GameBase.h"
 #include "../../Object/Actor/Quoridor/QuoridorPlayer.h"
+#include "../../Object/Actor/Quoridor/PythonAI.h"
 
 class Desk;
 class Board;
 class Wall;
 class PlayerPiece;
+class PythonAI;
 
 class Quoridor : public GameBase
 {
@@ -100,4 +103,16 @@ private:
 	std::unique_ptr<Board> board_;
 	std::unique_ptr<Wall> previewWall_;
 	std::unique_ptr<PlayerPiece> playerPieces_[2];
+	std::unique_ptr<PythonAI> pythonAI_;
+
+	bool isCpuThinking_;
+
+	void ApplyCpuMove(const std::string& json);
+	std::string BuildBoardJson(void) const;
+
+	// プレイヤー・CPUの処理を分離
+	void UpdatePlayer(void);
+	void UpdateCpu(void);
+
+
 };

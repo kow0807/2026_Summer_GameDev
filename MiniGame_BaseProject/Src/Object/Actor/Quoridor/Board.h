@@ -59,6 +59,9 @@ public:
 
     void DrawWalls(void);
 
+    bool GetVerticalWall(int x, int y) const;
+	bool GetHorizontalWall(int x, int y) const;
+
 private:
 
     // verticalWalls_[x][y]: x Ç∆ x+1 ÇÃä‘ÅAçs y Ç…ècï«Ç™Ç†ÇÈÇ©

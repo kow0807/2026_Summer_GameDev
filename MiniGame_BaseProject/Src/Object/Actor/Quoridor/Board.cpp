@@ -348,6 +348,16 @@ void Board::DrawWalls(void)
     SetUseBackCulling(TRUE);
 }
 
+bool Board::GetVerticalWall(int x, int y) const
+{
+    return verticalWalls_[x][y];
+}
+
+bool Board::GetHorizontalWall(int x, int y) const
+{
+    return horizontalWalls_[x][y];
+}
+
 // ---------------------------------------------------------------------------
 // デバッグ用描画ユーティリティ（そのまま維持）
 // ---------------------------------------------------------------------------

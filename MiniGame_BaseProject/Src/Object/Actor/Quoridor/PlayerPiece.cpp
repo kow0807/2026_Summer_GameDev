@@ -9,6 +9,8 @@ PlayerPiece::PlayerPiece(void)
 	r_ = 1.0f;
 	g_ = 1.0f;
 	b_ = 1.0f;
+
+    transform_.scl = DEFAULT_SCALE;
 }
 
 PlayerPiece::~PlayerPiece(void)
@@ -38,7 +40,6 @@ void PlayerPiece::Init(void)
         *mMaterial_
     );
 
-    transform_.scl = VGet(0.35f, 0.35f, 0.35f);
 }
 
 void PlayerPiece::Update(void)
@@ -84,7 +85,6 @@ void PlayerPiece::UpdateTransform(void)
 
     MV1SetPosition(transform_.modelId, transform_.pos);
 
-    transform_.scl = DEFAULT_SCALE;
 
     transform_.Update();
 }
