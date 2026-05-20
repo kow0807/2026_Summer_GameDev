@@ -34,7 +34,6 @@ void ResourceManager::Init(void)
 	//res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Title.png");
 	//resourcesMap_.emplace(SRC::TITLE, res);
 
-<<<<<<< HEAD
 	// 背景
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Back.png");
 	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_BACK, res);
@@ -90,7 +89,7 @@ void ResourceManager::Init(void)
 	// 板
 	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Board/Board.mv1");
 	resourcesMap_.emplace(SRC::BOARD, res);
-=======
+
 	// クオリドールの盤面のモデル
 	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Base/Base.mv1");
 	resourcesMap_.emplace(SRC::QUORIDOR_BASE, res);
@@ -118,7 +117,6 @@ void ResourceManager::Init(void)
 	// クオリドールの白いテクスチャ
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Quoridor/Texture/White.jpg");
 	resourcesMap_.emplace(SRC::QUORIDOR_TEXTURE_WHITE, res);
->>>>>>> 0395a951e9b6f76a249fc07daaf6a051f0b11adf
 }
 
 void ResourceManager::Release(void)
