@@ -27,6 +27,21 @@ private:
 
 	GameState gameState_;
 
+	// 背景
+	int backImg_;
+	int backUIImg_;
+	int readyUIImg_;
+	int pressUIImg_;
+	int winUIImg_;
+	int loseUIImg_;
+	int countUIImg_;
+	int winCountUIImg_;
+	int countUI2Img_;
+	int loseCountUIImg_;
+	int pointUIImg_;
+	int lostUIImg_;
+	int playerTimeUIImg_;
+
 	// フレームカウント
 	int timer_;
 
@@ -44,5 +59,17 @@ private:
 
 	// CPUが押したかどうか
 	bool cpuPressed_;
+
+	int round_;
+	int playerWin_;
+	int cpuWin_;
+
+	int readyAlpha_;
+	bool isFlash_;
+
+	void ResetRound(void);
+	void DrawFadeReady(void);
+	void DrawCountUI(void);
+	void Flash(void);
 };
 

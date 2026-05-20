@@ -12,7 +12,20 @@ public:
 	// リソース名
 	enum class SRC
 	{
-		BOARD,			// ボード
+		FIRST_PRESS_GAME_BACK,				// 背景
+		FIRST_PRESS_GAME_BACK_UI,			// 背景UI
+		FIRST_PRESS_GAME_READY_UI,			// 準備UI
+		FIRST_PRESS_GAME_PRESS_UI,			// 押せ！UI
+		FIRST_PRESS_GAME_WIN_UI,			// 勝利UI
+		FIRST_PRESS_GAME_LOSE_UI,			// 敗北UI
+		FIRST_PRESS_GAME_COUNT_UI,			// カウントUI
+		FIRST_PRESS_GAME_WIN_COUNT_UI,		// 勝利カウントUI
+		FIRST_PRESS_GAME_COUNT_UI_2,		// カウントUI2
+		FIRST_PRESS_GAME_LOSE_COUNT_UI,		// 敗北カウントUI
+		FIRST_PRESS_GAME_POINT_UI,			// ポイントUI
+		FIRST_PRESS_GAME_LOST_UI,			// ロストUI
+		FIRST_PRESS_GAME_PLAYER_TIME_UI,	// プレイヤー時間UI
+		BOARD,								// ボード
 	};
 
 	// 明示的にインステンスを生成する
