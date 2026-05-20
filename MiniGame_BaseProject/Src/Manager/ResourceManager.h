@@ -12,6 +12,7 @@ public:
 	// リソース名
 	enum class SRC
 	{
+<<<<<<< HEAD
 		FIRST_PRESS_GAME_BACK,				// 背景
 		FIRST_PRESS_GAME_BACK_UI,			// 背景UI
 		FIRST_PRESS_GAME_READY_UI,			// 準備UI
@@ -26,6 +27,15 @@ public:
 		FIRST_PRESS_GAME_LOST_UI,			// ロストUI
 		FIRST_PRESS_GAME_PLAYER_TIME_UI,	// プレイヤー時間UI
 		BOARD,								// ボード
+=======
+		QUORIDOR_BASE,
+		QUORIDOR_DESK,
+		QUORIDOR_GRID,
+		QUORIDOR_PIECE,
+		QUORIDOR_TRIANGLE,
+		QUORIDOR_WALL,
+		QUORIDOR_TEXTURE_WHITE
+>>>>>>> 0395a951e9b6f76a249fc07daaf6a051f0b11adf
 	};
 
 	// 明示的にインステンスを生成する

@@ -590,7 +590,7 @@ void Camera::SetBeforeDrawFree(void)
 		};
 
 		// 注視点を更新(カメラ位置 + 前方方向ベクトル)
-		targetPos_ = VAdd(pos_, VScale(forward, 200.0f));
+		targetPos_ = VAdd(pos_, VScale(forward, 400.0f));
 
 		// 上方向は常にY+
 		cameraUp_ = AsoUtility::DIR_U;
@@ -679,21 +679,26 @@ void Camera::SetBeforeDrawFree(void)
 void Camera::SetBeforeDrawQuoridor(void)
 {
 	// 盤面に合わせる
-	const int CELL_SIZE = 50.0f;
+	const float CELL_SIZE = 25.0f;
 	const int BOARD_SIZE = 9;
 
 	float center = (BOARD_SIZE - 1) * CELL_SIZE * 0.5;
 
 	// カメラ位置
 	pos_ = VGet(
-		center + 60.0f,
-		300.0f,
-		center - 80.0f
+		center + 30.0f,
+		400.0f,
+		center - 30.0f
 	);
+
 
 	// 注視点 (盤面中央)
 	targetPos_ = VGet(center, 0.0f, center);
 
 	// 上方向
 	cameraUp_ = VGet(0, 0, 1);
+
+
+	angles_ = VGet(AsoUtility::Deg2RadF(90.0f), AsoUtility::Deg2RadF(0.0f), 0.0f);
+	rot_ = angles_;
 }

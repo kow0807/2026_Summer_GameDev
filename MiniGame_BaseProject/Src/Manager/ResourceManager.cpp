@@ -34,6 +34,7 @@ void ResourceManager::Init(void)
 	//res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Title.png");
 	//resourcesMap_.emplace(SRC::TITLE, res);
 
+<<<<<<< HEAD
 	// 背景
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Back.png");
 	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_BACK, res);
@@ -89,6 +90,35 @@ void ResourceManager::Init(void)
 	// 板
 	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Board/Board.mv1");
 	resourcesMap_.emplace(SRC::BOARD, res);
+=======
+	// クオリドールの盤面のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Base/Base.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_BASE, res);
+
+	// クオリドールの机のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Desk/Desk.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_DESK, res);
+
+	// クオリドールの盤面の升目のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Grid/Grid.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_GRID, res);
+
+	// クオリドールの駒のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Piece/Piece.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_PIECE, res);
+
+	// クオリドールの矢印のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Triangle/ETriangle.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_TRIANGLE, res);
+
+	// クオリドールの壁のモデル
+	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Wall/Wall.mv1");
+	resourcesMap_.emplace(SRC::QUORIDOR_WALL, res);
+
+	// クオリドールの白いテクスチャ
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Quoridor/Texture/White.jpg");
+	resourcesMap_.emplace(SRC::QUORIDOR_TEXTURE_WHITE, res);
+>>>>>>> 0395a951e9b6f76a249fc07daaf6a051f0b11adf
 }
 
 void ResourceManager::Release(void)
