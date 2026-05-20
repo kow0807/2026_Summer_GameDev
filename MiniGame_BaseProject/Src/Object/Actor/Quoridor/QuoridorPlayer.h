@@ -6,7 +6,7 @@ struct Player
 	int x_, y_;
 
 	// 色
-	unsigned int color_;
+	float r_, g_, b_;
 
 	// プレイヤーの向き
 	int forwardDirX_, forwardDirY_;

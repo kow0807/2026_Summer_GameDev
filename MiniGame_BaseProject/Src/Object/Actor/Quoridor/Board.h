@@ -15,7 +15,7 @@ public:
     // ----------------------------
     const static int BOARD_SIZE = 9; // ボードのサイズ
     const static int MAX_WALLS = 10; // 各プレイヤーの壁最大数
-    constexpr static float CELL_SIZE = 50.0f; // セルのサイズ
+    constexpr static float CELL_SIZE = 25.0f; // セルのサイズ
 
     Board(void);
     ~Board(void);

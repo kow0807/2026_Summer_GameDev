@@ -57,6 +57,10 @@ void ResourceManager::Init(void)
 	// クオリドールの壁のモデル
 	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Quoridor/Wall/Wall.mv1");
 	resourcesMap_.emplace(SRC::QUORIDOR_WALL, res);
+
+	// クオリドールの白いテクスチャ
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Quoridor/Texture/White.jpg");
+	resourcesMap_.emplace(SRC::QUORIDOR_TEXTURE_WHITE, res);
 }
 
 void ResourceManager::Release(void)

@@ -24,7 +24,6 @@ float4 main(PS_INPUT PSInput) : SV_TARGET0
     float4 defaultColor = 0;
     defaultColor = diffuseMapTexture.Sample(diffuseMapSampler, uv);
     
-    
     // ノーマルマップから法線を取得
     float3 normalTexture = normalMapTexture.Sample(normalMapSampler, uv).xyz;
     

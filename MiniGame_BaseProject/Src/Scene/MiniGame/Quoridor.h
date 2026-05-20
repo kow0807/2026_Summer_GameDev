@@ -6,6 +6,7 @@
 class Desk;
 class Board;
 class Wall;
+class PlayerPiece;
 
 class Quoridor : public GameBase
 {
@@ -15,7 +16,13 @@ public:
 	// ----------------------------
 	const static int BOARD_SIZE = 9; // ボードのサイズ
 	const static int MAX_WALLS = 10; // 各プレイヤーの壁最大数
-	constexpr static float CELL_SIZE = 50.0f; // セルのサイズ
+
+	enum class GAME_MODE
+	{
+		NONE,
+		CPU,
+		PLAYER
+	};
 
 	enum class MODE
 	{
@@ -34,6 +41,9 @@ public:
 	void Reset(void) override;
 
 private:
+
+	// ゲームモード
+	GAME_MODE gameMode_;
 
 	// プレイヤーモード
 	MODE mode_;
@@ -66,7 +76,7 @@ private:
 	// 描画関連
 	void DrawBoard(void);
 	void DrawPlayers(void);
-	void DrawWall(void);
+	void DrawWallAndGrid(void);
 	void DrawMoveCandidates(void);
 	void DrawGameOver(void);
 
@@ -80,10 +90,14 @@ private:
 	// 候補リスト更新
 	void RefreshMoveCandidates(void);
 	
+	// 点滅判定
 	bool IsBlink(void) const;
 
 
+
+	// 描画用オブジェクト
 	std::unique_ptr<Desk> desk_;
 	std::unique_ptr<Board> board_;
 	std::unique_ptr<Wall> previewWall_;
+	std::unique_ptr<PlayerPiece> playerPieces_[2];
 };

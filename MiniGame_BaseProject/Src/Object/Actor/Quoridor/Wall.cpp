@@ -5,10 +5,15 @@
 #include "../../../Renderer/ModelRenderer.h"
 #include "Wall.h"
 
-constexpr float CELL_SIZE = 50.0f;
-
 Wall::Wall(void)
 {
+	r_ = 1.0f;
+	g_ = 0.70f;
+	b_ = 0.0f;
+	x_ = 0;
+	y_ = 0;
+	type_ = TYPE::VERTICAL;
+	cellSize_ = 0.0f;
 }
 
 Wall::~Wall(void)
@@ -20,11 +25,12 @@ void Wall::Init(void)
 	transform_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::QUORIDOR_WALL));
 
 	// モデル描画用の初期化
-	mMaterial_ = std::make_unique<ModelMaterial>("WoodBoard_VS.cso", 0, "WoodBoard_PS.cso", 0);
+	mMaterial_ = std::make_unique<ModelMaterial>("WoodBoard_VS.cso", 0, "WoodBoard_PS.cso", 1);
 
 	//// テクスチャのセット
-	//mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE).handleId_);
-	//mMaterial_->SetTextureBuf(1, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE_N).handleId_);
+	mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::QUORIDOR_TEXTURE_WHITE).handleId_);
+
+	mMaterial_->AddConstBufPS(FLOAT4{ r_, g_, b_, 1.0f });
 
 	mRenderer_ = std::make_unique<ModelRenderer>(transform_.modelId, *mMaterial_);
 
@@ -39,11 +45,10 @@ void Wall::InitTransform(void)
 	// モデル描画用の初期化
 	mMaterial_ = std::make_unique<ModelMaterial>("Wall_VS.cso", 0, "Wall_PS.cso", 1);
 
-	//// テクスチャのセット
-	//mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE).handleId_);
-	//mMaterial_->SetTextureBuf(1, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE_N).handleId_);
+	// テクスチャのセット
+	mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::QUORIDOR_TEXTURE_WHITE).handleId_);
 
-	mMaterial_->AddConstBufPS(FLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f });
+	mMaterial_->AddConstBufPS(FLOAT4{ r_, g_, b_, 1.0f });
 
 	mRenderer_ = std::make_unique<ModelRenderer>(transform_.modelId, *mMaterial_);
 }
@@ -59,7 +64,6 @@ void Wall::Draw(void)
 
 	SetMaxAnisotropy(16);
 	mRenderer_->Draw();
-	MV1DrawModel(transform_.modelId);
 
 }
 
@@ -80,41 +84,29 @@ Wall::TYPE Wall::GetType(void) const
 
 void Wall::DrawPreview(bool canPlace)
 {
-	// 半透明
-	MV1SetOpacityRate(
-		transform_.modelId,
-		0.5f
-	);
+
+	SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
+
+	SetMaxAnisotropy(16);
+
 
 	// 色変更
 	if (canPlace)
 	{
-		MV1SetDifColorScale(
-			transform_.modelId,
-			GetColorF(0.3f, 1.0f, 0.3f,1.0f)
-		);
+		r_ = 1.0f;
+		g_ = 0.70f;
+		b_ = 0.0f;
 	}
 	else
 	{
-		MV1SetDifColorScale(
-			transform_.modelId,
-			GetColorF(1.0f, 0.3f, 0.3f, 1.0f)
-		);
+		r_ = 1.0f;
+		g_ = 0.0f;
+		b_ = 0.0f;
 	}
 
+	mMaterial_->SetConstBufPS(0, FLOAT4{ r_, g_, b_, 1.0f });
+
 	mRenderer_->Draw();
-
-	// 戻す
-
-	MV1SetOpacityRate(
-		transform_.modelId,
-		1.0f
-	);
-
-	MV1SetDifColorScale(
-		transform_.modelId,
-		GetColorF(1.0f, 1.0f, 1.0f, 1.0f)
-	);
 }
 
 void Wall::SetBoardPosition(int x, int y)
@@ -131,6 +123,12 @@ void Wall::SetType(TYPE type)
 	UpdateTransform();
 }
 
+void Wall::SetCellSize(float cellSize)
+{
+	cellSize_ = cellSize;
+	UpdateTransform();
+}
+
 void Wall::RefreshTransform(void)
 {
 	UpdateTransform();
@@ -141,21 +139,20 @@ void Wall::UpdateTransform(void)
 	if (type_ == TYPE::VERTICAL)
 	{
 		transform_.pos = VGet(
-			(x_ + 1) * CELL_SIZE - CELL_SIZE * 0.5f,
+			(x_ + 1) * cellSize_ - cellSize_ * 0.5f,
 			0.0f,
-			y_ * CELL_SIZE + CELL_SIZE * 0.5f
+			y_ * cellSize_ + cellSize_ * 0.5f
 		);
 
 		transform_.quaRotLocal = Quaternion::Euler({ AsoUtility::Deg2RadF(0.0f),
 						 AsoUtility::Deg2RadF(0.0f),AsoUtility::Deg2RadF(0.0f) });
-
 	}
 	else
 	{
 		transform_.pos = VGet(
-			x_ * CELL_SIZE + CELL_SIZE * 0.5f,
+			x_ * cellSize_ + cellSize_ * 0.5f,
 			0.0f,
-			y_ * CELL_SIZE + CELL_SIZE * 0.5f
+			y_ * cellSize_ + cellSize_ * 0.5f
 		);
 
 		transform_.quaRotLocal = Quaternion::Euler({ AsoUtility::Deg2RadF(0.0f),

@@ -41,6 +41,10 @@ public:
 	// 向き変更
 	void SetType(TYPE type);
 
+	// セルサイズ変更
+	void SetCellSize(float cellSize);
+
+	// 座標・向き変更後の変換更新
 	void RefreshTransform(void);
 
 private:
@@ -48,9 +52,13 @@ private:
 	// 盤面座標
 	int x_, y_;
 
+	float r_, g_, b_; // 色
+
 	// 向き
 	TYPE type_;
 
+	// セルのサイズ
+	float cellSize_;
 
 	void UpdateTransform(void);
 };

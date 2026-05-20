@@ -16,14 +16,13 @@ cbuffer cbParam : register(b4)
 }
 
 float4 main(PS_INPUT PSInput) : SV_TARGET0
-{
+{    
     float2 uv = PSInput.uv;
     float2 offset = 1.0f / float2(512.0f, 512.0f); // テクスチャのサイズに応じて調整
-    
+ 
     // 元の色を取得
     float4 defaultColor = 0;
     defaultColor = diffuseMapTexture.Sample(diffuseMapSampler, uv);
-    
     
     // ノーマルマップから法線を取得
     float3 normalTexture = normalMapTexture.Sample(normalMapSampler, uv).xyz;
@@ -57,9 +56,9 @@ float4 main(PS_INPUT PSInput) : SV_TARGET0
     // 拡散光込みの色を計算
     float3 color = defaultColor.rgb * diffuse * g_color.rgb;
     
-    // このままだと真っ暗になる可能性があるので、環境光を加える
-    float3 ambientColor = float3(0.8f, 0.8f, 0.8f);
-    color += ambientColor * defaultColor.rgb;
+    //// このままだと真っ暗になる可能性があるので、環境光を加える
+    //float3 ambientColor = float3(0.3f, 0.3f, 0.3f);
+    //color += ambientColor * defaultColor.rgb;
     
     return float4(color.rgb, 1.0f);
 }

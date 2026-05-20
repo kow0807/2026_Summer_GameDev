@@ -57,9 +57,5 @@ float4 main(PS_INPUT PSInput) : SV_TARGET0
     // 拡散光込みの色を計算
     float3 color = defaultColor.rgb * diffuse * g_color.rgb;
     
-    // このままだと真っ暗になる可能性があるので、環境光を加える
-    float3 ambientColor = float3(0.5f, 0.5f, 0.5f);
-    color += ambientColor * defaultColor.rgb;
-    
     return float4(color.rgb, 1.0f);
 }

@@ -15,12 +15,15 @@ public:
     virtual void Init(void) override;
     virtual void Update(void) override;
     virtual void Draw(void) override;
-
+    
+	void SetGridSize(const float size);
 	void SetBoardPosition(int x, int y);
 
 private:
 
 	int x_, y_; // 盤面座標
+
+	float gridSize_; // セルのサイズ
 
 	void UpdateTransform(void);
 };

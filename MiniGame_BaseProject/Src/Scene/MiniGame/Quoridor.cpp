@@ -7,16 +7,19 @@
 #include "../../Object/Actor/Quoridor/Desk.h"
 #include "../../Object/Actor/Quoridor/Board.h"
 #include "../../Object/Actor/Quoridor/Wall.h"
+#include "../../Object/Actor/Quoridor/PlayerPiece.h"
 #include "Quoridor.h"
 
 Quoridor::Quoridor(void)
 {
+	gameMode_ = GAME_MODE::NONE;
 	mode_ = MODE::MOVE;
 
 	// プレイヤー0: 上側(y=0)スタート、赤、目標 y=8
-	players_[0] = { 4, 0, GetColor(255, 80, 80), 0, 1, 1, 0, MAX_WALLS };
+	players_[0] = { 4, 0, 1.0f, 0.31f, 0.31f, 0, 1, 1, 0, MAX_WALLS };
+
 	// プレイヤー1: 下側(y=8)スタート、青、目標 y=0
-	players_[1] = { 4, 8, GetColor(80, 80, 255), 0, -1, -1, 0, MAX_WALLS };
+	players_[1] = { 4, 8, 0.31f, 0.31f, 1.0f, 0, -1, -1, 0, MAX_WALLS };
 
 	currentTurn_ = 0;
 	isChangeTurn_ = false;
@@ -38,6 +41,8 @@ void Quoridor::Init(void)
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
 	SceneManager::GetInstance().GetCamera()->ChangeGameTypeCamera(Camera::GAME_TYPE::QUORIDOR);
 
+	gameMode_ = GAME_MODE::CPU;
+
 	desk_ = std::make_unique<Desk>();
 	desk_->Init();
 	desk_->SetPosition(Desk::DEFAULT_POSITION);
@@ -46,9 +51,20 @@ void Quoridor::Init(void)
 	board_->Init();
 
 	previewWall_ = std::make_unique<Wall>();
+	previewWall_->SetCellSize(Board::CELL_SIZE);
 	previewWall_->InitTransform();
 	previewWall_->SetType(Wall::TYPE::VERTICAL);
+	
 
+	for (int i = 0; i < 2; ++i)
+	{
+		playerPieces_[i] = std::make_unique<PlayerPiece>();
+		playerPieces_[i]->SetCellSize(Board::CELL_SIZE);
+		playerPieces_[i]->Init();
+		playerPieces_[i]->SetBoardPosition(players_[i].x_, players_[i].y_);
+		playerPieces_[i]->SetColor(players_[i].r_, players_[i].g_, players_[i].b_);
+	}
+	
 	RefreshMoveCandidates();
 }
 
@@ -66,6 +82,14 @@ void Quoridor::Update(void)
 	{
 		if (mode_ == MODE::MOVE) mode_ = MODE::WALL;
 		else                     mode_ = MODE::MOVE;
+		WaitTimer(150);
+		RefreshMoveCandidates();
+	}
+
+	// 壁モードで壁がなくなったら自動で移動モードに切り替える
+	if(player.remainingWalls_ <= 0 && mode_ == MODE::WALL)
+	{
+		mode_ = MODE::MOVE;
 		WaitTimer(150);
 		RefreshMoveCandidates();
 	}
@@ -104,10 +128,10 @@ void Quoridor::Update(void)
 	// 壁モード
 	else if (mode_ == MODE::WALL)
 	{
-		if (ins.IsTrgUp(KEY_INPUT_UP))    wallCursorY_--;
-		if (ins.IsTrgUp(KEY_INPUT_DOWN))  wallCursorY_++;
-		if (ins.IsTrgUp(KEY_INPUT_LEFT))  wallCursorX_--;
-		if (ins.IsTrgUp(KEY_INPUT_RIGHT)) wallCursorX_++;
+		if (ins.IsTrgUp(KEY_INPUT_UP))    wallCursorY_ += player.forwardDirY_;
+		if (ins.IsTrgUp(KEY_INPUT_DOWN))  wallCursorY_ -= player.forwardDirY_;
+		if (ins.IsTrgUp(KEY_INPUT_LEFT))  wallCursorX_ -= player.rightDirX_;
+		if (ins.IsTrgUp(KEY_INPUT_RIGHT)) wallCursorX_ += player.rightDirX_;
 
 		// 向き切替
 		if (ins.IsTrgUp(KEY_INPUT_RSHIFT))
@@ -151,6 +175,11 @@ void Quoridor::Update(void)
 		}
 	}
 
+	for(int i = 0; i < 2; ++i)
+	{
+		playerPieces_[i]->SetBoardPosition(players_[i].x_, players_[i].y_);
+	}
+
 	// -----------------------------------------------------------
 	// 範囲制限（念のため）
 	if (player.x_ < 0)             player.x_ = 0;
@@ -183,7 +212,7 @@ void Quoridor::Draw(void)
 	DrawBoard();
 	DrawMoveCandidates();
 	DrawPlayers();
-	DrawWall();
+	DrawWallAndGrid();
 
 	if (mode_ == MODE::WALL)
 	{
@@ -240,9 +269,9 @@ void Quoridor::Reset(void)
 	mode_ = MODE::MOVE;
 
 	// プレイヤー0: 上側(y=0)スタート、赤、目標 y=8
-	players_[0] = { 4, 0, GetColor(255, 80, 80), 0, 1, 1, 0, MAX_WALLS };
+	players_[0] = { 4, 0, 255.0f, 80.0f, 80.0f, 0, 1, 1, 0, MAX_WALLS };
 	// プレイヤー1: 下側(y=8)スタート、青、目標 y=0
-	players_[1] = { 4, 8, GetColor(80, 80, 255), 0, -1, -1, 0, MAX_WALLS };
+	players_[1] = { 4, 8, 80.0f, 80.0f, 255.0f, 0, -1, -1, 0, MAX_WALLS };
 
 	currentTurn_ = 0;
 	isChangeTurn_ = false;
@@ -274,12 +303,12 @@ bool Quoridor::IsBlink(void) const
 
 VECTOR Quoridor::GetWorldPos(int x, int y) const
 {
-	return VGet(x * CELL_SIZE, 0.0f, y * CELL_SIZE);
+	return VGet(x * Board::CELL_SIZE, 0.0f, y * Board::CELL_SIZE);
 }
 
 VECTOR Quoridor::GetCellCenter(int x, int y) const
 {
-	return VGet(x * CELL_SIZE, 0.0f, y * CELL_SIZE);
+	return VGet(x * Board::CELL_SIZE, 0.0f, y * Board::CELL_SIZE);
 }
 
 void Quoridor::DrawBoard(void)
@@ -338,20 +367,14 @@ void Quoridor::DrawPlayers(void)
 			continue;
 		}
 
-		VECTOR pos = GetWorldPos(players_[i].x_, players_[i].y_);
-
-		DrawSphere3D(
-			VAdd(pos, VGet(0, 8, 0)),
-			5.0f,
-			16,
-			players_[i].color_,
-			players_[i].color_,
-			true
-		);
+		playerPieces_[i]->SetBoardPosition(players_[i].x_, players_[i].y_);
+		playerPieces_[i]->SetColor(players_[i].r_, players_[i].g_, players_[i].b_);
+		playerPieces_[i]->Draw();
 	}
+
 }
 
-void Quoridor::DrawWall(void)
+void Quoridor::DrawWallAndGrid(void)
 {
 	board_->Draw();
 }

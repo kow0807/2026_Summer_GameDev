@@ -6,6 +6,9 @@
 
 PlayerPiece::PlayerPiece(void)
 {
+	r_ = 1.0f;
+	g_ = 1.0f;
+	b_ = 1.0f;
 }
 
 PlayerPiece::~PlayerPiece(void)
@@ -24,8 +27,11 @@ void PlayerPiece::Init(void)
         "Piece_VS.cso",
         0,
         "Piece_PS.cso",
-        0
+        1
     );
+
+    mMaterial_->AddConstBufPS( FLOAT4{ r_, g_, b_,1.0f });
+
 
     mRenderer_ = std::make_unique<ModelRenderer>(
         transform_.modelId,
@@ -56,18 +62,29 @@ void PlayerPiece::SetBoardPosition(int x, int y)
 
 void PlayerPiece::SetColor(float r, float g, float b)
 {
-	mMaterial_->SetConstBufPS(0, FLOAT4{ r, g, b, 1.0f });
+	r_ = r;
+	g_ = g;
+	b_ = b;
+
+	mMaterial_->SetConstBufPS(0, FLOAT4{ r_, g_, b_, 1.0f });
+}
+
+void PlayerPiece::SetCellSize(float cellSize)
+{
+	cellSize_ = cellSize;
 }
 
 void PlayerPiece::UpdateTransform(void)
 {
     transform_.pos = VGet(
-        x_ * GRID_SIZE,
+        x_ * cellSize_,
         8.0f,
-        y_ * GRID_SIZE
+        y_ * cellSize_
     );
 
     MV1SetPosition(transform_.modelId, transform_.pos);
+
+    transform_.scl = DEFAULT_SCALE;
 
     transform_.Update();
 }

@@ -27,7 +27,10 @@ void Grid::Init(void)
         1
     );
 
-	mMaterial_->SetConstBufPS(0, FLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f });
+    // テクスチャのセット
+    mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::QUORIDOR_TEXTURE_WHITE).handleId_);
+
+    mMaterial_->AddConstBufPS(FLOAT4{ 0.147f, 0.104f, 0.161f, 1.0f });
 
     mRenderer_ = std::make_unique<ModelRenderer>(
         transform_.modelId,
@@ -44,9 +47,12 @@ void Grid::Update(void)
 
 void Grid::Draw(void)
 {
-    SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
-    SetMaxAnisotropy(16);
 	mRenderer_->Draw();
+}
+
+void Grid::SetGridSize(const float size)
+{
+    gridSize_ = size;
 }
 
 void Grid::SetBoardPosition(int x, int y)
@@ -59,9 +65,9 @@ void Grid::SetBoardPosition(int x, int y)
 void Grid::UpdateTransform(void)
 {
     transform_.pos = VGet(
-        x_ * GRID_SIZE,
+        x_ * gridSize_,
         0.0f,
-        y_ * GRID_SIZE
+        y_ * gridSize_
     );
 
     MV1SetPosition(transform_.modelId, transform_.pos);

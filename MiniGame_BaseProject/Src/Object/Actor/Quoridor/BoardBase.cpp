@@ -32,7 +32,7 @@ void BoardBase::Init(void)
         1
     );
 
-	mMaterial_->SetConstBufPS(0, FLOAT4{ 0.0f, 0.0f, 0.0f, 1.0f });
+	mMaterial_->AddConstBufPS(FLOAT4{ 0.147f, 0.104f, 0.161f, 1.0f });
 
     mRenderer_ = std::make_unique<ModelRenderer>(
         transform_.modelId,

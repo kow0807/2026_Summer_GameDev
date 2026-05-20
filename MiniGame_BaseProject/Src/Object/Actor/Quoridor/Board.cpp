@@ -32,6 +32,7 @@ void Board::Init()
             auto grid = std::make_unique<Grid>();
 
             grid->Init();
+			grid->SetGridSize(CELL_SIZE);
             grid->SetBoardPosition(x, y);
 
             grids_.push_back(std::move(grid));
@@ -322,6 +323,7 @@ bool Board::PlaceWall(int x, int y, bool isVertical, Player players[2])
 
     // --- Wallオブジェクト生成 ---
     auto wall = std::make_unique<Wall>();
+	wall->SetCellSize(CELL_SIZE);
     wall->Init();
     wall->SetType(isVertical ? Wall::TYPE::VERTICAL : Wall::TYPE::HORIZONTAL);
     wall->SetBoardPosition(x, y);
