@@ -152,15 +152,15 @@ void GameScene::GameUpdate()
 	InputManager& ins = InputManager::GetInstance();
 
 	// 仮：スペースで戻る
-	if (ins.IsTrgDown(KEY_INPUT_SPACE))
-	{
-		// ミニゲームのリセット
-		gameBase_->Reset();
+	//if (ins.IsTrgDown(KEY_INPUT_SPACE))
+	//{
+	//	// ミニゲームのリセット
+	//	gameBase_->Reset();
 
-		// ポインター破棄
-		gameBase_.reset();
-		selectState_ = SELECT_STATE::GAME_SELECT;
-	}
+	//	// ポインター破棄
+	//	gameBase_.reset();
+	//	selectState_ = SELECT_STATE::GAME_SELECT;
+	//}
 
 	if(!gameBase_)
 	{
