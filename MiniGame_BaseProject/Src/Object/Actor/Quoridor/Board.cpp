@@ -277,7 +277,7 @@ bool Board::CanPlaceWall(int x, int y, bool isVertical) const
 // 壁設置（BFSチェック付き）
 // 失敗時は状態を変えずに false を返す
 // ---------------------------------------------------------------------------
-bool Board::PlaceWall(int x, int y, bool isVertical, Player players[2])
+bool Board::PlaceWall(int x, int y, bool isVertical, Player players[2], VECTOR wallColor)
 {
     // --- 設置プレビュー判定 ---
     if (!CanPlaceWall(x, y, isVertical)) return false;
@@ -327,6 +327,7 @@ bool Board::PlaceWall(int x, int y, bool isVertical, Player players[2])
     wall->Init();
     wall->SetType(isVertical ? Wall::TYPE::VERTICAL : Wall::TYPE::HORIZONTAL);
     wall->SetBoardPosition(x, y);
+    wall->SetColor(wallColor.x, wallColor.y, wallColor.z);
     wall->RefreshTransform();
     walls_.push_back(std::move(wall));
 

@@ -96,8 +96,6 @@ private:
 	// 点滅判定
 	bool IsBlink(void) const;
 
-
-
 	// 描画用オブジェクト
 	std::unique_ptr<Desk> desk_;
 	std::unique_ptr<Board> board_;
@@ -105,6 +103,7 @@ private:
 	std::unique_ptr<PlayerPiece> playerPieces_[2];
 	std::unique_ptr<PythonAI> pythonAI_;
 
+	// CPU思考中フラグ
 	bool isCpuThinking_;
 
 	void ApplyCpuMove(const std::string& json);
@@ -114,5 +113,10 @@ private:
 	void UpdatePlayer(void);
 	void UpdateCpu(void);
 
+	// タイトル用
+	int fontTitle_;
+
+	// 通常文字用
+	int fontMain_;
 
 };

@@ -531,6 +531,7 @@
     <None Include="Python\python314\webbrowser.pyc" />
     <None Include="Python\python314\zipapp.pyc" />
     <None Include="Python\python314\zipimport.pyc" />
+    <None Include="Python\ai\ai.py" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Src\Shader\Model\Desk_VS.hlsl" />

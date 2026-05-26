@@ -686,19 +686,20 @@ void Camera::SetBeforeDrawQuoridor(void)
 
 	// ƒJƒƒ‰ˆÊ’u
 	pos_ = VGet(
-		center + 30.0f,
-		400.0f,
-		center - 30.0f
+		center,
+		350.0f,
+		center - 240.0f
 	);
 
-
 	// ’‹“_ (”Õ–Ê’†‰›)
-	targetPos_ = VGet(center, 0.0f, center);
+	targetPos_ = VGet(
+		center,
+		0.0f,
+		center - 25.0f
+	);
 
 	// ã•ûŒü
-	cameraUp_ = VGet(0, 0, 1);
+	cameraUp_ = VGet(0, 1, 0);
 
-
-	angles_ = VGet(AsoUtility::Deg2RadF(90.0f), AsoUtility::Deg2RadF(0.0f), 0.0f);
-	rot_ = angles_;
+	SetupCamera_Perspective(DX_PI_F / 4.8f);
 }

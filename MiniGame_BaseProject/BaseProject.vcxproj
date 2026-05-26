@@ -104,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\Scripts\ai.py" />
+    <None Include="Python\ai\ai.py" />
     <None Include="Python\libcrypto-3.dll" />
     <None Include="Python\libffi-8.dll" />
     <None Include="Python\libssl-3.dll" />
