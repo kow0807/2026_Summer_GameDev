@@ -162,6 +162,17 @@ void GameScene::GameUpdate()
 	//	selectState_ = SELECT_STATE::GAME_SELECT;
 	//}
 
+	if (gameBase_->GetIsReturn())
+	{
+		//ミニゲームのリセット
+		gameBase_->Reset();
+		gameBase_->SetIsReturn(false);
+
+		// ポインター破棄
+		gameBase_.reset();
+		selectState_ = SELECT_STATE::GAME_SELECT;
+	}
+
 	if(!gameBase_)
 	{
 		return;

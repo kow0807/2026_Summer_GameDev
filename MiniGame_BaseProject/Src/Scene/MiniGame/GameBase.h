@@ -26,6 +26,9 @@ public:
 	// ゲームの破棄
 	virtual void Reset(void) = 0;
 
+	virtual bool GetIsReturn(void);
+	virtual void SetIsReturn(bool isReturn);
+
 protected:
 
 	// リソース管理
@@ -34,5 +37,7 @@ protected:
 	// 設定管理
 	// 描画位置とかの設定をここから取る
 	Setting& setting_;
+
+	bool isReturn_;
 };
 

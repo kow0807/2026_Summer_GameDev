@@ -44,6 +44,7 @@ void FirstPressGame::Init(void)
     fallX_ = 0;
     fallY_ = 0;
     countDownFrame_ = 0;
+    isReturn_ = false;
 
     backImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_BACK).handleId_;
     backUIImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_BACK_UI).handleId_;
@@ -58,7 +59,6 @@ void FirstPressGame::Init(void)
     pointUIImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_POINT_UI).handleId_;
     lostUIImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_LOST_UI).handleId_;
     flyingUIImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_FLYING_UI).handleId_;
-
     ResetRound();
 }
 
@@ -155,7 +155,8 @@ void FirstPressGame::Update(void)
             // 2勝したら終了
             if (playerWin_ >= 2 || cpuWin_ >= 2 || round_ >= 3)
             {
-                // 完全終了（ここでは止めるだけ）
+                // 完全終了
+                isReturn_ = true;
             }
             else
             {
