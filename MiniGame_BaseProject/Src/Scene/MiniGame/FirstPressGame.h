@@ -40,7 +40,7 @@ private:
 	int loseCountUIImg_;
 	int pointUIImg_;
 	int lostUIImg_;
-	int playerTimeUIImg_;
+	int flyingUIImg_;
 
 	// フレームカウント
 	int timer_;
@@ -67,9 +67,23 @@ private:
 	int readyAlpha_;
 	bool isFlash_;
 
+	bool isFall_;
+	float fallSpeed_;
+	float angle_;
+	int fallX_;
+	int fallY_;
+
+	int countDownFrame_;
+
 	void ResetRound(void);
 	void DrawFadeReady(void);
 	void DrawCountUI(void);
 	void Flash(void);
+	void FakeFalling(void);
+	void FakeNoise(void);
+	void FakeCountDown(void);
+	void FakeWaveBackground(void);
+	void FakeSystemError(void);
+	void FakeTrivia(void);
 };
 

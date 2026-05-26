@@ -82,9 +82,9 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Lost_UI.png");
 	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_LOST_UI, res);
 
-	// プレイヤー時間UI
-	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Player_Time_UI.png");
-	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_PLAYER_TIME_UI, res);
+	// フライングUI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Flying_UI.png");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_FLYING_UI, res);
 
 	// 板
 	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Board/Board.mv1");
