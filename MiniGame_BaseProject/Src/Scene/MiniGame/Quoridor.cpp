@@ -21,8 +21,8 @@ static void DbgLog(const std::string& msg)
 
 Quoridor::Quoridor(void)
 	:
-	gameMode_(GAME_MODE::NONE),
-	mode_(MODE::NONE),
+	gameMode_(GAME_MODE::PLAYER),
+	mode_(MODE::MOVE),
 	players_{},
 	currentTurn_(0),
 	isChangeTurn_(false),
@@ -35,6 +35,25 @@ Quoridor::Quoridor(void)
 	fontTitle_(-1),
 	fontMain_(-1)
 {
+	// プレイヤーの初期化
+	players_[0] = { 4, 0, 1.0f, 0.31f, 0.31f, 0, 1, 1, 0, MAX_WALLS,{1.0f, 0.31f, 0.31f} };
+	players_[1] = { 4, 8, 0.31f, 0.31f, 1.0f, 0, -1, -1, 0, MAX_WALLS, {0.31f, 0.31f, 1.0f} };
+	
+	/*gameMode_ = GAME_MODE::NONE;
+	mode_ = MODE::MOVE;
+
+	players_[0] = { 4, 0, 1.0f, 0.31f, 0.31f, 0, 1, 1, 0, MAX_WALLS };
+	players_[1] = { 4, 8, 0.31f, 0.31f, 1.0f, 0, -1, -1, 0, MAX_WALLS };
+
+	currentTurn_ = 0;
+	isChangeTurn_ = false;
+	wallCursorX_ = 0;
+	wallCursorY_ = 0;
+	wallVertical_ = true;
+	isGameOver_ = false;
+	winner_ = -1;
+	isCpuThinking_ = false;
+	*/
 	DbgLog("=== Quoridor START ===");
 }
 
@@ -57,12 +76,10 @@ void Quoridor::Init(void)
 	//SetUseShadowMap(TRUE);
 	SetLightEnable(TRUE);
 
+	isReturn_ = false;
+
 	// ゲームモードの設定
 	gameMode_ = GAME_MODE::CPU;
-
-	// プレイヤーの初期化
-	players_[0] = { 4, 0, 1.0f, 0.31f, 0.31f, 0, 1, 1, 0, MAX_WALLS,{1.0f, 0.31f, 0.31f} };
-	players_[1] = { 4, 8, 0.31f, 0.31f, 1.0f, 0, -1, -1, 0, MAX_WALLS, {0.31f, 0.31f, 1.0f} };
 
 	// フォント
 	fontTitle_ = CreateFontToHandle("游明朝", 48, -1, DX_FONTTYPE_ANTIALIASING);
@@ -159,6 +176,7 @@ void Quoridor::Update(void)
 	if (winner_ >= 0)
 	{
 		isGameOver_ = true;
+		isReturn_ = true;
 		return;
 	}
 
@@ -328,6 +346,8 @@ void Quoridor::Reset(void)
 	isGameOver_ = false;
 	winner_ = -1;
 	isCpuThinking_ = false;
+
+	isReturn_ = false;
 
 	board_->Init();
 	RefreshMoveCandidates();
