@@ -9,6 +9,7 @@
 #include "../Renderer/PixelRenderer.h"
 #include "../Scene/MiniGame/GameBase.h"
 #include "../Scene/MiniGame/FirstPressGame.h"
+#include "../Scene/MiniGame/ButtonMashGame.h"
 #include "../Scene/MiniGame/Quoridor.h"
 #include "GameScene.h"
 
@@ -304,6 +305,8 @@ void GameScene::CreateMiniGame(void)
 	case MINI_STATE::REVERSI:
 		break;
 	case MINI_STATE::BUTTON_MASH:
+		gameBase_ = std::make_unique<ButtonMashGame>();
+		gameBase_->Init();
 		break;
 	case MINI_STATE::FLASH_CALC:
 		break;

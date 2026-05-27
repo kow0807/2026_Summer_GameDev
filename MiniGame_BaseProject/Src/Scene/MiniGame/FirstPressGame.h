@@ -30,6 +30,7 @@ private:
 	// îwåi
 	int backImg_;
 	int backUIImg_;
+
 	int readyUIImg_;
 	int pressUIImg_;
 	int winUIImg_;

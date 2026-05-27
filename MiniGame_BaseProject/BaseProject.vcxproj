@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Scene\MiniGame\ButtonMashGame.cpp" />
     <ClCompile Include="Src\Object\Actor\Quoridor\PythonAI.cpp" />
     <ClCompile Include="Src\Object\Actor\Quoridor\PlayerPiece.cpp" />
     <ClCompile Include="Src\Object\Actor\Quoridor\Grid.cpp" />
@@ -61,6 +62,7 @@
     <ClCompile Include="Src\Object\Actor\Quoridor\Wall.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Scene\MiniGame\ButtonMashGame.h" />
     <ClInclude Include="Src\Object\Actor\Quoridor\PythonAI.h" />
     <ClInclude Include="Src\Object\Actor\Quoridor\PlayerPiece.h" />
     <ClInclude Include="Src\Object\Actor\Quoridor\Grid.h" />
