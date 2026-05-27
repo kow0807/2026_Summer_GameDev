@@ -8,8 +8,8 @@
 Wall::Wall(void)
 {
 	r_ = 1.0f;
-	g_ = 0.70f;
-	b_ = 0.0f;
+	g_ = 1.0f;
+	b_ = 1.0f;
 	x_ = 0;
 	y_ = 0;
 	type_ = TYPE::VERTICAL;
@@ -82,7 +82,7 @@ Wall::TYPE Wall::GetType(void) const
 	return type_;
 }
 
-void Wall::DrawPreview(bool canPlace)
+void Wall::DrawPreview(bool canPlace,VECTOR wallColor)
 {
 
 	SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
@@ -93,9 +93,13 @@ void Wall::DrawPreview(bool canPlace)
 	// F•ÏX
 	if (canPlace)
 	{
-		r_ = 1.0f;
+		/*r_ = 1.0f;
 		g_ = 0.70f;
-		b_ = 0.0f;
+		b_ = 0.0f;*/
+
+		r_ = wallColor.x;
+		g_ = wallColor.y;
+		b_ = wallColor.z;
 	}
 	else
 	{
@@ -133,6 +137,16 @@ void Wall::RefreshTransform(void)
 {
 	UpdateTransform();
 }
+
+void Wall::SetColor(float r, float g, float b)
+{
+	r_ = r;
+	g_ = g;
+	b_ = b;
+
+	mMaterial_->SetConstBufPS(0, FLOAT4{ r_, g_, b_, 1.0f });
+}
+
 
 void Wall::UpdateTransform(void)
 {

@@ -5,7 +5,7 @@ class BoardBase :
 {
 public:
 
-    static constexpr VECTOR DEFAULT_SCALE = { 3.0f,1.0f,3.0f };
+    static constexpr VECTOR DEFAULT_SCALE = { 1.3f,1.0f,1.3f };
 
     BoardBase(void);
     virtual ~BoardBase(void);

@@ -29,7 +29,10 @@ bool PythonAI::Start(const std::wstring& pythonExe, const std::wstring& scriptPa
 
     // 実行するコマンドとディレクトリを確認
     std::wstring dbg = L"cmd: " + cmd + L"\ndir: " + std::wstring(exeDir);
+
+#ifdef _DEBUG
     MessageBoxW(nullptr, dbg.c_str(), L"Start確認", MB_OK);
+#endif
 
     SECURITY_ATTRIBUTES sa = { sizeof(sa), nullptr, TRUE };
 
@@ -60,11 +63,23 @@ bool PythonAI::Start(const std::wstring& pythonExe, const std::wstring& scriptPa
     si.hStdOutput = hStdoutWrite;
     si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
 
+#ifdef _DEBUG
+    DWORD flags = 0;
+#else
+	DWORD flags = CREATE_NO_WINDOW;
+#endif
+
     bool ok = CreateProcessW(
-        nullptr, cmd.data(), nullptr, nullptr,
-        TRUE, 0, nullptr,
+        nullptr,
+        cmd.data(),
+        nullptr,
+        nullptr,
+        TRUE,
+        flags,
+        nullptr,
         exeDir,
-        &si, &pi_
+        &si,
+        &pi_
     );
 
     // 子プロセス側のハンドルは必ず閉じる

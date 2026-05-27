@@ -1,4 +1,5 @@
 #pragma once
+#include <DxLib.h>
 
 struct Player
 {
@@ -14,4 +15,7 @@ struct Player
 
 	// c‚è•Ç”
 	int remainingWalls_;
+
+	// •Ç‚ÌF
+	VECTOR wallColor_;
 };

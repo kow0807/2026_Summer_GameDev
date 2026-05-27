@@ -31,7 +31,7 @@ public:
 
     // 壁設置（BFS通過確認つき）
     // 成功→true、失敗（詰まる・重複・枚数切れ）→false
-    bool PlaceWall(int x, int y, bool isVertical, Player players[2]);
+    bool PlaceWall(int x, int y, bool isVertical, Player players[2], VECTOR wallColor);
 
     // 壁設置プレビュー判定（実際には設置しない）
     bool CanPlaceWall(int x, int y, bool isVertical) const;

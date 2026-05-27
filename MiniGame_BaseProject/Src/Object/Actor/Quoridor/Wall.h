@@ -1,4 +1,5 @@
 #pragma once
+#include <DxLib.h>
 #include "../ActorBase.h"
 
 class Wall :
@@ -33,7 +34,7 @@ public:
 	TYPE GetType(void) const;
 
 	// プレビュー描画
-	void DrawPreview(bool canPlace);
+	void DrawPreview(bool canPlace, VECTOR wallColor);
 
 	// 座標更新
 	void SetBoardPosition(int x, int y);
@@ -46,6 +47,10 @@ public:
 
 	// 座標・向き変更後の変換更新
 	void RefreshTransform(void);
+
+	// 色変更
+	void SetColor(float r, float g, float b);
+
 
 private:
 

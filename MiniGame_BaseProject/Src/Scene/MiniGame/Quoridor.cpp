@@ -20,8 +20,26 @@ static void DbgLog(const std::string& msg)
 }
 
 Quoridor::Quoridor(void)
+	:
+	gameMode_(GAME_MODE::PLAYER),
+	mode_(MODE::MOVE),
+	players_{},
+	currentTurn_(0),
+	isChangeTurn_(false),
+	wallCursorX_(0),
+	wallCursorY_(0),
+	wallVertical_(true),
+	isGameOver_(false),
+	winner_(-1),
+	isCpuThinking_(false),
+	fontTitle_(-1),
+	fontMain_(-1)
 {
-	gameMode_ = GAME_MODE::NONE;
+	// プレイヤーの初期化
+	players_[0] = { 4, 0, 1.0f, 0.31f, 0.31f, 0, 1, 1, 0, MAX_WALLS,{1.0f, 0.31f, 0.31f} };
+	players_[1] = { 4, 8, 0.31f, 0.31f, 1.0f, 0, -1, -1, 0, MAX_WALLS, {0.31f, 0.31f, 1.0f} };
+	
+	/*gameMode_ = GAME_MODE::NONE;
 	mode_ = MODE::MOVE;
 
 	players_[0] = { 4, 0, 1.0f, 0.31f, 0.31f, 0, 1, 1, 0, MAX_WALLS };
@@ -35,7 +53,7 @@ Quoridor::Quoridor(void)
 	isGameOver_ = false;
 	winner_ = -1;
 	isCpuThinking_ = false;
-
+	*/
 	DbgLog("=== Quoridor START ===");
 }
 
@@ -49,8 +67,25 @@ void Quoridor::Init(void)
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
 	SceneManager::GetInstance().GetCamera()->ChangeGameTypeCamera(Camera::GAME_TYPE::QUORIDOR);
 
+	// 描画環境設定
+	SetGlobalAmbientLight(GetColorF(0.55f, 0.55f, 0.55f, 1.0f));
+
+	int lightHandle = CreateDirLightHandle(VNorm(VGet(-1.0f, -1.0f, 0.5f)));
+	SetLightDifColorHandle(lightHandle, GetColorF(1.0f, 1.0f, 1.0f, 1.0f));
+
+	//SetUseShadowMap(TRUE);
+	SetLightEnable(TRUE);
+
+	isReturn_ = false;
+
+	// ゲームモードの設定
 	gameMode_ = GAME_MODE::CPU;
 
+	// フォント
+	fontTitle_ = CreateFontToHandle("游明朝", 48, -1, DX_FONTTYPE_ANTIALIASING);
+	fontMain_ = CreateFontToHandle("游明朝", 24, -1, DX_FONTTYPE_ANTIALIASING);
+
+	// オブジェクトの初期化
 	desk_ = std::make_unique<Desk>();
 	desk_->Init();
 	desk_->SetPosition(Desk::DEFAULT_POSITION);
@@ -77,12 +112,14 @@ void Quoridor::Init(void)
 	pythonAI_ = std::make_unique<PythonAI>();
 	bool ok = pythonAI_->Start(
 		L"Python\\python.exe",
-		L"Data\\Scripts\\ai.py"
+		L"Python\\ai\\ai.py"
 	);
 
 	if (ok)
 	{
+#ifdef _DEBUG
 		DbgLog("[Init] PythonAI Start OK");
+#endif
 	}
 	else
 	{
@@ -93,6 +130,17 @@ void Quoridor::Init(void)
 
 void Quoridor::Update(void)
 {
+	auto& ins = InputManager::GetInstance();
+	if (isGameOver_)
+	{
+		if (ins.IsTrgUp(KEY_INPUT_R))
+		{
+			DbgLog("[Update] R key pressed. Restarting game!");
+			Reset();
+			return;
+		}
+	}
+
 	if (isGameOver_) return;
 
 	desk_->Update();
@@ -128,6 +176,7 @@ void Quoridor::Update(void)
 	if (winner_ >= 0)
 	{
 		isGameOver_ = true;
+		isReturn_ = true;
 		return;
 	}
 
@@ -157,7 +206,7 @@ void Quoridor::Draw(void)
 
 		if (IsBlink())
 		{
-			previewWall_->DrawPreview(canPlace);
+			previewWall_->DrawPreview(canPlace, players_[currentTurn_].wallColor_);
 		}
 	}
 }
@@ -167,38 +216,127 @@ void Quoridor::DrawUI(void)
 	if (isGameOver_)
 	{
 		DrawGameOver();
-		return;
+	
 	}
+	
+	// 1. 現在の画面サイズを動的に取得
+	int screenW, screenH;
+	GetWindowSize(&screenW, &screenH); // もしフルスクリーンの場合は GetDrawScreenSize など
 
-	DrawFormatString(0, 0, GetColor(255, 255, 255),
-		"Turn: Player %d", currentTurn_ + 1);
-
-	const char* modeText =
-		(mode_ == MODE::MOVE) ? "MOVE" : "WALL";
-	DrawFormatString(0, 20, GetColor(200, 200, 200),
-		"MODE : %s  [TAB]", modeText);
-
-	DrawFormatString(0, 44, GetColor(255, 100, 100),
-		"P1 Walls: %d / %d", players_[0].remainingWalls_, MAX_WALLS);
-	DrawFormatString(0, 64, GetColor(100, 100, 255),
-		"P2 Walls: %d / %d", players_[1].remainingWalls_, MAX_WALLS);
-
-	if (mode_ == MODE::WALL)
+	// 2. 画面サイズ（特に縦幅）の変化を検知してフォントサイズを動的更新
+	static int lastScreenH = 0;
+	if (screenH != lastScreenH)
 	{
-		DrawFormatString(0, 88, GetColor(220, 220, 0),
-			"RSHIFT: rotate  ENTER: place wall");
+		// 古いフォントがあれば削除
+		if (fontTitle_ != -1) DeleteFontToHandle(fontTitle_);
+		if (fontMain_ != -1)  DeleteFontToHandle(fontMain_);
+
+		// 画面の高さに合わせてフォントサイズを動的に計算
+		// 縦720のときに40と18になるように比率をかける
+		int titleFontSize = (int)(40.0f * ((float)screenH / 720.0f));
+		int mainFontSize = (int)(18.0f * ((float)screenH / 720.0f));
+
+		// 最低サイズを保証（画面が極端に小さくなった時の対策）
+		if (titleFontSize < 16) titleFontSize = 16;
+		if (mainFontSize < 9)   mainFontSize = 9;
+
+		fontTitle_ = CreateFontToHandle("游明朝", titleFontSize, 3, DX_FONTTYPE_ANTIALIASING_8X8);
+		fontMain_ = CreateFontToHandle("游明朝", mainFontSize, 2, DX_FONTTYPE_ANTIALIASING_8X8);
+		
+		lastScreenH = screenH;
 	}
+
+	// 各種色の定義
+	unsigned int colorWhite = GetColor(240, 230, 220);
+	unsigned int colorGray = GetColor(150, 140, 130);
+	unsigned int colorRed = GetColor(200, 80, 80);
+	unsigned int colorBlue = GetColor(80, 80, 200);
+
+	// 3. 座標を画面サイズの「割合（％）」で動的に計算
+	// 左側の余白は画面横幅の約 4%
+	int leftX = (int)(screenW * 0.04f);
+	// 右側のプレイヤー情報は画面横幅の約 78%
+	int rightX = (int)(screenW * 0.78f);
+	// 行間（文字の上下の間隔）も画面の高さに比例させる
+	int lineGap = (int)(screenH * 0.04f);
+
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 160);
+
+	// 左側のUI背景ボックス（タイトルから操作説明までを包む）
+	DrawBox(
+		(int)(screenW * 0.02f), (int)(screenH * 0.03f), // 左上
+		(int)(screenW * 0.25f), (int)(screenH * 0.78f), // 右下
+		GetColor(25, 20, 15), TRUE // 目標画面に合わせた暗い焦げ茶色
+	);
+
+	// 右側のUI背景ボックス（プレイヤー1・2の情報を包む）
+	DrawBox(
+		(int)(screenW * 0.76f), (int)(screenH * 0.14f), // 左上
+		(int)(screenW * 0.98f), (int)(screenH * 0.52f), // 右下
+		GetColor(25, 20, 15), TRUE // 暗い焦げ茶色
+	);
+
+	// 描画モードを通常（不透明）に戻す
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+
+	// --------------------------------------------------
+	// 左側：タイトルとゲーム状態
+	// --------------------------------------------------
+	DrawStringToHandle(leftX, (int)(screenH * 0.05f), "QUORIDOR", colorWhite, fontTitle_);
+
+	int turnY = (int)(screenH * 0.18f);
+	DrawFormatStringToHandle(leftX, turnY, colorGray, fontMain_, "TURN");
+	if (currentTurn_ == 0) {
+		DrawFormatStringToHandle(leftX, turnY + lineGap, colorRed, fontMain_, "Player 1 (あなた)");
+	}
+	else {
+		DrawFormatStringToHandle(leftX, turnY + lineGap, colorBlue, fontMain_, "Player 2 (CPU)");
+	}
+
+	int modeY = (int)(screenH * 0.30f);
+	DrawFormatStringToHandle(leftX, modeY, colorGray, fontMain_, "MODE");
+	const char* modeText = (mode_ == MODE::MOVE) ? "MOVE [TAB]" : "WALL [TAB]";
+	DrawFormatStringToHandle(leftX, modeY + lineGap, colorWhite, fontMain_, "%s", modeText);
+
+	// --------------------------------------------------
+	// 左下：操作説明
+	// --------------------------------------------------
+	int menuY = (int)(screenH * 0.52f);
+	int itemGap = (int)(screenH * 0.042f); // 操作説明の行間
+	DrawFormatStringToHandle(leftX, menuY, colorGray, fontMain_, "移動   ：方向キー");
+	DrawFormatStringToHandle(leftX, menuY + itemGap, colorGray, fontMain_, "モード切替：TAB");
+	DrawFormatStringToHandle(leftX, menuY + itemGap * 2, colorGray, fontMain_, "壁の回転 ：RSHIFT");
+	DrawFormatStringToHandle(leftX, menuY + itemGap * 3, colorGray, fontMain_, "決定   ：ENTER");
+	DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "リセット ：R");
+	// --------------------------------------------------
+	// 右側：プレイヤー情報
+	// --------------------------------------------------
+	int p1Y = (int)(screenH * 0.18f);
+	DrawFormatStringToHandle(rightX, p1Y, colorBlue, fontMain_, "Player 1 (あなた)");
+	DrawFormatStringToHandle(rightX, p1Y + lineGap, colorWhite, fontMain_, "残りの壁: %d / %d", players_[0].remainingWalls_, MAX_WALLS);
+
+	int p2Y = (int)(screenH * 0.38f);
+	DrawFormatStringToHandle(rightX, p2Y, colorRed, fontMain_, "Player 2 (CPU)");
+	DrawFormatStringToHandle(rightX, p2Y + lineGap, colorWhite, fontMain_, "残りの壁: %d / %d", players_[1].remainingWalls_, MAX_WALLS);
 }
 
 void Quoridor::Reset(void)
 {
-	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FIXED_POINT);
-	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::MOUSE);
+	// もし思考中なら結果を一回破棄するなどしてクリアさせる
+	if (pythonAI_ && pythonAI_->IsThinking())
+	{
+		if (pythonAI_->HasResult())
+		{
+			pythonAI_->TakeResult();
+		}
+		isCpuThinking_ = false;
+	}
 
 	mode_ = MODE::MOVE;
 
-	players_[0] = { 4, 0, 255.0f, 80.0f, 80.0f, 0, 1, 1, 0, MAX_WALLS };
-	players_[1] = { 4, 8, 80.0f, 80.0f, 255.0f, 0, -1, -1, 0, MAX_WALLS };
+	players_[0] = { 4, 0, 1.0f, 0.31f, 0.31f, 0, 1, 1, 0, MAX_WALLS,{1.0f, 0.31f, 0.31f} };
+	players_[1] = { 4, 8, 0.31f, 0.31f, 1.0f, 0, -1, -1, 0, MAX_WALLS, {0.31f, 0.31f, 1.0f} };
 
 	currentTurn_ = 0;
 	isChangeTurn_ = false;
@@ -207,6 +345,9 @@ void Quoridor::Reset(void)
 	wallVertical_ = true;
 	isGameOver_ = false;
 	winner_ = -1;
+	isCpuThinking_ = false;
+
+	isReturn_ = false;
 
 	board_->Init();
 	RefreshMoveCandidates();
@@ -294,7 +435,7 @@ void Quoridor::ApplyCpuMove(const std::string& json)
 
 		if (x >= 0 && y >= 0)
 		{
-			bool placed = board_->PlaceWall(x, y, vertical, players_);
+			bool placed = board_->PlaceWall(x, y, vertical, players_, cpu.wallColor_);
 			if (placed)
 			{
 				cpu.remainingWalls_--;
@@ -419,7 +560,7 @@ void Quoridor::UpdatePlayer(void)
 			if (player.remainingWalls_ <= 0) return;
 
 			bool placed = board_->PlaceWall(
-				wallCursorX_, wallCursorY_, wallVertical_, players_
+				wallCursorX_, wallCursorY_, wallVertical_, players_, player.wallColor_
 			);
 			if (placed)
 			{
@@ -434,59 +575,6 @@ void Quoridor::UpdatePlayer(void)
 
 void Quoridor::UpdateCpu(void)
 {
-	//if (!pythonAI_ || !pythonAI_->IsRunning())
-	//{
-	//	static bool shown = false;
-	//	if (!shown) { MessageBoxW(nullptr, L"PythonAIが動いていない", L"Debug", MB_OK); shown = true; }
-	//	return;
-	//}
-
-	//if (pythonAI_->HasResult())
-	//{
-	//	std::string response = pythonAI_->TakeResult();
-
-	//	// responseが空かどうか確認
-	//	if (response.empty())
-	//	{
-	//		MessageBoxW(nullptr, L"responseが空です", L"Debug", MB_OK);
-	//		isChangeTurn_ = true;
-	//		return;
-	//	}
-
-	//	std::wstring w(response.begin(), response.end());
-	//	MessageBoxW(nullptr, w.c_str(), L"AIの返答", MB_OK);
-	//	ApplyCpuMove(response);
-	//	isChangeTurn_ = true;
-	//	return;
-	//}
-
-	//if (!pythonAI_->IsThinking())
-	//{
-	//	std::string boardJson = BuildBoardJson();
-
-	//	// 送信するJSONを確認
-	//	std::wstring w(boardJson.begin(), boardJson.end());
-	//	MessageBoxW(nullptr, w.c_str(), L"送信JSON確認", MB_OK);
-
-	//	pythonAI_->QueryAsync(boardJson, nullptr);
-
-	//}
-	//
-	//	if (!pythonAI_ || !pythonAI_->IsRunning()) return;
-	//
-	//	if (pythonAI_->HasResult())          // 結果が来たら
-	//	{
-	//		std::string response = pythonAI_->TakeResult();
-	//		if (!response.empty()) ApplyCpuMove(response);
-	//		isChangeTurn_ = true;
-	//		return;
-	//	}
-	//
-	//	if (!pythonAI_->IsThinking())        // 思考中でなければ送信
-	//	{
-	//		pythonAI_->QueryAsync(BuildBoardJson(), nullptr);
-	//	}
-
 	if (!pythonAI_ || !pythonAI_->IsRunning())
 	{
 		DbgLog("[UpdateCpu] PythonAI not running");
