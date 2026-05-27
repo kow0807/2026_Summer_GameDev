@@ -7,7 +7,7 @@ class Wall :
 {
 public:
 
-	static constexpr VECTOR DEFAULT_SCALE = { 0.25f, 0.25f, 0.25f };
+	static constexpr VECTOR DEFAULT_SCALE = { 0.25f, 0.25f, 0.22f };
 	static constexpr VECTOR DEFAULT_ROTATION = { 0.0f, 0.0f, 0.0f };
 
 	enum class TYPE

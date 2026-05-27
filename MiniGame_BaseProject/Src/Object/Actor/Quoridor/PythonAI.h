@@ -29,6 +29,8 @@ public:
 	// 現在思考中か
 	bool IsThinking(void) const;
 
+	std::string SyncQuery(const std::string& jsonInput); // 内部用（ブロッキング）
+
 private:
 	HANDLE hStdinWrite_ = INVALID_HANDLE_VALUE;
 	HANDLE hStdoutRead_ = INVALID_HANDLE_VALUE;
@@ -42,6 +44,6 @@ private:
 	std::atomic<bool> hasResult_ = false;
 	std::string result_;
 
-	std::string SyncQuery(const std::string& jsonInput); // 内部用（ブロッキング）
+	
 };
 
