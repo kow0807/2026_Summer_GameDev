@@ -1,0 +1,59 @@
+#pragma once
+#include "GameBase.h"
+
+class ButtonMashGame : public GameBase
+{
+public:
+
+    enum class GameState
+    {
+        READY,
+        GO,
+        RESULT
+    };
+
+    ButtonMashGame(void);
+    ~ButtonMashGame(void);
+
+    void Init(void) override;
+    void Update(void) override;
+    void Draw(void) override;
+    void DrawUI(void) override;
+    void Reset(void) override;
+
+private:
+
+    GameState gameState_;
+
+    int backImg_;
+    int backUIImg_;
+    int readyUIImg_;
+    int pressUIImg_;
+
+    int winUIImg_;
+    int loseUIImg_;
+
+    float battleRate_;
+
+    int playerWinCount_;
+    int cpuWinCount_;
+    int countUIImg_;
+    int winCountUIImg_;
+    int countUI2Img_;
+    int loseCountUIImg_;
+    int pointUIImg_;
+    int lostUIImg_;
+
+    bool isPlayerWin_;
+
+    int readyTimer_;
+    int resultTimer_;
+
+    float playerFlashPower_;
+    float cpuFlashPower_;
+
+    void DrawBattleLine(int borderX);
+    void DrawBattleArea(int borderX);
+    int GetBattleOffset(int y);
+    void DrawCountUI(void);
+};

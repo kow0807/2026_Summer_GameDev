@@ -86,6 +86,58 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Flying_UI.png");
 	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_FLYING_UI, res);
 
+
+
+	// 背景
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Back.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_BACK, res);
+
+	// 背景UI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Back_UI.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_BACK_UI, res);
+
+	// 準備UI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Ready_UI.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_READY_UI, res);
+
+	// 押せ！UI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Press_UI.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_PRESS_UI, res);
+
+	// 勝利UI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Win_UI.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_WIN_UI, res);
+
+	// 敗北UI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Lose_UI.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_LOSE_UI, res);
+
+	// カウントUI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Count_UI.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_COUNT_UI, res);
+
+	// 勝利カウントUI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Win_Count_UI.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_WIN_COUNT_UI, res);
+
+	// カウントUI2
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Count_UI_2.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_COUNT_UI_2, res);
+
+	// 敗北カウントUI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Lose_Count_UI.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_LOSE_COUNT_UI, res);
+
+	// ポイントUI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Point_UI.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_POINT_UI, res);
+
+	// ロストUI
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Lost_UI.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_LOST_UI, res);
+
+
+
 	// 板
 	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Board/Board.mv1");
 	resourcesMap_.emplace(SRC::BOARD, res);
