@@ -106,6 +106,9 @@ private:
 	// CPU思考中フラグ
 	bool isCpuThinking_;
 
+	// 思考時間の演出用タイマー
+	int cpuStartTime_;
+
 	void ApplyCpuMove(const std::string& json);
 	std::string BuildBoardJson(void) const;
 
@@ -119,4 +122,10 @@ private:
 	// 通常文字用
 	int fontMain_;
 
+	// フレームカウンタ（ミニゲーム終了用）
+	int rFrameCount_;
+
+	// 壁残りに関する警告
+	bool isWallWarningActive_;
+	int wallWarningTimer_;
 };

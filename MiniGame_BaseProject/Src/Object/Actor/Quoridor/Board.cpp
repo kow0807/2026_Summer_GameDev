@@ -1,4 +1,4 @@
-#include <queue>
+ï»¿#include <queue>
 #include <cstring>
 #include <DxLib.h>
 #include "BoardBase.h"
@@ -55,30 +55,52 @@ void Board::Draw(void)
 }
 
 // ---------------------------------------------------------------------------
-// ˆÚ“®‰Â”Û
+// ç§»å‹•å¯å¦
 // ---------------------------------------------------------------------------
 bool Board::CanMove(int x, int y, int dx, int dy) const
 {
     int nx = x + dx;
     int ny = y + dy;
 
-    if (nx < 0 || nx >= BOARD_SIZE ||
-        ny < 0 || ny >= BOARD_SIZE)
+    if (nx < 0 || nx >= BOARD_SIZE || ny < 0 || ny >= BOARD_SIZE)
         return false;
 
-    // dx=+1 : x ‚Æ x+1 ‚ÌŠÔ‚Ìc•Ç
-    if (dx == 1 && verticalWalls_[x][y]) return false;
-    if (dx == -1 && verticalWalls_[x - 1][y]) return false;
-
-    // dy=+1 : y ‚Æ y+1 ‚ÌŠÔ‚Ì‰¡•Ç
-    if (dy == 1 && horizontalWalls_[x][y]) return false;
-    if (dy == -1 && horizontalWalls_[x][y - 1]) return false;
+    // 1. å³ã¸ã®ç§»å‹• (dx == 1) : ãƒã‚¹(x,y) ã¨ (x+1,y) ã®é–“ã®ç¸¦å£
+    if (dx == 1) {
+        if (x >= 0 && x < BOARD_SIZE - 1) {
+            if (y < BOARD_SIZE - 1 && verticalWalls_[x][y]) return false;
+            if (y > 0 && verticalWalls_[x][y - 1]) return false;
+        }
+    }
+    // 2. å·¦ã¸ã®ç§»å‹• (dx == -1) : ãƒã‚¹(x-1,y) ã¨ (x,y) ã®é–“ã®ç¸¦å£
+    else if (dx == -1) {
+        int cx = x - 1;
+        if (cx >= 0 && cx < BOARD_SIZE - 1) {
+            if (y < BOARD_SIZE - 1 && verticalWalls_[cx][y]) return false;
+            if (y > 0 && verticalWalls_[cx][y - 1]) return false;
+        }
+    }
+    // 3. ä¸‹ã¸ã®ç§»å‹• (dy == 1) : ãƒã‚¹(x,y) ã¨ (x,y+1) ã®é–“ã®æ¨ªå£
+    else if (dy == 1) {
+        if (y >= 0 && y < BOARD_SIZE - 1) {
+            if (x < BOARD_SIZE - 1 && horizontalWalls_[x][y]) return false;
+            if (x > 0 && horizontalWalls_[x - 1][y]) return false;
+        }
+    }
+    // 4. ä¸Šã¸ã®ç§»å‹• (dy == -1) : ãƒã‚¹(x,y-1) ã¨ (x,y) ã®é–“ã®æ¨ªå£
+    else if (dy == -1) {
+        int cy = y - 1;
+        if (cy >= 0 && cy < BOARD_SIZE - 1) {
+            if (x < BOARD_SIZE - 1 && horizontalWalls_[x][cy]) return false;
+            if (x > 0 && horizontalWalls_[x - 1][cy]) return false;
+        }
+    }
 
     return true;
 }
 
 // ---------------------------------------------------------------------------
-// è—Lƒ`ƒFƒbƒN
+// å æœ‰ãƒã‚§ãƒƒã‚¯
 // ---------------------------------------------------------------------------
 bool Board::IsOccupied(int x, int y, const Player players[2]) const
 {
@@ -91,7 +113,7 @@ bool Board::IsOccupied(int x, int y, const Player players[2]) const
 }
 
 // ---------------------------------------------------------------------------
-// BFS ƒS[ƒ‹“’BŠm”F
+// BFS ã‚´ãƒ¼ãƒ«åˆ°é”ç¢ºèª
 // ---------------------------------------------------------------------------
 bool Board::CanReachGoal(const Player& p, int goalY, const Player players[2]) const
 {
@@ -131,7 +153,7 @@ bool Board::CanReachGoal(const Player& p, int goalY, const Player players[2]) co
 }
 
 // ---------------------------------------------------------------------------
-// ˆÚ“®æŒó•âi1•ûŒü•ªj
+// ç§»å‹•å…ˆå€™è£œï¼ˆ1æ–¹å‘åˆ†ï¼‰
 // ---------------------------------------------------------------------------
 std::vector<std::pair<int, int>> Board::GetMoveCandidates(
     int x, int y,
@@ -140,13 +162,13 @@ std::vector<std::pair<int, int>> Board::GetMoveCandidates(
 {
     std::vector<std::pair<int, int>> result;
 
-    // •ÇE”ÕŠOƒ`ƒFƒbƒN
+    // å£ãƒ»ç›¤å¤–ãƒã‚§ãƒƒã‚¯
     if (!CanMove(x, y, dx, dy)) return result;
 
     int nx = x + dx;
     int ny = y + dy;
 
-    // —×‚É‘Šè‚ª‚¢‚é‚©”»’è
+    // éš£ã«ç›¸æ‰‹ãŒã„ã‚‹ã‹åˆ¤å®š
     bool enemyThere = false;
     for (int i = 0; i < 2; i++)
     {
@@ -159,22 +181,22 @@ std::vector<std::pair<int, int>> Board::GetMoveCandidates(
 
     if (!enemyThere)
     {
-        // ’ÊíˆÚ“®
+        // é€šå¸¸ç§»å‹•
         result.push_back({ nx, ny });
         return result;
     }
 
-    // ‘Šè‚ª‚¢‚éê‡:
-    // ’¼i‚Å‚«‚é‚©H
+    // ç›¸æ‰‹ãŒã„ã‚‹å ´åˆ:
+    // ç›´é€²ã§ãã‚‹ã‹ï¼Ÿ
     if (CanMove(nx, ny, dx, dy))
     {
-        // 2ƒ}ƒX’µ‚Ñ
+        // 2ãƒã‚¹è·³ã³
         result.push_back({ nx + dx, ny + dy });
     }
     else
     {
-        // ’¼i•s‰Âi•Ç or ”ÕŠOj¨ ¶‰EÎ‚ßƒWƒƒƒ“ƒv
-        // ¶‰E = ’¼i•ûŒü‚ğ90“x‰ñ“]‚µ‚½2•ûŒü
+        // ç›´é€²ä¸å¯ï¼ˆå£ or ç›¤å¤–ï¼‰â†’ å·¦å³æ–œã‚ã‚¸ãƒ£ãƒ³ãƒ—
+        // å·¦å³ = ç›´é€²æ–¹å‘ã‚’90åº¦å›è»¢ã—ãŸ2æ–¹å‘
         const int sideDir[2][2] = { {-dy, dx}, {dy, -dx} };
 
         for (int s = 0; s < 2; s++)
@@ -193,7 +215,7 @@ std::vector<std::pair<int, int>> Board::GetMoveCandidates(
 }
 
 // ---------------------------------------------------------------------------
-// ‘S•ûŒü‚ÌˆÚ“®æŒó•â
+// å…¨æ–¹å‘ã®ç§»å‹•å…ˆå€™è£œ
 // ---------------------------------------------------------------------------
 std::vector<std::pair<int, int>> Board::GetAllMoveCandidates(
     const Player& player,
@@ -219,109 +241,97 @@ std::vector<std::pair<int, int>> Board::GetAllMoveCandidates(
 }
 
 // ---------------------------------------------------------------------------
-// Ÿ—˜”»’è
+// å‹åˆ©åˆ¤å®š
 // ---------------------------------------------------------------------------
 int Board::CheckWinner(const Player players[2]) const
 {
-    // ƒvƒŒƒCƒ„[0: ã(y=0)‚©‚çƒXƒ^[ƒg ¨ y==BOARD_SIZE-1 ‚ÅŸ—˜
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼0: ä¸Š(y=0)ã‹ã‚‰ã‚¹ã‚¿ãƒ¼ãƒˆ â†’ y==BOARD_SIZE-1 ã§å‹åˆ©
     if (players[0].y_ == BOARD_SIZE - 1) return 0;
-    // ƒvƒŒƒCƒ„[1: ‰º(y=8)‚©‚çƒXƒ^[ƒg ¨ y==0 ‚ÅŸ—˜
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼1: ä¸‹(y=8)ã‹ã‚‰ã‚¹ã‚¿ãƒ¼ãƒˆ â†’ y==0 ã§å‹åˆ©
     if (players[1].y_ == 0)              return 1;
     return -1;
 }
 
 // ---------------------------------------------------------------------------
-// •Çİ’u‰Â”ÛƒvƒŒƒrƒ…[
+// å£è¨­ç½®å¯å¦ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
 // ---------------------------------------------------------------------------
 bool Board::CanPlaceWall(int x, int y, bool isVertical) const
 {
+    // ç›¤é¢å¤–ï¼ˆäº¤å·®ç‚¹ã¯ 0 ï½ BOARD_SIZE-2 ã¾ã§ï¼‰
+    if (x < 0 || x >= BOARD_SIZE - 1 ||
+        y < 0 || y >= BOARD_SIZE - 1)
+        return false;
+
     if (isVertical)
     {
-        // c•Ç: x: 0..7, y: 0..7
-        if (x < 0 || x >= BOARD_SIZE - 1 ||
-            y < 0 || y >= BOARD_SIZE - 1)
-            return false;
+        // 1. ç¸¦å£åŒå£«ã®é‡è¤‡ãƒ»åŠåˆ†é‡ãªã‚Šã‚’ãƒã‚§ãƒƒã‚¯ï¼ˆ2ãƒã‚¹åˆ†ï¼‰
+        if (verticalWalls_[x][y]) return false;
+        if (y > 0 && verticalWalls_[x][y - 1]) return false;
+        if (y < BOARD_SIZE - 2 && verticalWalls_[x][y + 1]) return false;
 
-        // d•¡‹Ö~i2ƒ}ƒX•ªj
-        if (verticalWalls_[x][y] ||
-            verticalWalls_[x][y + 1])
-            return false;
-
-        // Œğ·‹Ö~
-        if (horizontalWalls_[x][y] &&
-            horizontalWalls_[x + 1][y])
-            return false;
+        // 2. æ¨ªå£ã¨ã®äº¤å·®ãƒã‚§ãƒƒã‚¯ï¼ˆã‚³ãƒªãƒ‰ãƒ¼ãƒ«ã®ãƒ«ãƒ¼ãƒ«ï¼šä¸­å¿ƒã®äº¤å·®ç‚¹ãŒè¢«ã‚‹å ´åˆã®ã¿ç¦æ­¢ï¼‰
+        // æ¨ªå£ã¨æ¨ªå£ã®ã€Œéš™é–“ã€ã«ç¸¦å£ã‚’å…¥ã‚Œã‚‹å ´åˆã€ä¸­å¿ƒç‚¹ãŒè¢«ã‚‰ãªã‘ã‚Œã°è¨­ç½®å¯èƒ½ã§ã™
+        if (horizontalWalls_[x][y]) return false;
     }
     else
     {
-        // ‰¡•Ç: x: 0..7, y: 0..7
-        if (x < 0 || x >= BOARD_SIZE - 1 ||
-            y < 0 || y >= BOARD_SIZE - 1)
-            return false;
+        // 1. æ¨ªå£åŒå£«ã®é‡è¤‡ãƒ»åŠåˆ†é‡ãªã‚Šã‚’ãƒã‚§ãƒƒã‚¯ï¼ˆ2ãƒã‚¹åˆ†ï¼‰
+        if (horizontalWalls_[x][y]) return false;
+        if (x > 0 && horizontalWalls_[x - 1][y]) return false;
+        if (x < BOARD_SIZE - 2 && horizontalWalls_[x + 1][y]) return false;
 
-        // d•¡‹Ö~
-        if (horizontalWalls_[x][y] ||
-            horizontalWalls_[x + 1][y])
-            return false;
-
-        // Œğ·‹Ö~
-        if (verticalWalls_[x][y] &&
-            verticalWalls_[x][y + 1])
-            return false;
+        // 2. ç¸¦å£ã¨ã®äº¤å·®ãƒã‚§ãƒƒã‚¯ï¼ˆä¸­å¿ƒã®äº¤å·®ç‚¹ãŒè¢«ã‚‹å ´åˆã®ã¿ç¦æ­¢ï¼‰
+        if (verticalWalls_[x][y]) return false;
     }
 
     return true;
 }
 
 // ---------------------------------------------------------------------------
-// •Çİ’uiBFSƒ`ƒFƒbƒN•t‚«j
-// ¸”s‚Íó‘Ô‚ğ•Ï‚¦‚¸‚É false ‚ğ•Ô‚·
+// å£è¨­ç½®ï¼ˆBFSãƒã‚§ãƒƒã‚¯ä»˜ãï¼‰
+// å¤±æ•—æ™‚ã¯çŠ¶æ…‹ã‚’å¤‰ãˆãšã« false ã‚’è¿”ã™
 // ---------------------------------------------------------------------------
 bool Board::PlaceWall(int x, int y, bool isVertical, Player players[2], VECTOR wallColor)
 {
-    // --- İ’uƒvƒŒƒrƒ…[”»’è ---
+    // --- è¨­ç½®ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼åˆ¤å®š ---
     if (!CanPlaceWall(x, y, isVertical)) return false;
 
-    // --- ƒvƒŒƒCƒ„[‚Ì•Çc”ƒ`ƒFƒbƒN ---
+    // --- ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å£æ®‹æ•°ãƒã‚§ãƒƒã‚¯ ---
     int turn = -1;
-    // PlaceWall ‚Í Quoridor.cpp ‘¤‚Å currentTurn_ ‚ğ“n‚·İŒv‚É‚·‚é
-    // ‚±‚±‚Å‚Í players[0]/players[1] ‚Ì‚Ç‚¿‚ç‚ªè”Ô‚©‚ğŠO‚©‚çŠÇ—‚µ‚Ä‚¢‚é‚Ì‚Å
-    // c”ƒ`ƒFƒbƒN‚ÍŒÄ‚Ño‚µ‘¤‚Ås‚¤iQuoridor.cpp QÆj
+    // PlaceWall ã¯ Quoridor.cpp å´ã§ currentTurn_ ã‚’æ¸¡ã™è¨­è¨ˆã«ã™ã‚‹
+    // ã“ã“ã§ã¯ players[0]/players[1] ã®ã©ã¡ã‚‰ãŒæ‰‹ç•ªã‹ã‚’å¤–ã‹ã‚‰ç®¡ç†ã—ã¦ã„ã‚‹ã®ã§
+    // æ®‹æ•°ãƒã‚§ãƒƒã‚¯ã¯å‘¼ã³å‡ºã—å´ã§è¡Œã†ï¼ˆQuoridor.cpp å‚ç…§ï¼‰
 
-    // --- ‰¼İ’u ---
+   // --- ä»®è¨­ç½® ---
     if (isVertical)
     {
-        verticalWalls_[x][y] = true;
-        verticalWalls_[x][y + 1] = true;
+        verticalWalls_[x][y] = true; // â˜…1ãƒã‚¹ã ã‘ true ã«ã™ã‚‹
     }
     else
     {
-        horizontalWalls_[x][y] = true;
-        horizontalWalls_[x + 1][y] = true;
+        horizontalWalls_[x][y] = true; // â˜…1ãƒã‚¹ã ã‘ true ã«ã™ã‚‹
     }
 
-    // --- BFS‚Å—¼ƒvƒŒƒCƒ„[‚Ì’Ê˜HŠm”F ---
+    // --- BFSã§ä¸¡ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®é€šè·¯ç¢ºèª ---
     bool reachable =
         CanReachGoal(players[0], BOARD_SIZE - 1, players) &&
         CanReachGoal(players[1], 0, players);
 
     if (!reachable)
     {
-        // İ’u‚ğæ‚èÁ‚·
+        // è¨­ç½®ã‚’å–ã‚Šæ¶ˆã™
         if (isVertical)
         {
             verticalWalls_[x][y] = false;
-            verticalWalls_[x][y + 1] = false;
         }
         else
         {
             horizontalWalls_[x][y] = false;
-            horizontalWalls_[x + 1][y] = false;
         }
         return false;
     }
 
-    // --- WallƒIƒuƒWƒFƒNƒg¶¬ ---
+    // --- Wallã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆç”Ÿæˆ ---
     auto wall = std::make_unique<Wall>();
 	wall->SetCellSize(CELL_SIZE);
     wall->Init();
@@ -335,7 +345,7 @@ bool Board::PlaceWall(int x, int y, bool isVertical, Player players[2], VECTOR w
 }
 
 // ---------------------------------------------------------------------------
-// •Ç•`‰æ
+// å£æç”»
 // ---------------------------------------------------------------------------
 void Board::DrawWalls(void)
 {
@@ -357,110 +367,4 @@ bool Board::GetVerticalWall(int x, int y) const
 bool Board::GetHorizontalWall(int x, int y) const
 {
     return horizontalWalls_[x][y];
-}
-
-// ---------------------------------------------------------------------------
-// ƒfƒoƒbƒO—p•`‰æƒ†[ƒeƒBƒŠƒeƒBi‚»‚Ì‚Ü‚ÜˆÛj
-// ---------------------------------------------------------------------------
-void Board::DrawBox3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag)
-{
-    VECTOR vertexs[8] =
-    {
-        {min.x,min.y,min.z},
-        {max.x,min.y,min.z},
-        {max.x,max.y,min.z},
-        {min.x,max.y,min.z},
-        {min.x,min.y,max.z},
-        {max.x,min.y,max.z},
-        {max.x,max.y,max.z},
-        {min.x,max.y,max.z},
-    };
-
-    auto drawFace = [&](int a, int b, int c, int d)
-        {
-            DrawTriangle3D(vertexs[a], vertexs[b], vertexs[c], color, fillFlag);
-            DrawTriangle3D(vertexs[a], vertexs[c], vertexs[d], color, fillFlag);
-        };
-
-    drawFace(0, 1, 2, 3);
-    drawFace(4, 5, 6, 7);
-    drawFace(0, 3, 7, 4);
-    drawFace(1, 2, 6, 5);
-    drawFace(3, 2, 6, 7);
-    drawFace(0, 1, 5, 4);
-}
-
-void Board::DrawCube3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag)
-{
-    VECTOR v[8] =
-    {
-        VGet(min.x, min.y, min.z),
-        VGet(max.x, min.y, min.z),
-        VGet(max.x, max.y, min.z),
-        VGet(min.x, max.y, min.z),
-        VGet(min.x, min.y, max.z),
-        VGet(max.x, min.y, max.z),
-        VGet(max.x, max.y, max.z),
-        VGet(min.x, max.y, max.z),
-    };
-
-    auto DrawQuad = [&](int a, int b, int c, int d)
-        {
-            DrawTriangle3D(v[a], v[b], v[c], color, fillFlag);
-            DrawTriangle3D(v[a], v[c], v[d], color, fillFlag);
-        };
-
-    DrawQuad(0, 1, 2, 3);
-    DrawQuad(5, 4, 7, 6);
-    DrawQuad(4, 0, 3, 7);
-    DrawQuad(1, 5, 6, 2);
-    DrawQuad(3, 2, 6, 7);
-    DrawQuad(4, 5, 1, 0);
-}
-
-void Board::DrawDebugCollision(void)
-{
-    constexpr float CELL = 50.0f;
-
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 120);
-
-    for (int y = 0; y < BOARD_SIZE; y++)
-    {
-        for (int x = 0; x < BOARD_SIZE - 1; x++)
-        {
-            if (!verticalWalls_[x][y]) continue;
-
-            VECTOR center = VGet(
-                x * CELL + CELL * 0.5f,
-                5.0f,
-                y * CELL
-            );
-
-            VECTOR min = VAdd(center, VGet(-3.0f, 0.0f, 0.0f));
-            VECTOR max = VAdd(center, VGet(3.0f, 30.0f, CELL));
-
-            DrawCube3D(min, max, GetColor(255, 0, 0), TRUE);
-        }
-    }
-
-    for (int y = 0; y < BOARD_SIZE - 1; y++)
-    {
-        for (int x = 0; x < BOARD_SIZE; x++)
-        {
-            if (!horizontalWalls_[x][y]) continue;
-
-            VECTOR center = VGet(
-                x * CELL,
-                5.0f,
-                y * CELL + CELL * 0.5f
-            );
-
-            VECTOR min = VAdd(center, VGet(0.0f, 0.0f, -3.0f));
-            VECTOR max = VAdd(center, VGet(CELL, 30.0f, 3.0f));
-
-            DrawCube3D(min, max, GetColor(0, 0, 255), TRUE);
-        }
-    }
-
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }

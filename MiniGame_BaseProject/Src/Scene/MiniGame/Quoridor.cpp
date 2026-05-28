@@ -32,29 +32,20 @@ Quoridor::Quoridor(void)
 	isGameOver_(false),
 	winner_(-1),
 	isCpuThinking_(false),
+	cpuStartTime_(0),
 	fontTitle_(-1),
-	fontMain_(-1)
+	fontMain_(-1),
+	rFrameCount_(0),
+	isWallWarningActive_(false),
+	wallWarningTimer_(0)
 {
 	// プレイヤーの初期化
 	players_[0] = { 4, 0, 1.0f, 0.31f, 0.31f, 0, 1, 1, 0, MAX_WALLS,{1.0f, 0.31f, 0.31f} };
 	players_[1] = { 4, 8, 0.31f, 0.31f, 1.0f, 0, -1, -1, 0, MAX_WALLS, {0.31f, 0.31f, 1.0f} };
-	
-	/*gameMode_ = GAME_MODE::NONE;
-	mode_ = MODE::MOVE;
 
-	players_[0] = { 4, 0, 1.0f, 0.31f, 0.31f, 0, 1, 1, 0, MAX_WALLS };
-	players_[1] = { 4, 8, 0.31f, 0.31f, 1.0f, 0, -1, -1, 0, MAX_WALLS };
-
-	currentTurn_ = 0;
-	isChangeTurn_ = false;
-	wallCursorX_ = 0;
-	wallCursorY_ = 0;
-	wallVertical_ = true;
-	isGameOver_ = false;
-	winner_ = -1;
-	isCpuThinking_ = false;
-	*/
+#ifdef _DEBUG
 	DbgLog("=== Quoridor START ===");
+#endif
 }
 
 Quoridor::~Quoridor(void)
@@ -82,8 +73,12 @@ void Quoridor::Init(void)
 	gameMode_ = GAME_MODE::CPU;
 
 	// フォント
-	fontTitle_ = CreateFontToHandle("游明朝", 48, -1, DX_FONTTYPE_ANTIALIASING);
-	fontMain_ = CreateFontToHandle("游明朝", 24, -1, DX_FONTTYPE_ANTIALIASING);
+	int screenW, screenH;
+	GetWindowSize(&screenW, &screenH);
+
+	fontTitle_ = CreateFontToHandle("游明朝", (int)(30.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
+	fontMain_ = CreateFontToHandle("游明朝", (int)(18.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
+
 
 	// オブジェクトの初期化
 	desk_ = std::make_unique<Desk>();
@@ -133,24 +128,38 @@ void Quoridor::Update(void)
 	auto& ins = InputManager::GetInstance();
 	if (isGameOver_)
 	{
+		rFrameCount_++;
+
+		if (!isReturn_ && 
+			rFrameCount_ > 180)
+		{
+			isReturn_ = true;
+			return;
+		}
+
 		if (ins.IsTrgUp(KEY_INPUT_R))
 		{
+#ifdef _DEBUG
 			DbgLog("[Update] R key pressed. Restarting game!");
 			Reset();
+#endif
 			return;
 		}
 	}
 
 	if (isGameOver_) return;
 
-	desk_->Update();
-
-	if (players_[currentTurn_].remainingWalls_ <= 0 && mode_ == MODE::WALL)
+	// 警告タイマーのカウントダウン更新
+	if (isWallWarningActive_)
 	{
-		mode_ = MODE::MOVE;
-		WaitTimer(150);
-		RefreshMoveCandidates();
+		wallWarningTimer_--;
+		if (wallWarningTimer_ <= 0)
+		{
+			isWallWarningActive_ = false;
+		}
 	}
+
+	desk_->Update();
 
 	if (gameMode_ == GAME_MODE::CPU && currentTurn_ == 1)
 	{
@@ -176,7 +185,6 @@ void Quoridor::Update(void)
 	if (winner_ >= 0)
 	{
 		isGameOver_ = true;
-		isReturn_ = true;
 		return;
 	}
 
@@ -213,36 +221,28 @@ void Quoridor::Draw(void)
 
 void Quoridor::DrawUI(void)
 {
-	if (isGameOver_)
-	{
-		DrawGameOver();
-	
-	}
-	
 	// 1. 現在の画面サイズを動的に取得
 	int screenW, screenH;
-	GetWindowSize(&screenW, &screenH); // もしフルスクリーンの場合は GetDrawScreenSize など
+	GetWindowSize(&screenW, &screenH);
 
 	// 2. 画面サイズ（特に縦幅）の変化を検知してフォントサイズを動的更新
-	static int lastScreenH = 0;
+	// 初回に Init で作ったフォントを消さないよう、初期値を screenH に合わせておく
+	static int lastScreenH = screenH;
 	if (screenH != lastScreenH)
 	{
-		// 古いフォントがあれば削除
 		if (fontTitle_ != -1) DeleteFontToHandle(fontTitle_);
 		if (fontMain_ != -1)  DeleteFontToHandle(fontMain_);
 
-		// 画面の高さに合わせてフォントサイズを動的に計算
-		// 縦720のときに40と18になるように比率をかける
-		int titleFontSize = (int)(40.0f * ((float)screenH / 720.0f));
-		int mainFontSize = (int)(18.0f * ((float)screenH / 720.0f));
+		int titleFontSize = (int)(32.0f * ((float)screenH / 720.0f));
+		int mainFontSize = (int)(12.0f * ((float)screenH / 720.0f));
 
-		// 最低サイズを保証（画面が極端に小さくなった時の対策）
 		if (titleFontSize < 16) titleFontSize = 16;
 		if (mainFontSize < 9)   mainFontSize = 9;
 
-		fontTitle_ = CreateFontToHandle("游明朝", titleFontSize, 3, DX_FONTTYPE_ANTIALIASING_8X8);
-		fontMain_ = CreateFontToHandle("游明朝", mainFontSize, 2, DX_FONTTYPE_ANTIALIASING_8X8);
-		
+		// 環境依存の少ない DX_FONTTYPE_ANTIALIAS 変更して安全性を高める
+		fontTitle_ = CreateFontToHandle("游明朝", titleFontSize, 3, DX_FONTTYPE_ANTIALIASING);
+		fontMain_ = CreateFontToHandle("游明朝", mainFontSize, 2, DX_FONTTYPE_ANTIALIASING);
+
 		lastScreenH = screenH;
 	}
 
@@ -253,37 +253,30 @@ void Quoridor::DrawUI(void)
 	unsigned int colorBlue = GetColor(80, 80, 200);
 
 	// 3. 座標を画面サイズの「割合（％）」で動的に計算
-	// 左側の余白は画面横幅の約 4%
 	int leftX = (int)(screenW * 0.04f);
-	// 右側のプレイヤー情報は画面横幅の約 78%
 	int rightX = (int)(screenW * 0.78f);
-	// 行間（文字の上下の間隔）も画面の高さに比例させる
 	int lineGap = (int)(screenH * 0.04f);
 
+	// --- 背景ボックスの描画 ---
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 160);
-
-	// 左側のUI背景ボックス（タイトルから操作説明までを包む）
+	// 左側のUI背景ボックス
 	DrawBox(
-		(int)(screenW * 0.02f), (int)(screenH * 0.03f), // 左上
-		(int)(screenW * 0.25f), (int)(screenH * 0.78f), // 右下
-		GetColor(25, 20, 15), TRUE // 目標画面に合わせた暗い焦げ茶色
+		(int)(screenW * 0.02f), (int)(screenH * 0.03f),
+		(int)(screenW * 0.25f), (int)(screenH * 0.78f),
+		GetColor(25, 20, 15), TRUE
 	);
-
-	// 右側のUI背景ボックス（プレイヤー1・2の情報を包む）
+	// 右側のUI背景ボックス
 	DrawBox(
-		(int)(screenW * 0.76f), (int)(screenH * 0.14f), // 左上
-		(int)(screenW * 0.98f), (int)(screenH * 0.52f), // 右下
-		GetColor(25, 20, 15), TRUE // 暗い焦げ茶色
+		(int)(screenW * 0.76f), (int)(screenH * 0.14f),
+		(int)(screenW * 0.98f), (int)(screenH * 0.52f),
+		GetColor(25, 20, 15), TRUE
 	);
-
-	// 描画モードを通常（不透明）に戻す
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
 
 	// --------------------------------------------------
 	// 左側：タイトルとゲーム状態
 	// --------------------------------------------------
-	DrawStringToHandle(leftX, (int)(screenH * 0.05f), "QUORIDOR", colorWhite, fontTitle_);
+	DrawStringToHandle(leftX - static_cast<int>(leftX * 0.5f), (int)(screenH * 0.05f), "QUORIDOR", colorWhite, fontTitle_);
 
 	int turnY = (int)(screenH * 0.18f);
 	DrawFormatStringToHandle(leftX, turnY, colorGray, fontMain_, "TURN");
@@ -303,22 +296,72 @@ void Quoridor::DrawUI(void)
 	// 左下：操作説明
 	// --------------------------------------------------
 	int menuY = (int)(screenH * 0.52f);
-	int itemGap = (int)(screenH * 0.042f); // 操作説明の行間
-	DrawFormatStringToHandle(leftX, menuY, colorGray, fontMain_, "移動   ：方向キー");
+	int itemGap = (int)(screenH * 0.042f);
+	DrawFormatStringToHandle(leftX, menuY, colorGray, fontMain_, "移動    ：方向キー");
 	DrawFormatStringToHandle(leftX, menuY + itemGap, colorGray, fontMain_, "モード切替：TAB");
-	DrawFormatStringToHandle(leftX, menuY + itemGap * 2, colorGray, fontMain_, "壁の回転 ：RSHIFT");
-	DrawFormatStringToHandle(leftX, menuY + itemGap * 3, colorGray, fontMain_, "決定   ：ENTER");
-	DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "リセット ：R");
+	DrawFormatStringToHandle(leftX, menuY + itemGap * 2, colorGray, fontMain_, "壁の回転  ：RSHIFT");
+	DrawFormatStringToHandle(leftX, menuY + itemGap * 3, colorGray, fontMain_, "決定    ：ENTER");
+	DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "リセット  ：R");
+
 	// --------------------------------------------------
 	// 右側：プレイヤー情報
 	// --------------------------------------------------
 	int p1Y = (int)(screenH * 0.18f);
-	DrawFormatStringToHandle(rightX, p1Y, colorBlue, fontMain_, "Player 1 (あなた)");
-	DrawFormatStringToHandle(rightX, p1Y + lineGap, colorWhite, fontMain_, "残りの壁: %d / %d", players_[0].remainingWalls_, MAX_WALLS);
+	DrawFormatStringToHandle(rightX - static_cast<int>(rightX * 0.009f), p1Y, colorRed, fontMain_, "Player 1 (あなた)");
+	DrawFormatStringToHandle(rightX - static_cast<int>(rightX * 0.009f), p1Y + lineGap, colorWhite, fontMain_, "残りの壁: %d / %d", players_[0].remainingWalls_, MAX_WALLS);
 
 	int p2Y = (int)(screenH * 0.38f);
-	DrawFormatStringToHandle(rightX, p2Y, colorRed, fontMain_, "Player 2 (CPU)");
-	DrawFormatStringToHandle(rightX, p2Y + lineGap, colorWhite, fontMain_, "残りの壁: %d / %d", players_[1].remainingWalls_, MAX_WALLS);
+	DrawFormatStringToHandle(rightX - static_cast<int>(rightX * 0.009f), p2Y, colorBlue, fontMain_, "Player 2 (CPU)");
+	DrawFormatStringToHandle(rightX - static_cast<int>(rightX * 0.009f), p2Y + lineGap, colorWhite, fontMain_, "残りの壁: %d / %d", players_[1].remainingWalls_, MAX_WALLS);
+
+	// --- ゲームオーバー時はゲームオーバー画面だけを描画して終了する ---
+	if (isGameOver_)
+	{
+		DrawGameOver();
+	}
+
+	// --------------------------------------------------
+	// 【追加】左側：CPUの「考えてる感」を出すインジケータ演出
+	// --------------------------------------------------
+	if (gameMode_ == GAME_MODE::CPU && currentTurn_ == 1 && isCpuThinking_)
+	{
+		// 300ミリ秒ごとに「.」「..」「...」「」と文字が変化する
+		int dotCount = (GetNowCount() / 300) % 4;
+		std::string thinkingText = "CPU思考中";
+		for (int i = 0; i < dotCount; ++i) {
+			thinkingText += ".";
+		}
+		// モードテキストのさらに下に、少し目立つオレンジ〜黄色系の色で描画
+		DrawFormatStringToHandle(leftX, modeY + (lineGap * 2.5), GetColor(240, 200, 80), fontMain_, "%s", thinkingText.c_str());
+	}
+
+	// --------------------------------------------------
+	// 【注目】壁がないときの警告テロップ描画
+	// --------------------------------------------------
+	if (isWallWarningActive_)
+	{
+		int boxW = (int)(screenW * 0.45f);
+		int boxH = (int)(screenH * 0.07f);
+		int boxX = (screenW - boxW) / 2;
+		int boxY = (int)(screenH * 0.88f);
+
+		// 1. 背景ボックス
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
+		DrawBox(boxX, boxY, boxX + boxW, boxY + boxH, GetColor(80, 20, 20), TRUE); // 警告なので少し赤を強めに
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+		// 2. 文字
+		const char* warnText = "残りの壁が 0 なので配置できません！";
+
+		int textW = GetDrawStringWidthToHandle(warnText, (int)strlen(warnText), fontMain_);
+		int textX = boxX + (boxW - textW) / 2;
+		int textY = boxY + (boxH - (int)(18.0f * ((float)screenH / 720.0f))) / 2;
+
+		unsigned int colorWarn = GetColor(255, 120, 100);
+
+		// ⚠️ここを DrawStringToHandle からフォーマット対応の DrawFormatStringToHandle に統一
+		DrawFormatStringToHandle(textX, textY, colorWarn, fontMain_, "%s", warnText);
+	}
 }
 
 void Quoridor::Reset(void)
@@ -346,6 +389,7 @@ void Quoridor::Reset(void)
 	isGameOver_ = false;
 	winner_ = -1;
 	isCpuThinking_ = false;
+	cpuStartTime_ = 0;
 
 	isReturn_ = false;
 
@@ -510,9 +554,23 @@ void Quoridor::UpdatePlayer(void)
 
 	if (ins.IsTrgUp(KEY_INPUT_TAB))
 	{
-		mode_ = (mode_ == MODE::MOVE) ? MODE::WALL : MODE::MOVE;
-		WaitTimer(150);
-		RefreshMoveCandidates();
+		// 移動モードから壁モードに切り替える前に、壁が残っているかチェック
+		if (mode_ == MODE::MOVE && player.remainingWalls_ <= 0)
+		{
+			// 壁モードで壁が残ってない場合は切り替え禁止＆警告表示
+			isWallWarningActive_ = true;
+			wallWarningTimer_ = 120; // 約2秒間警告表示
+			mode_ = MODE::MOVE; // 強制的に移動モードに切り替え
+			WaitTimer(150);
+			return;
+		}
+
+		if (player.remainingWalls_ > 0)
+		{
+			mode_ = (mode_ == MODE::MOVE) ? MODE::WALL : MODE::MOVE;
+			WaitTimer(150);
+			RefreshMoveCandidates();
+		}
 	}
 
 	if (mode_ == MODE::MOVE)
@@ -557,7 +615,7 @@ void Quoridor::UpdatePlayer(void)
 
 		if (ins.IsTrgUp(KEY_INPUT_RETURN))
 		{
-			if (player.remainingWalls_ <= 0) return;
+			if (player.remainingWalls_ <= 0)return;
 
 			bool placed = board_->PlaceWall(
 				wallCursorX_, wallCursorY_, wallVertical_, players_, player.wallColor_
@@ -573,6 +631,7 @@ void Quoridor::UpdatePlayer(void)
 	}
 }
 
+
 void Quoridor::UpdateCpu(void)
 {
 	if (!pythonAI_ || !pythonAI_->IsRunning())
@@ -581,21 +640,54 @@ void Quoridor::UpdateCpu(void)
 		return;
 	}
 
+	// ─── 【改善】すでに結果が届いている場合の処理 ───
 	if (pythonAI_->HasResult())
 	{
-		DbgLog("[UpdateCpu] HasResult=true");
+		// 演出用の最低思考時間（ミリ秒）。400ms ほど「考えたフリ」をさせる
+		const int MIN_THINKING_TIME_MS = 400;
+		int elapsedTime = GetNowCount() - cpuStartTime_;
+
+		// 最低思考時間を過ぎるまでは、画面をフリーズさせずに「考え中」のまま待機させる
+		if (elapsedTime < MIN_THINKING_TIME_MS)
+		{
+			return;
+		}
+
+		DbgLog("[UpdateCpu] HasResult=true & MinTime passed");
 		std::string response = pythonAI_->TakeResult();
 		DbgLog("[UpdateCpu] response=" + response);
+
 		if (!response.empty()) ApplyCpuMove(response);
+
+		// 思考終了
+		isCpuThinking_ = false;
 		isChangeTurn_ = true;
 		return;
 	}
 
+	// ─── 【改善】まだPythonにリクエストを送っていない（思考開始時） ───
 	if (!pythonAI_->IsThinking())
 	{
 		std::string boardJson = BuildBoardJson();
+
+		// 【アイデア3の拡張】CPU（players_[1]）の壁が0枚なら、JSONの末尾に拡張ヒントを仕込む
+		if (players_[1].remainingWalls_ <= 0)
+		{
+			// JSONの閉じ括弧「}」を削って、推奨する探索深さ(1)を結合して閉じ直す
+			if (!boardJson.empty() && boardJson.back() == '}') {
+				boardJson.pop_back();
+				boardJson += ",\"suggested_depth\":1}";
+			}
+		}
+
 		DbgLog("[UpdateCpu] QueryAsync: " + boardJson);
+
+		// 非同期リクエスト開始
 		pythonAI_->QueryAsync(boardJson, nullptr);
+
+		// 【演出用】考え始めた時間をミリ秒で記録し、思考中フラグをON
+		cpuStartTime_ = GetNowCount();
+		isCpuThinking_ = true;
 	}
 }
 
@@ -676,16 +768,72 @@ void Quoridor::DrawWallAndGrid(void)
 
 void Quoridor::DrawGameOver(void)
 {
-	int cx = 1280 / 2;
-	int cy = 720 / 2;
+	// 1. 現在の画面サイズを動的に取得
+	int screenW, screenH;
+	GetWindowSize(&screenW, &screenH);
 
-	unsigned int winColor =
-		(winner_ == 0) ? GetColor(255, 80, 80) : GetColor(80, 80, 255);
+	// 2. 画面全体のトーンを落とす（半透明の黒で全画面を覆う）
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
+	DrawBox(0, 0, screenW, screenH, GetColor(10, 10, 10), TRUE);
 
-	DrawFormatString(cx - 80, cy - 20, winColor,
-		"Player %d Win!", winner_ + 1);
-	DrawFormatString(cx - 80, cy + 10, GetColor(200, 200, 200),
-		"Press R to Reset");
+	// 3. 中央に文字を際立たせるための「焦げ茶色の帯」を描画
+	int bandH = (int)(screenH * 0.22f);           // 画面の高さの22%の太さ
+	int bandY = (screenH - bandH) / 2;            // 画面の垂直中央
+	DrawBox(0, bandY, screenW, bandY + bandH, GetColor(35, 25, 20), TRUE);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	// 4. 勝者に応じた演出色の決定
+	// 目標画面のイメージに合わせ、上品なゴールド寄りの発色にします
+	unsigned int colorWinText = GetColor(245, 220, 180);
+	if (winner_ == 0) {
+		// プレイヤー1（あなた）が勝った場合
+		colorWinText = GetColor(255, 150, 150); // 落ち着いたライトレッド
+	}
+	else if (winner_ == 1) {
+		// プレイヤー2（CPU）が勝った場合
+		colorWinText = GetColor(150, 200, 255); // さわやかなライトブルー
+	}
+
+	// 5. 勝者メッセージのテキスト作成と中央揃え描画
+	char winText[64];
+	if (winner_ == 0) {
+		sprintf_s(winText, "PLAYER 1 (YOU) WINS!");
+	}
+	else {
+		sprintf_s(winText, "PLAYER 2 (CPU) WINS!");
+	}
+
+	// 大きなフォント（fontTitle_）を使って中央に配置
+	int textW = GetDrawStringWidthToHandle(winText, (int)strlen(winText), fontTitle_);
+	int textX = (screenW - textW) / 2;
+	int textY = bandY + (bandH - (int)(40.0f * ((float)screenH / 720.0f))) / 2 - 10; // 帯のやや上寄り
+	DrawFormatStringToHandle(textX, textY, colorWinText, fontTitle_, "%s", winText);
+
+	char bottomText[64] = "";
+
+#ifdef _DEBUG
+	// 【デバッグモード】Rキーで即時リセットできる案内
+	sprintf_s(bottomText, "- Press [ R ] to Restart Game -");
+	unsigned int textColor = GetColor(170, 160, 150); // デバッグ用グレー
+#else
+	// 【リリースモード】時間経過で終了する案内（残り秒数を動的に計算）
+	int remainingFrames = 180 - rFrameCount_;
+	if (remainingFrames < 0) remainingFrames = 0;
+
+	// 60FPS想定で秒数に変換（少数を切り上げて綺麗に見せる）
+	int remainingSeconds = (remainingFrames + 59) / 60;
+
+	sprintf_s(bottomText, "Returning to menu in %d seconds...", remainingSeconds);
+	unsigned int textColor = GetColor(150, 160, 150); // リリース用、少し落ち着いたセージ色
+#endif
+
+	// 計算したテキストを画面中央下部に描画
+	int bottomW = GetDrawStringWidthToHandle(bottomText, (int)strlen(bottomText), fontMain_);
+	int bottomX = (screenW - bottomW) / 2;
+	int bottomY = bandY + bandH - (int)(30.0f * ((float)screenH / 720.0f)); // 帯の下寄り
+
+	// 修正された変数（textColor）を使って文字を描画
+	DrawFormatStringToHandle(bottomX, bottomY, textColor, fontMain_, "%s", bottomText);
 }
 
 VECTOR Quoridor::MakeMin(VECTOR a, VECTOR b)

@@ -76,9 +76,4 @@ private:
 	std::vector<std::unique_ptr<Grid>> grids_;
     std::unique_ptr<BoardBase> boardBase_;
     std::vector<std::unique_ptr<Wall>> walls_;
-
-    // デバック用
-    void DrawBox3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
-    void DrawCube3D(VECTOR min, VECTOR max, unsigned int color, int fillFlag);
-    void DrawDebugCollision(void);
 };
