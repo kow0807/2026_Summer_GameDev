@@ -14755,3 +14755,5 @@
 [ApplyCpuMove] parsed x=6 y=0
 [ApplyCpuMove] candidates=(7,1)(5,1)(6,0)
 [ApplyCpuMove] MOVE APPLIED: cpu -> (6,0)
+=== Quoridor START ===
+[Init] PythonAI Start OK
