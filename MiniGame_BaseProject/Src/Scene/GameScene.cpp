@@ -10,6 +10,7 @@
 #include "../Scene/MiniGame/GameBase.h"
 #include "../Scene/MiniGame/FirstPressGame.h"
 #include "../Scene/MiniGame/ButtonMashGame.h"
+#include "../Scene/MiniGame/QuizGame.h"
 #include "../Scene/MiniGame/Quoridor.h"
 #include "GameScene.h"
 
@@ -301,6 +302,8 @@ void GameScene::CreateMiniGame(void)
 		gameBase_->Init();
 		break;
 	case MINI_STATE::QUIZ:
+		gameBase_ = std::make_unique<QuizGame>();
+		gameBase_->Init();
 		break;
 	case MINI_STATE::REVERSI:
 		break;

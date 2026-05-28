@@ -40,6 +40,9 @@ public:
 		BUTTON_MASH_GAME_LOST_UI,			// ロストUI
 
 
+		QUIZ_GAME_BACK,						// 背景
+
+
 		BOARD,								// ボード
 		QUORIDOR_BASE,
 		QUORIDOR_DESK,

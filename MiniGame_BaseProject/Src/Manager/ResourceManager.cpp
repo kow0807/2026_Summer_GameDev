@@ -137,6 +137,10 @@ void ResourceManager::Init(void)
 	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_LOST_UI, res);
 
 
+	// ”wŒi
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "QuizGame/Back.png");
+	resourcesMap_.emplace(SRC::QUIZ_GAME_BACK, res);
+
 
 	// ”Â
 	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Board/Board.mv1");
