@@ -290,8 +290,6 @@ void GameScene::ExplanationDrawUI()
 	case MINI_STATE::MINI_SHOGI:
 		break;
 	}
-<<<<<<< HEAD
-=======
 }
 
 void GameScene::ExplanationFirstPressDrawUI(void)
@@ -694,7 +692,7 @@ void GameScene::ExplanationButtonMashDrawUI(void)
 	int noTextW = GetDrawStringWidthToHandle(noText, strlen(noText), explanationFontHandle_);
 
 	DrawStringToHandle(noX + buttonW / 2 - noTextW / 2, buttonY + 12, noText, noColor, explanationFontHandle_);
->>>>>>> 3124168db4052f0f33b1a7eb24c78df7820eebc8
+
 }
 
 void GameScene::ExplanationQuoridorDrawUI(void)
