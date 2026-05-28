@@ -104,7 +104,7 @@ void Application::Run(void)
 		sceneManager.Draw();
 
 		// FPSï\é¶Åiç∂è„Ç…îíï∂éöÇ≈Åj
-		DrawFormatString(10, 10, GetColor(255, 255, 255), "FPS: %d", fps_);
+		//DrawFormatString(10, 10, GetColor(255, 255, 255), "FPS: %d", fps_);
 
 		ScreenFlip();
 

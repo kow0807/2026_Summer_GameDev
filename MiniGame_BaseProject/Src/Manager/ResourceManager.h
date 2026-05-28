@@ -25,6 +25,7 @@ public:
 		FIRST_PRESS_GAME_POINT_UI,			// ポイントUI
 		FIRST_PRESS_GAME_LOST_UI,			// ロストUI
 		FIRST_PRESS_GAME_FLYING_UI,			// フライングUI
+		FIRST_PRESS_GAME_EXPLANATION,		// 説明画像
 
 		BUTTON_MASH_GAME_BACK,				// 背景
 		BUTTON_MASH_GAME_BACK_UI,			// 背景UI
@@ -38,9 +39,11 @@ public:
 		BUTTON_MASH_GAME_LOSE_COUNT_UI,		// 敗北カウントUI
 		BUTTON_MASH_GAME_POINT_UI,			// ポイントUI
 		BUTTON_MASH_GAME_LOST_UI,			// ロストUI
+		BUTTON_MASH_GAME_EXPLANATION,		// 説明画像
 
 
 		QUIZ_GAME_BACK,						// 背景
+		QUIZ_GAME_EXPLANATION,				// 説明画像
 
 
 		BOARD,								// ボード

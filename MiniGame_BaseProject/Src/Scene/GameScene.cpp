@@ -32,6 +32,15 @@ void GameScene::Init(void)
 	// 定点カメラ
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FIXED_POINT);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::MOUSE);
+
+	explanationFontHandle_ = CreateFontToHandle(
+		"游明朝",
+		18,
+		3);
+
+	firstPressExplanationImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_EXPLANATION).handleId_;
+	quizExplanationImg_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_EXPLANATION).handleId_;
+	buttonMashExplanationImg_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_EXPLANATION).handleId_;
 }
 
 void GameScene::Update(void)
@@ -260,12 +269,15 @@ void GameScene::ExplanationDrawUI()
 	switch (miniState_)
 	{
 	case MINI_STATE::FIRST_PRESS:
+		ExplanationFirstPressDrawUI();
 		break;
 	case MINI_STATE::QUIZ:
+		ExplanationQuizDrawUI();
 		break;
 	case MINI_STATE::REVERSI:
 		break;
 	case MINI_STATE::BUTTON_MASH:
+		ExplanationButtonMashDrawUI();
 		break;
 	case MINI_STATE::FLASH_CALC:
 		break;
@@ -278,6 +290,411 @@ void GameScene::ExplanationDrawUI()
 	case MINI_STATE::MINI_SHOGI:
 		break;
 	}
+<<<<<<< HEAD
+=======
+}
+
+void GameScene::ExplanationFirstPressDrawUI(void)
+{
+	int screenX = Application::SCREEN_SIZE_X;
+	int screenY = Application::SCREEN_SIZE_Y;
+
+	int centerX = screenX / 2;
+	int centerY = screenY / 2;
+
+	// 背景暗転
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 190);
+
+	DrawBox(0, 0, screenX, screenY, GetColor(0, 0, 0), true);
+
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	// メインパネル
+	int panelW = 1200;
+	int panelH = 650;
+
+	int panelX = centerX - panelW / 2;
+	int panelY = centerY - panelH / 2;
+
+	// 外枠
+	DrawBox(panelX - 3, panelY - 3, panelX + panelW + 3, panelY + panelH + 3, GetColor(0, 255, 255), true);
+
+	// 内側
+	DrawBox(panelX, panelY, panelX + panelW, panelY + panelH, GetColor(12, 18, 30), true);
+
+	// タイトル
+	DrawStringToHandle(panelX + 120, panelY + 20, "早押しゲーム", GetColor(0, 255, 255), explanationFontHandle_);
+
+	// 区切り線
+	DrawLine(panelX + 30, panelY + 70, panelX + panelW - 30, panelY + 70, GetColor(0, 180, 255));
+
+	// 左側 : 説明画像
+	int imageFrameX = panelX + 40;
+	int imageFrameY = panelY + 110;
+
+	int imageFrameW = 600;
+	int imageFrameH = 390;
+
+	// 画像背景
+	DrawBox(imageFrameX, imageFrameY, imageFrameX + imageFrameW, imageFrameY + imageFrameH, GetColor(20, 28, 45), true);
+
+	DrawBox(imageFrameX, imageFrameY, imageFrameX + imageFrameW, imageFrameY + imageFrameH, GetColor(0, 180, 255), false);
+
+	// 枠中央
+	int imageCenterX = imageFrameX + imageFrameW / 2;
+	int imageCenterY = imageFrameY + imageFrameH / 2;
+
+	// 説明画像
+	DrawRotaGraph(imageCenterX, imageCenterY, 0.5, 0.0, firstPressExplanationImg_, true);
+
+	// 右側 : ルール説明
+	int textX = panelX + 700;
+	int textY = panelY + 140;
+
+	DrawStringToHandle(textX, textY, "■ ルール説明", GetColor(255, 255, 255), explanationFontHandle_);
+
+	DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+
+	DrawStringToHandle(textX, textY + 90, "・合図が表示された瞬間に", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX + 25, textY + 130, "Spaceキーを押してください", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX, textY + 210, "・2本先取で勝利", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX, textY + 290, "・フェイクに騙されないように", GetColor(255, 220, 120), explanationFontHandle_);
+
+	DrawStringToHandle(textX + 25, textY + 330, "気を付けましょう", GetColor(255, 220, 120), explanationFontHandle_);
+
+	// 下部 : 開始確認
+	DrawLine(panelX + 40, panelY + 540, panelX + panelW - 40, panelY + 540, GetColor(0, 180, 255));
+
+
+	// タイトル文字を中央配置
+	const char* startText = "ゲームを開始しますか？";
+
+	int startTextW = GetDrawStringWidthToHandle(startText, strlen(startText), explanationFontHandle_);
+
+	DrawStringToHandle(centerX - startTextW / 2, panelY + 560, startText, GetColor(255, 255, 255), explanationFontHandle_);
+
+
+	// はい / いいえ
+	int yesColor = isYes_ ? GetColor(255, 255, 0) : GetColor(180, 180, 180);
+
+	int noColor = !isYes_ ? GetColor(255, 255, 0) : GetColor(180, 180, 180);
+
+
+	// ボタン設定
+	int buttonW = 180;
+	int buttonH = 42;
+	int buttonGap = 40;
+
+	int totalW = buttonW * 2 + buttonGap;
+
+	int startX = centerX - totalW / 2;
+	int buttonY = panelY + 595;
+
+
+	// はいボタン
+	int yesX = startX;
+
+	DrawBox(yesX, buttonY, yesX + buttonW, buttonY + buttonH, GetColor(25, 35, 55), true);
+
+	if (isYes_)
+	{
+		DrawBox(yesX, buttonY, yesX + buttonW, buttonY + buttonH, GetColor(255, 255, 0), false);
+	}
+
+	const char* yesText = "はい";
+
+	int yesTextW = GetDrawStringWidthToHandle(yesText, strlen(yesText), explanationFontHandle_);
+
+	DrawStringToHandle(yesX + buttonW / 2 - yesTextW / 2, buttonY + 12, yesText, yesColor, explanationFontHandle_);
+
+
+	// いいえボタン
+	int noX = yesX + buttonW + buttonGap;
+
+	DrawBox(noX, buttonY, noX + buttonW, buttonY + buttonH, GetColor(25, 35, 55), true);
+
+	if (!isYes_)
+	{
+		DrawBox(noX, buttonY, noX + buttonW, buttonY + buttonH, GetColor(255, 255, 0), false);
+	}
+
+	const char* noText = "いいえ";
+
+	int noTextW = GetDrawStringWidthToHandle(noText, strlen(noText), explanationFontHandle_);
+
+	DrawStringToHandle(noX + buttonW / 2 - noTextW / 2, buttonY + 12, noText, noColor, explanationFontHandle_);
+}
+
+void GameScene::ExplanationQuizDrawUI(void)
+{
+	int screenX = Application::SCREEN_SIZE_X;
+	int screenY = Application::SCREEN_SIZE_Y;
+
+	int centerX = screenX / 2;
+	int centerY = screenY / 2;
+
+	// 背景暗転
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 190);
+
+	DrawBox(0, 0, screenX, screenY, GetColor(0, 0, 0), true);
+
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	// メインパネル
+	int panelW = 1200;
+	int panelH = 650;
+
+	int panelX = centerX - panelW / 2;
+	int panelY = centerY - panelH / 2;
+
+	// 外枠
+	DrawBox(panelX - 3, panelY - 3, panelX + panelW + 3, panelY + panelH + 3, GetColor(0, 255, 255), true);
+
+	// 内側
+	DrawBox(panelX, panelY, panelX + panelW, panelY + panelH, GetColor(12, 18, 30), true);
+
+	// タイトル
+	DrawStringToHandle(panelX + 120, panelY + 20, "四択クイズ", GetColor(0, 255, 255), explanationFontHandle_);
+
+	// 区切り線
+	DrawLine(panelX + 30, panelY + 70, panelX + panelW - 30, panelY + 70, GetColor(0, 180, 255));
+
+	// 左側 : 説明画像
+	int imageFrameX = panelX + 40;
+	int imageFrameY = panelY + 110;
+
+	int imageFrameW = 600;
+	int imageFrameH = 390;
+
+	// 画像背景
+	DrawBox(imageFrameX, imageFrameY, imageFrameX + imageFrameW, imageFrameY + imageFrameH, GetColor(20, 28, 45), true);
+
+	DrawBox(imageFrameX, imageFrameY, imageFrameX + imageFrameW, imageFrameY + imageFrameH, GetColor(0, 180, 255), false);
+
+	// 枠中央
+	int imageCenterX = imageFrameX + imageFrameW / 2;
+	int imageCenterY = imageFrameY + imageFrameH / 2;
+
+	// 説明画像
+	DrawRotaGraph(imageCenterX, imageCenterY, 0.5, 0.0, quizExplanationImg_, true);
+
+	// 右側 : ルール説明
+	int textX = panelX + 700;
+	int textY = panelY + 140;
+
+	DrawStringToHandle(textX, textY, "■ ルール説明", GetColor(255, 255, 255), explanationFontHandle_);
+
+	DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+
+	DrawStringToHandle(textX, textY + 90, "・クイズに10問中8問", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX + 25, textY + 130, "正解でクリア", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX, textY + 210, "・矢印キーで回答を選択", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX, textY + 290, "・Enterキーで決定", GetColor(220, 220, 220), explanationFontHandle_);
+
+	// 下部 : 開始確認
+	DrawLine(panelX + 40, panelY + 540, panelX + panelW - 40, panelY + 540, GetColor(0, 180, 255));
+
+
+	// タイトル文字を中央配置
+	const char* startText = "ゲームを開始しますか？";
+
+	int startTextW = GetDrawStringWidthToHandle(startText, strlen(startText), explanationFontHandle_);
+
+	DrawStringToHandle(centerX - startTextW / 2, panelY + 560, startText, GetColor(255, 255, 255), explanationFontHandle_);
+
+
+	// はい / いいえ
+	int yesColor = isYes_ ? GetColor(255, 255, 0) : GetColor(180, 180, 180);
+
+	int noColor = !isYes_ ? GetColor(255, 255, 0) : GetColor(180, 180, 180);
+
+
+	// ボタン設定
+	int buttonW = 180;
+	int buttonH = 42;
+	int buttonGap = 40;
+
+	int totalW = buttonW * 2 + buttonGap;
+
+	int startX = centerX - totalW / 2;
+	int buttonY = panelY + 595;
+
+
+	// はいボタン
+	int yesX = startX;
+
+	DrawBox(yesX, buttonY, yesX + buttonW, buttonY + buttonH, GetColor(25, 35, 55), true);
+
+	if (isYes_)
+	{
+		DrawBox(yesX, buttonY, yesX + buttonW, buttonY + buttonH, GetColor(255, 255, 0), false);
+	}
+
+	const char* yesText = "はい";
+
+	int yesTextW = GetDrawStringWidthToHandle(yesText, strlen(yesText), explanationFontHandle_);
+
+	DrawStringToHandle(yesX + buttonW / 2 - yesTextW / 2, buttonY + 12, yesText, yesColor, explanationFontHandle_);
+
+
+	// いいえボタン
+	int noX = yesX + buttonW + buttonGap;
+
+	DrawBox(noX, buttonY, noX + buttonW, buttonY + buttonH, GetColor(25, 35, 55), true);
+
+	if (!isYes_)
+	{
+		DrawBox(noX, buttonY, noX + buttonW, buttonY + buttonH, GetColor(255, 255, 0), false);
+	}
+
+	const char* noText = "いいえ";
+
+	int noTextW = GetDrawStringWidthToHandle(noText, strlen(noText), explanationFontHandle_);
+
+	DrawStringToHandle(noX + buttonW / 2 - noTextW / 2, buttonY + 12, noText, noColor, explanationFontHandle_);
+}
+
+void GameScene::ExplanationButtonMashDrawUI(void)
+{
+	int screenX = Application::SCREEN_SIZE_X;
+	int screenY = Application::SCREEN_SIZE_Y;
+
+	int centerX = screenX / 2;
+	int centerY = screenY / 2;
+
+	// 背景暗転
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 190);
+
+	DrawBox(0, 0, screenX, screenY, GetColor(0, 0, 0), true);
+
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	// メインパネル
+	int panelW = 1200;
+	int panelH = 650;
+
+	int panelX = centerX - panelW / 2;
+	int panelY = centerY - panelH / 2;
+
+	// 外枠
+	DrawBox(panelX - 3, panelY - 3, panelX + panelW + 3, panelY + panelH + 3, GetColor(0, 255, 255), true);
+
+	// 内側
+	DrawBox(panelX, panelY, panelX + panelW, panelY + panelH, GetColor(12, 18, 30), true);
+
+	// タイトル
+	DrawStringToHandle(panelX + 120, panelY + 20, "連打対決", GetColor(0, 255, 255), explanationFontHandle_);
+
+	// 区切り線
+	DrawLine(panelX + 30, panelY + 70, panelX + panelW - 30, panelY + 70, GetColor(0, 180, 255));
+
+	// 左側 : 説明画像
+	int imageFrameX = panelX + 40;
+	int imageFrameY = panelY + 110;
+
+	int imageFrameW = 600;
+	int imageFrameH = 390;
+
+	// 画像背景
+	DrawBox(imageFrameX, imageFrameY, imageFrameX + imageFrameW, imageFrameY + imageFrameH, GetColor(20, 28, 45), true);
+
+	DrawBox(imageFrameX, imageFrameY, imageFrameX + imageFrameW, imageFrameY + imageFrameH, GetColor(0, 180, 255), false);
+
+	// 枠中央
+	int imageCenterX = imageFrameX + imageFrameW / 2;
+	int imageCenterY = imageFrameY + imageFrameH / 2;
+
+	// 説明画像
+	DrawRotaGraph(imageCenterX, imageCenterY, 0.5, 0.0, buttonMashExplanationImg_, true);
+
+	// 右側 : ルール説明
+	int textX = panelX + 700;
+	int textY = panelY + 140;
+
+	DrawStringToHandle(textX, textY, "■ ルール説明", GetColor(255, 255, 255), explanationFontHandle_);
+
+	DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+
+	DrawStringToHandle(textX, textY + 90, "・合図が表示された後", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX + 25, textY + 130, "Spaceキーを連打してください", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX, textY + 210, "・連打の優勢状況によって", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX + 25, textY + 250, "画面の色が変化します", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX, textY + 330, "・青で埋め尽くすと1本獲得し", GetColor(220, 220, 220), explanationFontHandle_);
+
+	DrawStringToHandle(textX + 25, textY + 370, "2本先取で勝利", GetColor(220, 220, 220), explanationFontHandle_);
+
+	// 下部 : 開始確認
+	DrawLine(panelX + 40, panelY + 540, panelX + panelW - 40, panelY + 540, GetColor(0, 180, 255));
+
+
+	// タイトル文字を中央配置
+	const char* startText = "ゲームを開始しますか？";
+
+	int startTextW = GetDrawStringWidthToHandle(startText, strlen(startText), explanationFontHandle_);
+
+	DrawStringToHandle(centerX - startTextW / 2, panelY + 560, startText, GetColor(255, 255, 255), explanationFontHandle_);
+
+
+	// はい / いいえ
+	int yesColor = isYes_ ? GetColor(255, 255, 0) : GetColor(180, 180, 180);
+
+	int noColor = !isYes_ ? GetColor(255, 255, 0) : GetColor(180, 180, 180);
+
+
+	// ボタン設定
+	int buttonW = 180;
+	int buttonH = 42;
+	int buttonGap = 40;
+
+	int totalW = buttonW * 2 + buttonGap;
+
+	int startX = centerX - totalW / 2;
+	int buttonY = panelY + 595;
+
+
+	// はいボタン
+	int yesX = startX;
+
+	DrawBox(yesX, buttonY, yesX + buttonW, buttonY + buttonH, GetColor(25, 35, 55), true);
+
+	if (isYes_)
+	{
+		DrawBox(yesX, buttonY, yesX + buttonW, buttonY + buttonH, GetColor(255, 255, 0), false);
+	}
+
+	const char* yesText = "はい";
+
+	int yesTextW = GetDrawStringWidthToHandle(yesText, strlen(yesText), explanationFontHandle_);
+
+	DrawStringToHandle(yesX + buttonW / 2 - yesTextW / 2, buttonY + 12, yesText, yesColor, explanationFontHandle_);
+
+
+	// いいえボタン
+	int noX = yesX + buttonW + buttonGap;
+
+	DrawBox(noX, buttonY, noX + buttonW, buttonY + buttonH, GetColor(25, 35, 55), true);
+
+	if (!isYes_)
+	{
+		DrawBox(noX, buttonY, noX + buttonW, buttonY + buttonH, GetColor(255, 255, 0), false);
+	}
+
+	const char* noText = "いいえ";
+
+	int noTextW = GetDrawStringWidthToHandle(noText, strlen(noText), explanationFontHandle_);
+
+	DrawStringToHandle(noX + buttonW / 2 - noTextW / 2, buttonY + 12, noText, noColor, explanationFontHandle_);
+>>>>>>> 3124168db4052f0f33b1a7eb24c78df7820eebc8
 }
 
 void GameScene::ExplanationQuoridorDrawUI(void)
