@@ -10,6 +10,7 @@
 #include "../../Object/Actor/Quoridor/Wall.h"
 #include "../../Object/Actor/Quoridor/PlayerPiece.h"
 #include "../../Object/Actor/Quoridor/PythonAI.h"
+#include "../../Object/Actor/Quoridor/Triangle.h"
 #include "Quoridor.h"
 
 // デバッグ用ログ出力関数
@@ -31,6 +32,7 @@ Quoridor::Quoridor(void)
 	wallVertical_(true),
 	isGameOver_(false),
 	winner_(-1),
+	moveCursorIndex_(0),
 	isCpuThinking_(false),
 	cpuStartTime_(0),
 	fontTitle_(-1),
@@ -77,7 +79,7 @@ void Quoridor::Init(void)
 	GetWindowSize(&screenW, &screenH);
 
 	fontTitle_ = CreateFontToHandle("游明朝", (int)(30.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
-	fontMain_ = CreateFontToHandle("游明朝", (int)(18.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
+	fontMain_ = CreateFontToHandle("游明朝", (int)(16.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
 
 
 	// オブジェクトの初期化
@@ -100,6 +102,12 @@ void Quoridor::Init(void)
 		playerPieces_[i]->Init();
 		playerPieces_[i]->SetBoardPosition(players_[i].x_, players_[i].y_);
 		playerPieces_[i]->SetColor(players_[i].r_, players_[i].g_, players_[i].b_);
+	}
+
+	for (int i = 0; i < moveTriangleIndicators_.size(); ++i)
+	{
+		moveTriangleIndicators_[i] = std::make_unique<Triangle>();
+		moveTriangleIndicators_[i]->Init();
 	}
 
 	RefreshMoveCandidates();
@@ -160,6 +168,11 @@ void Quoridor::Update(void)
 	}
 
 	desk_->Update();
+
+	for(int i=0; i<moveTriangleIndicators_.size(); ++i)
+	{
+		moveTriangleIndicators_[i]->Update();
+	}
 
 	if (gameMode_ == GAME_MODE::CPU && currentTurn_ == 1)
 	{
@@ -332,7 +345,7 @@ void Quoridor::DrawUI(void)
 			thinkingText += ".";
 		}
 		// モードテキストのさらに下に、少し目立つオレンジ〜黄色系の色で描画
-		DrawFormatStringToHandle(leftX, modeY + (lineGap * 2.5), GetColor(240, 200, 80), fontMain_, "%s", thinkingText.c_str());
+		DrawFormatStringToHandle(leftX, static_cast<int>(modeY + (lineGap * 2.5f)), GetColor(240, 200, 80), fontMain_, "%s", thinkingText.c_str());
 	}
 
 	// --------------------------------------------------
@@ -552,8 +565,17 @@ void Quoridor::UpdatePlayer(void)
 	Player& player = players_[currentTurn_];
 	auto& ins = InputManager::GetInstance();
 
+	//static bool isDiagChoosing = false; // 斜め移動の候補選択中かどうか
+	//static std::pair<int, int> diagTarget = { 0,0 }; // 選択中の斜め移動先座標
+
 	if (ins.IsTrgUp(KEY_INPUT_TAB))
 	{
+		if (isDiagChoosing_)
+		{
+			isDiagChoosing_ = false;
+			return;
+		}
+
 		// 移動モードから壁モードに切り替える前に、壁が残っているかチェック
 		if (mode_ == MODE::MOVE && player.remainingWalls_ <= 0)
 		{
@@ -575,6 +597,30 @@ void Quoridor::UpdatePlayer(void)
 
 	if (mode_ == MODE::MOVE)
 	{
+		if (isDiagChoosing_)
+		{
+			if (ins.IsTrgUp(KEY_INPUT_RETURN))
+			{
+				player.x_ = diagTarget_.first;
+				player.y_ = diagTarget_.second;
+				isChangeTurn_ = true;
+				isDiagChoosing_ = false; // 状態を解除
+				DbgLog("[UpdatePlayer] 斜め移動確定(ENTER): (" + std::to_string(player.x_) + "," + std::to_string(player.y_) + ")");
+				WaitTimer(150);
+				return;
+			}
+
+			if(ins.IsTrgUp(KEY_INPUT_BACK))
+			{
+				isDiagChoosing_ = false;
+				DbgLog("[UpdatePlayer] 斜め移動キャンセル(BACK)");
+				WaitTimer(150);
+				return;
+			}
+
+			return;
+		}
+
 		int DirX = 0, DirY = 0;
 
 		if (ins.IsTrgUp(KEY_INPUT_UP))    DirY += player.forwardDirY_;
@@ -589,10 +635,33 @@ void Quoridor::UpdatePlayer(void)
 			);
 			if (!cands.empty())
 			{
-				player.x_ = cands[0].first;
+	/*			player.x_ = cands[0].first;
 				player.y_ = cands[0].second;
 				isChangeTurn_ = true;
-				DbgLog("[UpdatePlayer] moved to (" + std::to_string(player.x_) + "," + std::to_string(player.y_) + ")");
+				DbgLog("[UpdatePlayer] moved to (" + std::to_string(player.x_) + "," + std::to_string(player.y_) + ")");*/
+
+
+				// 取得した移動先（cands[0]）が、現在の位置から見て「斜め」かどうかをチェック
+				// （X座標もY座標も両方とも変わっていれば斜め移動）
+				bool isDiagonal = (cands[0].first != player.x_) && (cands[0].second != player.y_);
+
+				if (!isDiagonal)
+				{
+					// ─── 【通常移動】 ───
+					// 十字方向への移動（または敵を直線に飛び越える移動）なら即座に確定
+					player.x_ = cands[0].first;
+					player.y_ = cands[0].second;
+					isChangeTurn_ = true;
+					DbgLog("[UpdatePlayer] 通常移動確定: (" + std::to_string(player.x_) + "," + std::to_string(player.y_) + ")");
+				}
+				else
+				{
+					// 【斜めジャンプ】 選択モードへ移行
+					isDiagChoosing_ = true;
+					diagTarget_ = cands[0]; // 最初に見つかった斜め移動先をターゲットに設定
+
+					DbgLog("[UpdatePlayer] 斜めジャンプ選択モード開始。確定待ちターゲット: (" + std::to_string(diagTarget_.first) + "," + std::to_string(diagTarget_.second) + ")");
+				}
 			}
 		}
 	}
@@ -729,21 +798,104 @@ void Quoridor::DrawBoard(void)
 
 void Quoridor::DrawMoveCandidates(void)
 {
-	if (mode_ != MODE::MOVE) return;
+	// 現在のターン主の情報を取得
+	const Player& curPlayer = players_[currentTurn_];
 
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
+	// 選択中のコマの現在の世界座標を取得
+	VECTOR playerPos = GetWorldPos(curPlayer.x_, curPlayer.y_);
 
-	for (auto& [cx, cy] : moveCandidates_)
+	// 斜め移動の候補がある場合、通常のオフセットより少し広めに取るための変数
+	float offset = Board::CELL_SIZE * 0.58f;
+	float diagOffset = Board::CELL_SIZE * 1.0f;
+
+	// 8方向の設定定義（0~3: 十字、4~7: 斜め）
+	struct DirectionConfig {
+		int dx;
+		int dy;
+		float offsetX;
+		float offsetZ;
+		VECTOR rotation;
+		bool isDiagonal; // 斜め判定フラグ
+	};
+
+	DirectionConfig dirs[8] = {
+		{  0,  1,   0.0f,   offset, VGet(0.0f, 0.0f, 0.0f),					false },  // 0: 上
+		{  0, -1,   0.0f,  -offset, VGet(0.0f, DX_PI_F, 0.0f),				false },  // 1: 下
+		{ -1,  0,  -offset,   0.0f, VGet(0.0f, -DX_PI_F * 0.5f, 0.0f),		false },  // 2: 左
+		{  1,  0,   offset,   0.0f, VGet(0.0f,  DX_PI_F * 0.5f, 0.0f),		false },  // 3: 右
+
+		{ -1,  1, -diagOffset,  diagOffset, VGet(0.0f, -DX_PI_F * 0.25f, 0.0f), true },  // 4: 左上
+		{  1,  1,  diagOffset,  diagOffset, VGet(0.0f,  DX_PI_F * 0.25f, 0.0f),  true },  // 5: 右上
+		{ -1, -1, -diagOffset, -diagOffset, VGet(0.0f, -DX_PI_F * 0.75f, 0.0f), true },  // 6: 左下
+		{  1, -1,  diagOffset, -diagOffset, VGet(0.0f,  DX_PI_F * 0.75f, 0.0f),  true }   // 7: 右下	
+	};
+
+	// ✨【修正ポイント】moveCandidates_.size() ではなく、固定で「8方向すべて」をチェックする
+	for (int i = 0; i < 8; ++i)
 	{
-		VECTOR pos = GetWorldPos(cx, cy);
-		DrawBox3D(
-			VAdd(pos, VGet(-4, 1, -4)),
-			VAdd(pos, VGet(4, 4, 4)),
-			GetColor(255, 255, 0), TRUE
-		);
-	}
+		// 斜め移動にしようとしている（Enter待ち）のときは、十字方向の矢印（0〜3）を非表示にする
+		if (isDiagChoosing_ && !dirs[i].isDiagonal)
+		{
+			continue;
+		}
 
-	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+		// その方向の座標を計算
+		int targetX = curPlayer.x_ + dirs[i].dx;
+		int targetY = curPlayer.y_ + dirs[i].dy;
+
+		// 移動候補リストの中に、この方向の座標が含まれているかを「全探索」して調べる
+		bool isAvailable = false;
+		for (auto& [cx, cy] : moveCandidates_)
+		{
+			if (cx == targetX && cy == targetY)
+			{
+				isAvailable = true;
+				break;
+			}
+		}
+
+		// 斜め選択中（Enter待ち）のときは、今選択していない方の斜め矢印は消す
+		if (isDiagChoosing_ && dirs[i].isDiagonal)
+		{
+			if (targetX != diagTarget_.first || targetY != diagTarget_.second)
+			{
+				continue; // 選択中のターゲット以外の斜め矢印は描画しない
+			}
+		}
+
+		// 描画処理
+		if (isAvailable && moveTriangleIndicators_[i])
+		{
+			// 十字と斜めで色（表現）を差別化する
+			if (dirs[i].isDiagonal)
+			{
+				if (isDiagChoosing_ && IsBlink())
+				{
+					moveTriangleIndicators_[i]->SetColor(1.0f, 1.0f, 0.0f); // 鮮やかな黄色
+				}
+				else
+				{
+					moveTriangleIndicators_[i]->SetColor(0.8f, 0.7f, 0.2f); // 落ち着いたゴールド
+				}
+			}
+			else
+			{
+				// 十字方向の矢印：通常のプレイヤーカラー
+				moveTriangleIndicators_[i]->SetColor(curPlayer.r_, curPlayer.g_, curPlayer.b_);
+			}
+
+			// トランスフォーム適用
+			float posX = playerPos.x + dirs[i].offsetX;
+			float posZ = playerPos.z + dirs[i].offsetZ;
+			moveTriangleIndicators_[i]->SetPositon(posX, posZ);
+			moveTriangleIndicators_[i]->SetRotation(dirs[i].rotation);
+
+			// 描画
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 140);
+			moveTriangleIndicators_[i]->Draw();
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+		}
+	}
 }
 
 void Quoridor::DrawPlayers(void)

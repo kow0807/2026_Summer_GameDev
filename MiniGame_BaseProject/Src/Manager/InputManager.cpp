@@ -50,6 +50,7 @@ void InputManager::Init(void)
 	InputManager::GetInstance().Add(KEY_INPUT_RSHIFT);
 
 	InputManager::GetInstance().Add(KEY_INPUT_BACKSLASH);
+	InputManager::GetInstance().Add(KEY_INPUT_BACK);
 
 
 	InputManager::GetInstance().Add(KEY_INPUT_1);

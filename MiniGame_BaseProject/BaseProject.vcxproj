@@ -61,6 +61,7 @@
     <ClCompile Include="Src\Utility\AsoUtility.cpp" />
     <ClCompile Include="Src\Renderer\VertexMaterial.cpp" />
     <ClCompile Include="Src\Object\Actor\Quoridor\Wall.cpp" />
+    <ClCompile Include="Src\Object\Actor\Quoridor\Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Scene\MiniGame\QuizGame.h" />
@@ -105,6 +106,7 @@
     <ClInclude Include="Src\Utility\AsoUtility.h" />
     <ClInclude Include="Src\Renderer\VertexMaterial.h" />
     <ClInclude Include="Src\Object\Actor\Quoridor\Wall.h" />
+    <ClInclude Include="Src\Object\Actor\Quoridor\Triangle.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\Scripts\ai.py" />

@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <array>
 #include "GameBase.h"
 #include "../../Object/Actor/Quoridor/QuoridorPlayer.h"
 #include "../../Object/Actor/Quoridor/PythonAI.h"
@@ -10,6 +11,7 @@ class Board;
 class Wall;
 class PlayerPiece;
 class PythonAI;
+class Triangle;
 
 class Quoridor : public GameBase
 {
@@ -69,6 +71,9 @@ private:
 	bool isGameOver_;
 	int  winner_;
 
+	// 移動モード中の選択カーソル管理用
+	int moveCursorIndex_;
+
 	// 移動先候補（ハイライト用）
 	std::vector<std::pair<int, int>> moveCandidates_;
 
@@ -102,6 +107,8 @@ private:
 	std::unique_ptr<Wall> previewWall_;
 	std::unique_ptr<PlayerPiece> playerPieces_[2];
 	std::unique_ptr<PythonAI> pythonAI_;
+	std::array<std::unique_ptr<Triangle>, 8> moveTriangleIndicators_; // 移動方向表示用の三角形オブジェクト
+
 
 	// CPU思考中フラグ
 	bool isCpuThinking_;
@@ -128,4 +135,7 @@ private:
 	// 壁残りに関する警告
 	bool isWallWarningActive_;
 	int wallWarningTimer_;
+
+	bool isDiagChoosing_ = false;
+	std::pair<int, int> diagTarget_ = { 0, 0 };
 };
