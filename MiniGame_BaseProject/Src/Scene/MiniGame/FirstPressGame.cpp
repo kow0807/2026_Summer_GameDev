@@ -381,6 +381,26 @@ void FirstPressGame::Flash(void)
     fallX_ = 0;
     fallY_ = 0;
     isFall_ = false;
+    
+    int col = 0;
+
+    if (pressFrame_ < 0)
+    {
+        col = GetColor(238, 180, 238);
+    }
+    else if (!isPressed_)
+    {
+        col = GetColor(238, 180, 238);
+    }
+    else if (!cpuPressed_ || pressFrame_ < cpuPressFrame_)
+    {
+        col = GetColor(0, 180, 255);
+    }
+    else
+    {
+        col = GetColor(238, 180, 238);
+    }
+
 
     // ŒÄ‚Ño‚µ‚²‚Æ‚ÉŠÇ—‚·‚é—p
     static int alpha = 255;
@@ -396,7 +416,7 @@ void FirstPressGame::Flash(void)
             0,
             Application::SCREEN_SIZE_X,
             Application::SCREEN_SIZE_Y,
-            GetColor(255, 255, 255),
+            col,
             TRUE
         );
 
