@@ -53,6 +53,12 @@ private:
 
 	SELECT_STATE selectState_;
 
+	int explanationFontHandle_;
+
+	int firstPressExplanationImg_;
+	int quizExplanationImg_;
+	int buttonMashExplanationImg_;
+
 	bool isYes_;
 
 	// ミニゲームの基底クラス
@@ -70,7 +76,9 @@ private:
 	void ExplanationDrawUI(void);
 
 	// 各ミニゲームの説明UI
-
+	void ExplanationFirstPressDrawUI(void);
+	void ExplanationQuizDrawUI(void);
+	void ExplanationButtonMashDrawUI(void);
 	void ExplanationQuoridorDrawUI(void);
 
 	//　ミニゲーム生成

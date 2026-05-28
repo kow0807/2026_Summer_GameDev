@@ -86,6 +86,10 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Flying_UI.png");
 	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_FLYING_UI, res);
 
+	// ê‡ñæâÊëú
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Explanation.png");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_EXPLANATION, res);
+
 
 
 	// îwåi
@@ -136,10 +140,20 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Lost_UI.png");
 	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_LOST_UI, res);
 
+	// ê‡ñæâÊëú
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Explanation.png");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_EXPLANATION, res);
+
+
 
 	// îwåi
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "QuizGame/Back.png");
 	resourcesMap_.emplace(SRC::QUIZ_GAME_BACK, res);
+
+	// ê‡ñæâÊëú
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "QuizGame/Explanation.png");
+	resourcesMap_.emplace(SRC::QUIZ_GAME_EXPLANATION, res);
+
 
 
 	// î¬
