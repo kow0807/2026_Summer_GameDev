@@ -69,6 +69,10 @@ private:
 	void SelectGameDrawUI(void);
 	void ExplanationDrawUI(void);
 
+	// 各ミニゲームの説明UI
+
+	void ExplanationQuoridorDrawUI(void);
+
 	//　ミニゲーム生成
 	void CreateMiniGame(void);
 };

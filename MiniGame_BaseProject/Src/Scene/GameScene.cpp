@@ -1,10 +1,11 @@
-#include <DxLib.h>
+ï»¿#include <DxLib.h>
 #include "../Application.h"
 #include "../Utility/AsoUtility.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/Camera.h"
 #include "../Manager/ResourceManager.h"
 #include "../Manager/InputManager.h"
+#include "../Manager/Setting.h"
 #include "../Renderer/PixelMaterial.h"
 #include "../Renderer/PixelRenderer.h"
 #include "../Scene/MiniGame/GameBase.h"
@@ -27,7 +28,7 @@ GameScene::~GameScene(void)
 
 void GameScene::Init(void)
 {
-	// ’è“_ƒJƒƒ‰
+	// å®šç‚¹ã‚«ãƒ¡ãƒ©
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FIXED_POINT);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::MOUSE);
 }
@@ -75,7 +76,7 @@ void GameScene::DrawUI(void)
 			Application::SCREEN_SIZE_X / 2 - 100,
 			Application::SCREEN_SIZE_Y / 2 - 150,
 			GetColor(255, 255, 255),
-			"ƒ~ƒjƒQ[ƒ€‘I‚Ô‚ºII"
+			"ãƒŸãƒ‹ã‚²ãƒ¼ãƒ é¸ã¶ãœï¼ï¼"
 		);
 		SelectGameDrawUI();
 		break;
@@ -114,11 +115,11 @@ void GameScene::SelectGameUpdate(void)
 
 	miniState_ = static_cast<MINI_STATE>(index);
 
-	// Œˆ’è ¨ à–¾‰æ–Ê‚Ö
+	// æ±ºå®š â†’ èª¬æ˜ç”»é¢ã¸
 	if (ins.IsTrgDown(KEY_INPUT_RETURN))
 	{
 		selectState_ = SELECT_STATE::EXPLANATION;
-		isYes_ = true; // ‰Šú‚Íu‚Í‚¢v
+		isYes_ = true; // åˆæœŸã¯ã€Œã¯ã„ã€
 	}
 }
 
@@ -126,18 +127,18 @@ void GameScene::ExplanationUpdate()
 {
 	InputManager& ins = InputManager::GetInstance();
 
-	// ¶‰E‚Å YES / NO Ø‚è‘Ö‚¦
+	// å·¦å³ã§ YES / NO åˆ‡ã‚Šæ›¿ãˆ
 	if (ins.IsTrgDown(KEY_INPUT_LEFT) || ins.IsTrgDown(KEY_INPUT_RIGHT))
 	{
 		isYes_ = !isYes_;
 	}
 
-	// Œˆ’è
+	// æ±ºå®š
 	if (ins.IsTrgDown(KEY_INPUT_RETURN))
 	{
 		if (isYes_)
 		{
-			//@¶¬‚Æ‰Šú‰»
+			//ã€€ç”Ÿæˆã¨åˆæœŸåŒ–
 			CreateMiniGame();
 			selectState_ = SELECT_STATE::PLAYING;
 		}
@@ -152,24 +153,13 @@ void GameScene::GameUpdate()
 {
 	InputManager& ins = InputManager::GetInstance();
 
-	// ‰¼FƒXƒy[ƒX‚Å–ß‚é
-	//if (ins.IsTrgDown(KEY_INPUT_SPACE))
-	//{
-	//	// ƒ~ƒjƒQ[ƒ€‚ÌƒŠƒZƒbƒg
-	//	gameBase_->Reset();
-
-	//	// ƒ|ƒCƒ“ƒ^[”jŠü
-	//	gameBase_.reset();
-	//	selectState_ = SELECT_STATE::GAME_SELECT;
-	//}
-
 	if (gameBase_->GetIsReturn())
 	{
-		//ƒ~ƒjƒQ[ƒ€‚ÌƒŠƒZƒbƒg
+		//ãƒŸãƒ‹ã‚²ãƒ¼ãƒ ã®ãƒªã‚»ãƒƒãƒˆ
 		gameBase_->Reset();
 		gameBase_->SetIsReturn(false);
 
-		// ƒ|ƒCƒ“ƒ^[”jŠü
+		// ãƒã‚¤ãƒ³ã‚¿ãƒ¼ç ´æ£„
 		gameBase_.reset();
 		selectState_ = SELECT_STATE::GAME_SELECT;
 	}
@@ -202,14 +192,14 @@ void GameScene::SelectGameDrawUI(void)
 
 	const char* names[] =
 	{
-		"‘‰Ÿ‚µ",
-		"l‘ğƒNƒCƒY",
-		"ƒIƒZƒ",
-		"˜A‘Å‘ÎŒˆ",
-		"ƒtƒ‰ƒbƒVƒ…ˆÃZ",
-		"ƒRƒŠƒh[ƒ‹",
-		"ƒEƒTƒM‚Æ—ÂŒ¢",
-		"5ŒÜ«Šû"
+		"æ—©æŠ¼ã—",
+		"å››æŠã‚¯ã‚¤ã‚º",
+		"ã‚ªã‚»ãƒ­",
+		"é€£æ‰“å¯¾æ±º",
+		"ãƒ•ãƒ©ãƒƒã‚·ãƒ¥æš—ç®—",
+		"ã‚³ãƒªãƒ‰ãƒ¼ãƒ«",
+		"ã‚¦ã‚µã‚®ã¨çŒŸçŠ¬",
+		"5äº”å°†æ£‹"
 	};
 
 	const int current = static_cast<int>(miniState_);
@@ -218,7 +208,7 @@ void GameScene::SelectGameDrawUI(void)
 	{
 		int diff = i - current;
 
-		// ƒ‹[ƒv•â³
+		// ãƒ«ãƒ¼ãƒ—è£œæ­£
 		if (diff > static_cast<int>(MINI_STATE::MAX) / 2)
 			diff -= static_cast<int>(MINI_STATE::MAX);
 		if (diff < -static_cast<int>(MINI_STATE::MAX) / 2)
@@ -233,7 +223,7 @@ void GameScene::SelectGameDrawUI(void)
 			GetColor(255, 255, 0) :
 			GetColor(200, 200, 200);
 
-		// ˜g
+		// æ 
 		DrawBox(
 			x - cardW / 2, y - cardH / 2,
 			x + cardW / 2, y + cardH / 2,
@@ -241,7 +231,7 @@ void GameScene::SelectGameDrawUI(void)
 			FALSE
 		);
 
-		// ‘I‘ğ‹­’²
+		// é¸æŠå¼·èª¿
 		if (isSelect)
 		{
 			DrawBox(
@@ -252,7 +242,7 @@ void GameScene::SelectGameDrawUI(void)
 			);
 		}
 
-		// •¶š
+		// æ–‡å­—
 		int textW = GetDrawStringWidth(names[i], static_cast<int>(strlen(names[i])));
 
 		DrawString(
@@ -268,31 +258,109 @@ void GameScene::ExplanationDrawUI()
 {
 	const char* desc[] =
 	{
-		"‘‰Ÿ‚µƒQ[ƒ€‚Å‚·",
-		"l‘ğƒNƒCƒY‚Å‚·",
-		"ƒIƒZƒ‚Å‚·",
-		"˜A‘Å‘ÎŒˆI",
-		"ƒtƒ‰ƒbƒVƒ…ˆÃZ",
-		"ƒRƒŠƒh[ƒ‹",
-		"ƒEƒTƒM‚Æ—ÂŒ¢",
-		"5ŒÜ«Šû"
+		"æ—©æŠ¼ã—ã‚²ãƒ¼ãƒ ã§ã™",
+		"å››æŠã‚¯ã‚¤ã‚ºã§ã™",
+		"ã‚ªã‚»ãƒ­ã§ã™",
+		"é€£æ‰“å¯¾æ±ºï¼",
+		"ãƒ•ãƒ©ãƒƒã‚·ãƒ¥æš—ç®—",
+		"ã‚³ãƒªãƒ‰ãƒ¼ãƒ«",
+		"ã‚¦ã‚µã‚®ã¨çŒŸçŠ¬",
+		"5äº”å°†æ£‹"
 	};
 
 	int index = static_cast<int>(miniState_);
 
 	DrawFormatString(300, 200, GetColor(255, 255, 255), desc[index]);
 
+	switch (miniState_)
+	{
+	case MINI_STATE::FIRST_PRESS:
+		break;
+	case MINI_STATE::QUIZ:
+		break;
+	case MINI_STATE::REVERSI:
+		break;
+	case MINI_STATE::BUTTON_MASH:
+		break;
+	case MINI_STATE::FLASH_CALC:
+		break;
+	case MINI_STATE::QUORIDOR:
+		ExplanationQuoridorDrawUI();
+		break;
+	case MINI_STATE::HARE_AND_HOUNDS:
+		break;
+	case MINI_STATE::MINI_SHOGI:
+		break;
+	}
+
 	int yesColor = isYes_ ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
 	int noColor = !isYes_ ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
 
-	DrawString(300, 300, "‚Í‚¢", yesColor);
-	DrawString(450, 300, "‚¢‚¢‚¦", noColor);
+	if (miniState_ != MINI_STATE::QUORIDOR)
+	{
+		DrawString(300, 300, "ã¯ã„", yesColor);
+		DrawString(450, 300, "ã„ã„ãˆ", noColor);
+	}
+}
+
+void GameScene::ExplanationQuoridorDrawUI(void)
+{
+	int index = static_cast<int>(miniState_);
+
+	// åŸºæº–ã¨ã™ã‚‹è§£åƒåº¦ï¼ˆä¾‹: 1280x720ï¼‰ã«å¯¾ã™ã‚‹ç¾åœ¨ã®ç”»é¢ã‚µã‚¤ã‚ºã®æ¯”ç‡ã‚’å‡ºã™
+	float scaleX = static_cast<float>(Setting::GetInstance().GetWindowSize().width_) / 1280.0f;
+	float scaleY = static_cast<float>(Setting::GetInstance().GetWindowSize().height_) / 720.0f;
+
+	// æ–‡å­—ã®å¤§ãã•ã®åŸºæº–
+	// ç¸¦æ¨ªã®æ¯”ç‡ãŒæ¥µç«¯ã«å´©ã‚Œãªã„ã‚ˆã†ã€å°ã•ã„æ–¹ã®æ¯”ç‡ã‚’ãƒ™ãƒ¼ã‚¹ã«ã™ã‚‹
+	float fontScale = (scaleX < scaleY) ? scaleX : scaleY;
+	if (fontScale < 0.1f) fontScale = 1.0f; // å®‰å…¨å¯¾ç­–
+
+	// è‰²å®šç¾©
+	int whiteColor = GetColor(255, 255, 255);
+	int yellowColor = GetColor(255, 255, 0);
+	int redColor = GetColor(255, 100, 100);
+
+
+	// åŸºæº–è§£åƒåº¦(1280x720)ã®ã¨ãã®ä½ç½®ã‚’ãƒ™ãƒ¼ã‚¹ã«ã€ç”»é¢æ¯”ç‡ã‚’æ›ã‘ã‚‹
+	int baseX = static_cast<int>(200 * scaleX);
+	int baseY = static_cast<int>(100 * scaleY);
+	int lineSpace = static_cast<int>(26 * scaleY);
+
+	int curY = baseY;
+
+	// æ–‡å­—ã‚µã‚¤ã‚ºã‚‚æ¯”ç‡ã«åˆã‚ã›ã‚‹
+	DrawExtendString(baseX, curY, fontScale, fontScale, "ã€ ã‚³ãƒªãƒ‰ãƒ¼ãƒ« (Quoridor) ã®ãƒ«ãƒ¼ãƒ« ã€‘", yellowColor);
+	curY += lineSpace * 2;
+
+	DrawExtendString(baseX, curY, fontScale, fontScale, "â–  å‹åˆ©æ¡ä»¶", yellowColor);
+	curY += lineSpace;
+	DrawExtendString(baseX, curY, fontScale, fontScale, "è‡ªåˆ†ã®ã‚³ãƒ(èµ¤)ã‚’ã€ä¸€ç•ªå¥¥(æœ€ä¸Šæ®µ)ã®åˆ—ã¸ç›¸æ‰‹(é’)ã‚ˆã‚Šå…ˆã«åˆ°é”ã•ã›ãŸã‚‰å‹åˆ©ï¼", whiteColor);
+	curY += lineSpace * 2;
+
+	DrawExtendString(baseX, curY, fontScale, fontScale, "â–  ã‚ãªãŸã®ã‚¿ãƒ¼ãƒ³ã§ã§ãã‚‹ã“ã¨ï¼ˆã©ã¡ã‚‰ã‹1ã¤ï¼‰", yellowColor);
+	curY += lineSpace;
+	DrawExtendString(baseX + static_cast<int>(20 * scaleX), curY, fontScale, fontScale, "ã€1ã€‘ ã‚³ãƒã®ç§»å‹• : ä¸Šä¸‹å·¦å³ã«1ãƒã‚¹å‹•ã‹ã›ã¾ã™ã€‚(æ•µã¨éš£æ¥æ™‚ã¯é£›ã³è¶Šã—å¯èƒ½)", whiteColor);
+	curY += lineSpace;
+	DrawExtendString(baseX + static_cast<int>(20 * scaleX), curY, fontScale, fontScale, "ã€2ã€‘ å£ã®è¨­ç½®   : æ®‹ã‚Šå£ã‚’æ¶ˆè²»ã—ã¦ã€ç›¸æ‰‹ã®é€²è·¯ã‚’é‚ªé­”ã™ã‚‹å£ã‚’ç½®ã‘ã¾ã™ã€‚", whiteColor);
+	curY += lineSpace * 2;
+
+	DrawExtendString(baseX, curY, fontScale, fontScale, "âš ï¸ æ³¨æ„ï¼šç›¸æ‰‹ã‚’å®Œå…¨ã«é–‰ã˜è¾¼ã‚ã‚‹å£ã®é…ç½®ã¯ç¦æ­¢ã§ã™ï¼(å¸¸ã«ã‚´ãƒ¼ãƒ«ã¸ã®é“ã‚’1ãƒã‚¹ä»¥ä¸Šæ®‹ã™)", redColor);
+	curY += lineSpace * 3;
+
+	// ã€Œã¯ã„ï¼ˆã‚²ãƒ¼ãƒ ã‚’å§‹ã‚ã‚‹ï¼‰ã€ã€Œã„ã„ãˆï¼ˆæˆ»ã‚‹ï¼‰ã€ã®é¸æŠéƒ¨åˆ†
+	int yesColor = isYes_ ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
+	int noColor = !isYes_ ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
+
+	DrawExtendString(baseX + static_cast<int>(100 * scaleX), curY, fontScale, fontScale, "ã‚²ãƒ¼ãƒ ã‚’é–‹å§‹ã—ã¾ã™ã‹ï¼Ÿ", whiteColor);
+	DrawExtendString(baseX + static_cast<int>(160 * scaleX), curY + static_cast<int>(40 * scaleY), fontScale, fontScale, "ã¯ã„", yesColor);
+	DrawExtendString(baseX + static_cast<int>(280 * scaleX), curY + static_cast<int>(40 * scaleY), fontScale, fontScale, "ã„ã„ãˆ", noColor);
 }
 
 void GameScene::CreateMiniGame(void)
 {
-	// gameBase_‚Ìƒ|ƒCƒ“ƒ^¶¬‚ª‚Å‚«‚Ä‚¢‚È‚¢‚Æ‚±‚ë‚ğ‘I‘ğ‚µ‚½ê‡
-	// ’†g‚ª‚È‚¢‚Ì‚Å—áŠOƒXƒ[‚É‚È‚éB’Ç‰Á‚·‚éÛ‚Í‚±‚±‚É¶¬ƒR[ƒh‚ğ’Ç‰Á‚¹‚æ
+	// gameBase_ã®ãƒã‚¤ãƒ³ã‚¿ç”ŸæˆãŒã§ãã¦ã„ãªã„ã¨ã“ã‚ã‚’é¸æŠã—ãŸå ´åˆ
+	// ä¸­èº«ãŒãªã„ã®ã§ä¾‹å¤–ã‚¹ãƒ­ãƒ¼ã«ãªã‚‹ã€‚è¿½åŠ ã™ã‚‹éš›ã¯ã“ã“ã«ç”Ÿæˆã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã›ã‚ˆ
 	
 	switch (miniState_)
 	{
