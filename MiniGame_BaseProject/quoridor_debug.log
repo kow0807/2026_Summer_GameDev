@@ -18556,3 +18556,4 @@
 [ApplyCpuMove] parsed x=4 y=0
 [ApplyCpuMove] candidates=(5,1)(3,1)(4,2)(4,0)
 [ApplyCpuMove] MOVE APPLIED: cpu -> (4,0)
+=== Quoridor START ===

@@ -13,16 +13,8 @@
 #include "../../Object/Actor/Quoridor/Triangle.h"
 #include "Quoridor.h"
 
-//// デバッグ用ログ出力関数
-//static void DbgLog(const std::string& msg)
-//{
-//	std::ofstream f("quoridor_debug.log", std::ios::app);
-//	f << msg << "\n";
-//}
-
 std::string Quoridor::debugLogPath_ = "quoridor_debug.log";
 
-// 2. デバッグ用ログ出力関数を書き換え（静的メンバのパスを参照する）
 static void DbgLog(const std::string& msg)
 {
 	// 空文字の場合はログ出力をスキップ（出力を無効化したいときにも便利です）
