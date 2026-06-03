@@ -13,11 +13,37 @@
 #include "../../Object/Actor/Quoridor/Triangle.h"
 #include "Quoridor.h"
 
-// デバッグ用ログ出力関数
+//// デバッグ用ログ出力関数
+//static void DbgLog(const std::string& msg)
+//{
+//	std::ofstream f("quoridor_debug.log", std::ios::app);
+//	f << msg << "\n";
+//}
+
+std::string Quoridor::debugLogPath_ = "quoridor_debug.log";
+
+// 2. デバッグ用ログ出力関数を書き換え（静的メンバのパスを参照する）
 static void DbgLog(const std::string& msg)
 {
-	std::ofstream f("quoridor_debug.log", std::ios::app);
-	f << msg << "\n";
+	// 空文字の場合はログ出力をスキップ（出力を無効化したいときにも便利です）
+	if (Quoridor::GetDebugLogPath().empty()) return;
+
+	std::ofstream f(Quoridor::GetDebugLogPath(), std::ios::app);
+	if (f.is_open())
+	{
+		f << msg << "\n";
+	}
+}
+
+// 3. 静的関数の実装
+void Quoridor::SetDebugLogPath(const std::string& path)
+{
+	debugLogPath_ = path;
+}
+
+std::string Quoridor::GetDebugLogPath()
+{
+	return debugLogPath_;
 }
 
 Quoridor::Quoridor(void)
@@ -56,6 +82,8 @@ Quoridor::~Quoridor(void)
 
 void Quoridor::Init(void)
 {
+	SetDebugLogPath("Python\\ai\\quoridor_debug.log");
+
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::MINI_GAME);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
 	SceneManager::GetInstance().GetCamera()->ChangeGameTypeCamera(Camera::GAME_TYPE::QUORIDOR);
@@ -114,8 +142,8 @@ void Quoridor::Init(void)
 
 	pythonAI_ = std::make_unique<PythonAI>();
 	bool ok = pythonAI_->Start(
-		L"Python\\python.exe",
-		L"Python\\ai\\ai.py"
+		L"Python\\Python-3.11.9-demo\\python.exe",
+		L"Python\\CPU_AI\\Quoridor_Ai.py"
 	);
 
 	if (ok)
@@ -138,7 +166,7 @@ void Quoridor::Update(void)
 	{
 		rFrameCount_++;
 
-		if (!isReturn_ && 
+		if (!isReturn_ &&
 			rFrameCount_ > 180)
 		{
 			isReturn_ = true;
@@ -169,7 +197,7 @@ void Quoridor::Update(void)
 
 	desk_->Update();
 
-	for(int i=0; i<moveTriangleIndicators_.size(); ++i)
+	for (int i = 0; i < moveTriangleIndicators_.size(); ++i)
 	{
 		moveTriangleIndicators_[i]->Update();
 	}
@@ -610,7 +638,7 @@ void Quoridor::UpdatePlayer(void)
 				return;
 			}
 
-			if(ins.IsTrgUp(KEY_INPUT_BACK))
+			if (ins.IsTrgUp(KEY_INPUT_BACK))
 			{
 				isDiagChoosing_ = false;
 				DbgLog("[UpdatePlayer] 斜め移動キャンセル(BACK)");
@@ -635,14 +663,14 @@ void Quoridor::UpdatePlayer(void)
 			);
 			if (!cands.empty())
 			{
-	/*			player.x_ = cands[0].first;
-				player.y_ = cands[0].second;
-				isChangeTurn_ = true;
-				DbgLog("[UpdatePlayer] moved to (" + std::to_string(player.x_) + "," + std::to_string(player.y_) + ")");*/
+				/*			player.x_ = cands[0].first;
+							player.y_ = cands[0].second;
+							isChangeTurn_ = true;
+							DbgLog("[UpdatePlayer] moved to (" + std::to_string(player.x_) + "," + std::to_string(player.y_) + ")");*/
 
 
-				// 取得した移動先（cands[0]）が、現在の位置から見て「斜め」かどうかをチェック
-				// （X座標もY座標も両方とも変わっていれば斜め移動）
+							// 取得した移動先（cands[0]）が、現在の位置から見て「斜め」かどうかをチェック
+							// （X座標もY座標も両方とも変わっていれば斜め移動）
 				bool isDiagonal = (cands[0].first != player.x_) && (cands[0].second != player.y_);
 
 				if (!isDiagonal)

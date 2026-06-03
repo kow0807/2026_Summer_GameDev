@@ -36,6 +36,9 @@ public:
 		WALL
 	};
 
+	static void SetDebugLogPath(const std::string& path);
+	static std::string GetDebugLogPath();
+
 	Quoridor(void);
 	~Quoridor(void);
 
@@ -97,7 +100,7 @@ private:
 
 	// 候補リスト更新
 	void RefreshMoveCandidates(void);
-	
+
 	// 点滅判定
 	bool IsBlink(void) const;
 
@@ -138,4 +141,6 @@ private:
 
 	bool isDiagChoosing_ = false;
 	std::pair<int, int> diagTarget_ = { 0, 0 };
+
+	static std::string debugLogPath_;
 };
