@@ -12,6 +12,7 @@
 #include "../Scene/MiniGame/FirstPressGame.h"
 #include "../Scene/MiniGame/ButtonMashGame.h"
 #include "../Scene/MiniGame/QuizGame.h"
+#include "../Scene/MiniGame/Reversi.h"
 #include "../Scene/MiniGame/Quoridor.h"
 #include "GameScene.h"
 
@@ -204,7 +205,7 @@ void GameScene::SelectGameDrawUI(void)
 	{
 		"早押し",
 		"四択クイズ",
-		"オセロ(開発中のため\n選択しないでください)",
+		"オセロ",
 		"連打対決",
 		"フラッシュ暗算(開発中のため\n選択しないでください)",
 		"コリドール",
@@ -783,6 +784,8 @@ void GameScene::CreateMiniGame(void)
 		gameBase_->Init();
 		break;
 	case MINI_STATE::REVERSI:
+		gameBase_ = std::make_unique<Reversi>();
+		gameBase_->Init();
 		break;
 	case MINI_STATE::BUTTON_MASH:
 		gameBase_ = std::make_unique<ButtonMashGame>();

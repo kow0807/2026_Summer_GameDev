@@ -177,7 +177,6 @@ void SceneManager::ChangeScene(SCENE_ID nextId)
 	fader_->SetFade(Fader::STATE::FADE_OUT);
 	fader_->SetLoadingBarFrame(0);
 	isSceneChanging_ = true;
-
 }
 
 SceneManager::SCENE_ID SceneManager::GetSceneID(void)

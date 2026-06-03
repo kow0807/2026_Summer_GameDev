@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Scene\MiniGame\Reversi.cpp" />
     <ClCompile Include="Src\Scene\MiniGame\QuizGame.cpp" />
     <ClCompile Include="Src\Scene\MiniGame\ButtonMashGame.cpp" />
     <ClCompile Include="Src\Object\Actor\Quoridor\PythonAI.cpp" />
@@ -64,6 +65,7 @@
     <ClCompile Include="Src\Object\Actor\Quoridor\Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Scene\MiniGame\Reversi.h" />
     <ClInclude Include="Src\Scene\MiniGame\QuizGame.h" />
     <ClInclude Include="Src\Scene\MiniGame\ButtonMashGame.h" />
     <ClInclude Include="Src\Object\Actor\Quoridor\PythonAI.h" />
