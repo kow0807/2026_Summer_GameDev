@@ -189,6 +189,9 @@
     <ClCompile Include="Src\Scene\MiniGame\Reversi.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Manager\PythonRuntimeManager.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Common\Fader.h">
@@ -321,6 +324,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Src\Scene\MiniGame\Reversi.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Manager\PythonRuntimeManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
@@ -556,6 +562,7 @@
     <None Include="Python\python314\zipapp.pyc" />
     <None Include="Python\python314\zipimport.pyc" />
     <None Include="Python\ai\ai.py" />
+    <None Include="Python\CPU_AI\Quoridor_Ai.py" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Src\Shader\Model\Desk_VS.hlsl" />

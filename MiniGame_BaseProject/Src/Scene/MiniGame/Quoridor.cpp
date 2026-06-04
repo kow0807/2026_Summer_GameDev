@@ -5,6 +5,7 @@
 #include "../../Manager/InputManager.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Setting.h"
+#include "../../Manager/PythonRuntimeManager.h"
 #include "../../Object/Actor/Quoridor/Desk.h"
 #include "../../Object/Actor/Quoridor/Board.h"
 #include "../../Object/Actor/Quoridor/Wall.h"
@@ -12,6 +13,11 @@
 #include "../../Object/Actor/Quoridor/PythonAI.h"
 #include "../../Object/Actor/Quoridor/Triangle.h"
 #include "Quoridor.h"
+
+#ifdef _DEBUG
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif // _DEBUG
 
 std::string Quoridor::debugLogPath_ = "quoridor_debug.log";
 
@@ -101,7 +107,6 @@ void Quoridor::Init(void)
 	fontTitle_ = CreateFontToHandle("游明朝", (int)(30.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
 	fontMain_ = CreateFontToHandle("游明朝", (int)(16.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
 
-
 	// オブジェクトの初期化
 	desk_ = std::make_unique<Desk>();
 	desk_->Init();
@@ -132,10 +137,43 @@ void Quoridor::Init(void)
 
 	RefreshMoveCandidates();
 
+	auto& pythonRuntime = PythonRuntimeManager::GetInstance();
+
 	pythonAI_ = std::make_unique<PythonAI>();
-	bool ok = pythonAI_->Start(
+	/*bool ok = pythonAI_->Start(
 		L"Python\\Python-3.11.9-demo\\python.exe",
 		L"Python\\CPU_AI\\Quoridor_Ai.py"
+	);*/
+
+#ifdef _DEBUG
+	fs::exists(pythonRuntime.GetPythonExePath()) ?
+		DbgLog("[Init] Python runtime found: ") :
+		DbgLog("[Init] Python runtime NOT found: ");
+
+	if(fs::exists(pythonRuntime.GetPythonExePath()))
+	{
+		MessageBoxW(
+			nullptr,
+			pythonRuntime.GetPythonExePath().c_str(),
+			L"Path",
+			MB_OK
+		);
+	}
+	if (fs::exists(pythonRuntime.GetPythonExePath()))
+	{
+		MessageBoxW(nullptr, L"FOUND", L"DEBUG", MB_OK);
+	}
+	else
+	{
+		MessageBoxW(nullptr, L"NOT FOUND", L"DEBUG", MB_OK);
+	}
+
+#endif // DEBUG
+
+
+	bool ok = pythonAI_->Start(
+		pythonRuntime.GetPythonExePath(),
+		pythonRuntime.GetScriptPath(L"CPU_AI\\Quoridor_Ai.py")
 	);
 
 	if (ok)

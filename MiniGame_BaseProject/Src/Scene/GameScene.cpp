@@ -6,6 +6,7 @@
 #include "../Manager/ResourceManager.h"
 #include "../Manager/InputManager.h"
 #include "../Manager/Setting.h"
+#include "../Manager/PythonRuntimeManager.h"
 #include "../Renderer/PixelMaterial.h"
 #include "../Renderer/PixelRenderer.h"
 #include "../Scene/MiniGame/GameBase.h"
@@ -16,6 +17,11 @@
 #include "../Scene/MiniGame/Quoridor.h"
 #include "GameScene.h"
 
+namespace
+{
+	float g_loadingAnim = 0.0f;
+}
+	
 GameScene::GameScene(void)
 	: 
 	miniState_(MINI_STATE::FIRST_PRESS),
@@ -33,6 +39,9 @@ void GameScene::Init(void)
 	// 定点カメラ
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FIXED_POINT);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::MOUSE);
+
+	// Pythonランタイムの初期化
+	PythonRuntimeManager::CreateInstance();
 
 	explanationFontHandle_ = CreateFontToHandle(
 		"游明朝",
@@ -56,6 +65,15 @@ void GameScene::Update(void)
 		ExplanationUpdate();
 		break;
 
+	case SELECT_STATE::RUNTIME_LOADING:
+		if(PythonRuntimeManager::GetInstance().IsFinished())
+		{
+			CreateMiniGame();
+		
+			selectState_ = SELECT_STATE::PLAYING;
+		}
+		break;
+
 	case SELECT_STATE::PLAYING:
 		GameUpdate();
 		break;
@@ -70,6 +88,10 @@ void GameScene::Draw(void)
 		break;
 
 	case SELECT_STATE::EXPLANATION:
+		break;
+		
+	case SELECT_STATE::RUNTIME_LOADING:
+		DrawRunTimeLoading();
 		break;
 
 	case SELECT_STATE::PLAYING:
@@ -149,9 +171,17 @@ void GameScene::ExplanationUpdate()
 	{
 		if (isYes_)
 		{
-			//　生成と初期化
-			CreateMiniGame();
-			selectState_ = SELECT_STATE::PLAYING;
+			if(miniState_==MINI_STATE::QUORIDOR)
+			{
+				PythonRuntimeManager::GetInstance().StartExtractAsync();
+				selectState_ = SELECT_STATE::RUNTIME_LOADING;
+			}
+			else
+			{
+				//　生成と初期化
+				CreateMiniGame();
+				selectState_ = SELECT_STATE::PLAYING;
+			}
 		}
 		else
 		{
@@ -766,6 +796,390 @@ void GameScene::ExplanationQuoridorDrawUI(void)
 	// 3. 「いいえ」の描画：「はい」の開始位置からさらに右に一定の距離（例: +160px）離して配置
 	int noX = yesX + static_cast<int>(160 * scaleX);
 	DrawExtendString(noX, curY, fontScale, fontScale, "いいえ", noColor);
+}
+
+void GameScene::DrawRunTimeLoading(void)
+{
+	const auto& windowSize =
+		Setting::GetInstance().GetWindowSize();
+
+	const int screenW = windowSize.width_;
+	const int screenH = windowSize.height_;
+
+	//==================================================
+	// 画面中央
+	//==================================================
+
+	const int centerX = screenW / 2;
+	const int centerY = screenH / 2;
+
+	//==================================================
+	// Progress
+	//==================================================
+
+	float progress =
+		PythonRuntimeManager::GetInstance().GetProgress();
+
+	//==================================================
+	// なめらか補間
+	//==================================================
+
+	static float visualProgress = 0.0f;
+
+	visualProgress +=
+		(progress - visualProgress) * 0.05f;
+
+	//==================================================
+	// アニメーション
+	//==================================================
+
+	float pulse =
+		static_cast<float>(
+			sin(GetNowCount() * 0.005f)
+			);
+
+	float pulse01 =
+		(pulse + 1.0f) * 0.5f;
+
+	//==================================================
+	// Color
+	//==================================================
+
+	const int bgColor =
+		GetColor(6, 8, 14);
+
+	const int panelColor =
+		GetColor(12, 14, 24);
+
+	const int frameColor =
+		GetColor(60, 65, 80);
+
+	const int accentColor =
+		GetColor(0, 220, 255);
+
+	const int textColor =
+		GetColor(255, 255, 255);
+
+	const int subTextColor =
+		GetColor(180, 180, 190);
+
+	//==================================================
+	// Background
+	//==================================================
+
+	DrawBox(
+		0,
+		0,
+		screenW,
+		screenH,
+		bgColor,
+		TRUE
+	);
+
+	//==================================================
+	// 背景ライン
+	//==================================================
+
+	for (int y = 0; y < screenH; y += 40)
+	{
+		DrawLine(
+			0,
+			y,
+			screenW,
+			y,
+			GetColor(10, 14, 20)
+		);
+	}
+
+	//==================================================
+	// メインパネル
+	//==================================================
+
+	const int panelW = 620;
+	const int panelH = 500;
+
+	// ★完全中央配置
+	const int panelX =
+		centerX - (panelW / 2);
+
+	const int panelY =
+		centerY - (panelH / 2);
+
+	DrawBox(
+		panelX,
+		panelY,
+		panelX + panelW,
+		panelY + panelH,
+		panelColor,
+		TRUE
+	);
+
+	DrawBox(
+		panelX,
+		panelY,
+		panelX + panelW,
+		panelY + panelH,
+		frameColor,
+		FALSE
+	);
+
+	//==================================================
+	// タイトル
+	//==================================================
+
+	const char* title =
+		"Python Runtime Loading";
+
+	int titleWidth =
+		GetDrawStringWidth(
+			title,
+			strlen(title)
+		);
+
+	DrawString(
+		centerX - (titleWidth / 2),
+		panelY + 40,
+		title,
+		textColor
+	);
+
+	//==================================================
+	// サブタイトル
+	//==================================================
+
+	const char* subTitle =
+		"Preparing AI Runtime Environment...";
+
+	int subTitleWidth =
+		GetDrawStringWidth(
+			subTitle,
+			strlen(subTitle)
+		);
+
+	DrawString(
+		centerX - (subTitleWidth / 2),
+		panelY + 75,
+		subTitle,
+		subTextColor
+	);
+
+	//==================================================
+	// 円ゲージ
+	//==================================================
+
+	const int radius = 90;
+
+	const int circleX = centerX;
+	const int circleY = panelY + 240;
+
+	// グロー
+	for (int i = 0; i < 6; i++)
+	{
+		DrawCircle(
+			circleX,
+			circleY,
+			radius + i,
+			GetColor(
+				0,
+				static_cast<int>(80 + pulse01 * 50),
+				static_cast<int>(120 + pulse01 * 70)
+			),
+			FALSE
+		);
+	}
+
+	// ベース
+	DrawCircle(
+		circleX,
+		circleY,
+		radius,
+		frameColor,
+		FALSE
+	);
+
+	// ゲージ
+	DrawCircleGauge(
+		circleX,
+		circleY,
+		radius,
+		visualProgress * 360.0f,
+		accentColor
+	);
+
+	//==================================================
+	// パーセント
+	//==================================================
+
+	char percentText[64];
+
+	sprintf_s(
+		percentText,
+		"%.0f%%",
+		visualProgress * 100.0f
+	);
+
+	int percentWidth =
+		GetDrawStringWidth(
+			percentText,
+			strlen(percentText)
+		);
+
+	DrawString(
+		circleX - (percentWidth / 2),
+		circleY - 8,
+		percentText,
+		textColor
+	);
+
+	//==================================================
+	// Loading...
+	//==================================================
+
+	static int dotAnim = 0;
+
+	if (GetNowCount() % 20 == 0)
+	{
+		dotAnim =
+			(dotAnim + 1) % 4;
+	}
+
+	std::string loadingText =
+		"Loading";
+
+	for (int i = 0; i < dotAnim; i++)
+	{
+		loadingText += ".";
+	}
+
+	int loadingWidth =
+		GetDrawStringWidth(
+			loadingText.c_str(),
+			static_cast<int>(loadingText.size())
+		);
+
+	DrawString(
+		centerX - (loadingWidth / 2),
+		panelY + 360,
+		loadingText.c_str(),
+		subTextColor
+	);
+
+	//==================================================
+	// Progress Bar
+	//==================================================
+
+	const int barWidth = 420;
+	const int barHeight = 24;
+
+	const int barX =
+		centerX - (barWidth / 2);
+
+	const int barY =
+		panelY + 400;
+
+	// 外枠
+	DrawBox(
+		barX - 2,
+		barY - 2,
+		barX + barWidth + 2,
+		barY + barHeight + 2,
+		frameColor,
+		TRUE
+	);
+
+	// 背景
+	DrawBox(
+		barX,
+		barY,
+		barX + barWidth,
+		barY + barHeight,
+		GetColor(20, 20, 28),
+		TRUE
+	);
+
+	// ゲージ
+	int filledWidth =
+		static_cast<int>(
+			barWidth * visualProgress
+			);
+
+	DrawBox(
+		barX,
+		barY,
+		barX + filledWidth,
+		barY + barHeight,
+		accentColor,
+		TRUE
+	);
+
+	//==================================================
+	// 光演出
+	//==================================================
+
+	if (filledWidth > 20)
+	{
+		int shineX =
+			barX +
+			(GetNowCount() % barWidth);
+
+		DrawBox(
+			shineX - 25,
+			barY,
+			shineX,
+			barY + barHeight,
+			GetColor(120, 255, 255),
+			TRUE
+		);
+	}
+
+	//==================================================
+	// 下メッセージ
+	//==================================================
+
+	const char* waitText =
+		"Please wait a moment...";
+
+	int waitWidth =
+		GetDrawStringWidth(
+			waitText,
+			strlen(waitText)
+		);
+
+	DrawString(
+		centerX - (waitWidth / 2),
+		panelY + 450,
+		waitText,
+		subTextColor
+	);
+
+	//==================================================
+	// 95%停止演出
+	//==================================================
+
+	if (progress >= 0.95f &&
+		progress < 1.0f)
+	{
+		const char* finalText =
+			"Finalizing Runtime Setup...";
+
+		int finalWidth =
+			GetDrawStringWidth(
+				finalText,
+				strlen(finalText)
+			);
+
+		int bright =
+			static_cast<int>(
+				180 + pulse01 * 75
+				);
+
+		DrawString(
+			centerX - (finalWidth / 2),
+			panelY + 475,
+			finalText,
+			GetColor(bright, bright, bright)
+		);
+	}
 }
 
 void GameScene::CreateMiniGame(void)

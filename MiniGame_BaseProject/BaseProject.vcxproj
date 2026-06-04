@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Manager\PythonRuntimeManager.cpp" />
     <ClCompile Include="Src\Scene\MiniGame\Reversi.cpp" />
     <ClCompile Include="Src\Scene\MiniGame\QuizGame.cpp" />
     <ClCompile Include="Src\Scene\MiniGame\ButtonMashGame.cpp" />
@@ -65,6 +66,7 @@
     <ClCompile Include="Src\Object\Actor\Quoridor\Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Manager\PythonRuntimeManager.h" />
     <ClInclude Include="Src\Scene\MiniGame\Reversi.h" />
     <ClInclude Include="Src\Scene\MiniGame\QuizGame.h" />
     <ClInclude Include="Src\Scene\MiniGame\ButtonMashGame.h" />
@@ -113,6 +115,7 @@
   <ItemGroup>
     <None Include="Data\Scripts\ai.py" />
     <None Include="Python\ai\ai.py" />
+    <None Include="Python\CPU_AI\Quoridor_Ai.py" />
     <None Include="Python\libcrypto-3.dll" />
     <None Include="Python\libffi-8.dll" />
     <None Include="Python\libssl-3.dll" />

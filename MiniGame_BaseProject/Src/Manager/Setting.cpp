@@ -9,7 +9,8 @@ Setting::Setting(void)
 	BgmVolume_(255),
 	SeVolume_(255),
 	fullScreenWidth_(1920),
-	fullScreenHeight_(1080)
+	fullScreenHeight_(1080),
+	isVibration_(false)
 {
 }
 

@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include "../../../Manager/PythonRuntimeManager.h"
 #include "PythonAI.h"
 
 PythonAI::PythonAI() {}
@@ -142,6 +143,11 @@ std::string PythonAI::SyncQuery(const std::string& jsonInput)
         result += ch;
     }
     return result;
+}
+
+void PythonAI::Shutdown(void)
+{
+	PythonRuntimeManager::GetInstance().CleanupRuntime();
 }
 
 void PythonAI::QueryAsync(const std::string& jsonInput, std::function<void(const std::string&)> callback)
