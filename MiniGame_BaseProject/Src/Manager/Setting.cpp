@@ -5,7 +5,7 @@ Setting* Setting::instance_ = nullptr;
 Setting::Setting(void)
 	:
 	isFullScreen_(false),
-	windowSize_{ 1280, 720 },
+	windowSize_{ 1024, 640 },
 	BgmVolume_(255),
 	SeVolume_(255),
 	fullScreenWidth_(1920),
@@ -39,6 +39,8 @@ const Setting::WindowSize& Setting::GetWindowSize(void) const
 
 void Setting::SetWindowSize(int width, int height)
 {
+	windowSize_.width_ = width;
+	windowSize_.height_ = height;
 }
 
 bool Setting::IsFullScreen(void) const

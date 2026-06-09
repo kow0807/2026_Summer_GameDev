@@ -563,6 +563,8 @@
     <None Include="Python\python314\zipimport.pyc" />
     <None Include="Python\ai\ai.py" />
     <None Include="Python\CPU_AI\Quoridor_Ai.py" />
+    <None Include="Python\CPU_AI\Self_play_collector.py" />
+    <None Include="Python\CPU_AI\quoridor_net.py" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Src\Shader\Model\Desk_VS.hlsl" />

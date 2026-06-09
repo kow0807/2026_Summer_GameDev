@@ -800,18 +800,17 @@ void GameScene::ExplanationQuoridorDrawUI(void)
 
 void GameScene::DrawRunTimeLoading(void)
 {
-	const auto& windowSize =
-		Setting::GetInstance().GetWindowSize();
+	const auto& windowSize = Setting::GetInstance().GetWindowSize();
+
+	//==================================================
+	// Screen
+	//==================================================
 
 	const int screenW = windowSize.width_;
 	const int screenH = windowSize.height_;
 
-	//==================================================
-	// 画面中央
-	//==================================================
-
-	const int centerX = screenW / 2;
-	const int centerY = screenH / 2;
+	const int screenCenterX = screenW / 2;
+	const int screenCenterY = screenH / 2;
 
 	//==================================================
 	// Progress
@@ -820,48 +819,32 @@ void GameScene::DrawRunTimeLoading(void)
 	float progress =
 		PythonRuntimeManager::GetInstance().GetProgress();
 
-	//==================================================
-	// なめらか補間
-	//==================================================
-
 	static float visualProgress = 0.0f;
 
 	visualProgress +=
 		(progress - visualProgress) * 0.05f;
 
 	//==================================================
-	// アニメーション
-	//==================================================
-
-	float pulse =
-		static_cast<float>(
-			sin(GetNowCount() * 0.005f)
-			);
-
-	float pulse01 =
-		(pulse + 1.0f) * 0.5f;
-
-	//==================================================
 	// Color
 	//==================================================
 
 	const int bgColor =
-		GetColor(6, 8, 14);
+		GetColor(250, 238, 218);
 
 	const int panelColor =
-		GetColor(12, 14, 24);
+		GetColor(255, 253, 228);
 
 	const int frameColor =
-		GetColor(60, 65, 80);
+		GetColor(240, 153, 123);
 
 	const int accentColor =
-		GetColor(0, 220, 255);
+		GetColor(216, 90, 48);
 
 	const int textColor =
-		GetColor(255, 255, 255);
+		GetColor(180, 60, 20);
 
 	const int subTextColor =
-		GetColor(180, 180, 190);
+		GetColor(224, 148, 106);
 
 	//==================================================
 	// Background
@@ -877,58 +860,114 @@ void GameScene::DrawRunTimeLoading(void)
 	);
 
 	//==================================================
-	// 背景ライン
+	// Scale
 	//==================================================
 
-	for (int y = 0; y < screenH; y += 40)
-	{
-		DrawLine(
-			0,
-			y,
-			screenW,
-			y,
-			GetColor(10, 14, 20)
-		);
-	}
+	const float scale =
+		static_cast<float>(screenH) / 720.0f;
 
 	//==================================================
-	// メインパネル
+	// Element Size
 	//==================================================
 
-	const int panelW = 620;
-	const int panelH = 500;
+	const int dotRadius =
+		static_cast<int>(14 * scale);
 
-	// ★完全中央配置
+	const int dotSpacing =
+		static_cast<int>(14 * scale);
+
+	const int barWidth =
+		static_cast<int>(420 * scale);
+
+	const int barHeight =
+		static_cast<int>(24 * scale);
+
+	//==================================================
+	// UI GROUP SIZE
+	//==================================================
+
+	const int uiWidth =
+		barWidth;
+
+	const int uiHeight =
+		static_cast<int>(383 * scale) + 16;
+
+	//==================================================
+	// UI GROUP POSITION
+	//==================================================
+
+	const int uiX =
+		screenCenterX - (uiWidth / 2);
+
+	const int uiY =
+		screenCenterY - (uiHeight / 2);
+
+	//==================================================
+	// Panel
+	//==================================================
+
+	const int panelPaddingX =
+		static_cast<int>(60 * scale);
+
+	const int panelPaddingY =
+		static_cast<int>(60 * scale);
+
 	const int panelX =
-		centerX - (panelW / 2);
+		uiX - panelPaddingX;
 
 	const int panelY =
-		centerY - (panelH / 2);
+		uiY - panelPaddingY;
 
-	DrawBox(
+	const int panelW =
+		uiWidth + (panelPaddingX * 2);
+
+	const int panelH =
+		uiHeight + (panelPaddingY * 2);
+
+	const int cornerRadius =
+		static_cast<int>(20 * scale);
+
+	DrawRoundRect(
 		panelX,
 		panelY,
 		panelX + panelW,
 		panelY + panelH,
+		cornerRadius,
+		cornerRadius,
 		panelColor,
 		TRUE
 	);
 
-	DrawBox(
+	DrawRoundRect(
 		panelX,
 		panelY,
 		panelX + panelW,
 		panelY + panelH,
+		cornerRadius,
+		cornerRadius,
 		frameColor,
 		FALSE
 	);
 
 	//==================================================
-	// タイトル
+	// UI CENTER
+	//==================================================
+
+	const int uiCenterX =
+		uiX + (uiWidth / 2);
+
+	//==================================================
+	// Y Layout
+	//==================================================
+
+	int currentY = uiY;
+
+	//==================================================
+	// Title
 	//==================================================
 
 	const char* title =
-		"Python Runtime Loading";
+		"Now Loading!";
 
 	int titleWidth =
 		GetDrawStringWidth(
@@ -937,18 +976,20 @@ void GameScene::DrawRunTimeLoading(void)
 		);
 
 	DrawString(
-		centerX - (titleWidth / 2),
-		panelY + 40,
+		uiCenterX - (titleWidth / 2),
+		currentY,
 		title,
 		textColor
 	);
 
+	currentY += static_cast<int>(45 * scale);
+
 	//==================================================
-	// サブタイトル
+	// Subtitle
 	//==================================================
 
 	const char* subTitle =
-		"Preparing AI Runtime Environment...";
+		"Preparing your game...";
 
 	int subTitleWidth =
 		GetDrawStringWidth(
@@ -957,82 +998,74 @@ void GameScene::DrawRunTimeLoading(void)
 		);
 
 	DrawString(
-		centerX - (subTitleWidth / 2),
-		panelY + 75,
+		uiCenterX - (subTitleWidth / 2),
+		currentY,
 		subTitle,
 		subTextColor
 	);
 
+	currentY += static_cast<int>(75 * scale);
+
 	//==================================================
-	// 円ゲージ
+	// Bouncing Dots
 	//==================================================
 
-	const int radius = 90;
-
-	const int circleX = centerX;
-	const int circleY = panelY + 240;
-
-	// グロー
-	for (int i = 0; i < 6; i++)
+	const int dotColors[5][3] =
 	{
+		{ 240, 153, 123 },  // coral
+		{ 250, 199, 117 },  // yellow
+		{ 151, 196,  89 },  // green
+		{  93, 202, 165 },  // teal
+		{ 133, 183, 235 },  // blue
+	};
+
+	const int dotCount = 5;
+
+	const int dotsWidth =
+		(dotRadius * 2) * dotCount + dotSpacing * (dotCount - 1);
+
+	const int dotsStartX =
+		uiCenterX - (dotsWidth / 2) + dotRadius;
+
+	const int dotBaseY =
+		currentY + dotRadius + 10;
+
+	const int dotSwing =
+		static_cast<int>(18 * scale);
+
+	for (int i = 0; i < dotCount; i++)
+	{
+		float phase =
+			static_cast<float>(GetNowCount()) * 0.005f
+			+ i * 0.5f;
+
+		int offsetY =
+			static_cast<int>(sin(phase) * dotSwing);
+
+		int cx =
+			dotsStartX + i * (dotRadius * 2 + dotSpacing);
+
+		int cy =
+			dotBaseY + offsetY;
+
 		DrawCircle(
-			circleX,
-			circleY,
-			radius + i,
+			cx,
+			cy,
+			dotRadius,
 			GetColor(
-				0,
-				static_cast<int>(80 + pulse01 * 50),
-				static_cast<int>(120 + pulse01 * 70)
+				dotColors[i][0],
+				dotColors[i][1],
+				dotColors[i][2]
 			),
-			FALSE
+			TRUE
 		);
 	}
 
-	// ベース
-	DrawCircle(
-		circleX,
-		circleY,
-		radius,
-		frameColor,
-		FALSE
-	);
-
-	// ゲージ
-	DrawCircleGauge(
-		circleX,
-		circleY,
-		radius,
-		visualProgress * 360.0f,
-		accentColor
-	);
+	currentY += static_cast<int>(30 * scale);
+	currentY += static_cast<int>(40 * scale);
 
 	//==================================================
-	// パーセント
-	//==================================================
-
-	char percentText[64];
-
-	sprintf_s(
-		percentText,
-		"%.0f%%",
-		visualProgress * 100.0f
-	);
-
-	int percentWidth =
-		GetDrawStringWidth(
-			percentText,
-			strlen(percentText)
-		);
-
-	DrawString(
-		circleX - (percentWidth / 2),
-		circleY - 8,
-		percentText,
-		textColor
-	);
-
-	//==================================================
-	// Loading...
+	// Loading
 	//==================================================
 
 	static int dotAnim = 0;
@@ -1058,86 +1091,73 @@ void GameScene::DrawRunTimeLoading(void)
 		);
 
 	DrawString(
-		centerX - (loadingWidth / 2),
-		panelY + 360,
+		uiCenterX - (loadingWidth / 2),
+		currentY,
 		loadingText.c_str(),
 		subTextColor
 	);
 
-	//==================================================
-	// Progress Bar
-	//==================================================
+	currentY += static_cast<int>(50 * scale);
 
-	const int barWidth = 420;
-	const int barHeight = 24;
+	//==================================================
+	// Bar
+	//==================================================
 
 	const int barX =
-		centerX - (barWidth / 2);
+		uiCenterX - (barWidth / 2);
 
 	const int barY =
-		panelY + 400;
+		currentY;
 
-	// 外枠
-	DrawBox(
+	const int barRadius =
+		static_cast<int>(12 * scale);
+
+	DrawRoundRect(
 		barX - 2,
 		barY - 2,
-		barX + barWidth + 2,
-		barY + barHeight + 2,
-		frameColor,
+		barX + barWidth,
+		barY + barHeight,
+		barRadius,
+		barRadius,
+		GetColor(255, 225, 200),
 		TRUE
 	);
 
-	// 背景
-	DrawBox(
+	DrawRoundRect(
 		barX,
 		barY,
 		barX + barWidth,
 		barY + barHeight,
-		GetColor(20, 20, 28),
+		barRadius,
+		barRadius,
+		GetColor(255, 225, 200),
 		TRUE
 	);
 
-	// ゲージ
 	int filledWidth =
 		static_cast<int>(
 			barWidth * visualProgress
-			);
+		);
 
-	DrawBox(
+	DrawRoundRect(
 		barX,
 		barY,
 		barX + filledWidth,
 		barY + barHeight,
+		barRadius,
+		barRadius,
 		accentColor,
 		TRUE
 	);
 
-	//==================================================
-	// 光演出
-	//==================================================
-
-	if (filledWidth > 20)
-	{
-		int shineX =
-			barX +
-			(GetNowCount() % barWidth);
-
-		DrawBox(
-			shineX - 25,
-			barY,
-			shineX,
-			barY + barHeight,
-			GetColor(120, 255, 255),
-			TRUE
-		);
-	}
+	currentY += static_cast<int>(70 * scale);
 
 	//==================================================
-	// 下メッセージ
+	// Wait
 	//==================================================
 
-	const char* waitText =
-		"Please wait a moment...";
+	const char* waitText = visualProgress >= 0.8f ?
+		"Almost there!" : "Hang tight";
 
 	int waitWidth =
 		GetDrawStringWidth(
@@ -1146,40 +1166,11 @@ void GameScene::DrawRunTimeLoading(void)
 		);
 
 	DrawString(
-		centerX - (waitWidth / 2),
-		panelY + 450,
+		uiCenterX - (waitWidth / 2),
+		currentY,
 		waitText,
 		subTextColor
 	);
-
-	//==================================================
-	// 95%停止演出
-	//==================================================
-
-	if (progress >= 0.95f &&
-		progress < 1.0f)
-	{
-		const char* finalText =
-			"Finalizing Runtime Setup...";
-
-		int finalWidth =
-			GetDrawStringWidth(
-				finalText,
-				strlen(finalText)
-			);
-
-		int bright =
-			static_cast<int>(
-				180 + pulse01 * 75
-				);
-
-		DrawString(
-			centerX - (finalWidth / 2),
-			panelY + 475,
-			finalText,
-			GetColor(bright, bright, bright)
-		);
-	}
 }
 
 void GameScene::CreateMiniGame(void)

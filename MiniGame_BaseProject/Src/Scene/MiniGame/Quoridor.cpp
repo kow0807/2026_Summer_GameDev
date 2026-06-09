@@ -72,6 +72,7 @@ Quoridor::Quoridor(void)
 #ifdef _DEBUG
 	DbgLog("=== Quoridor START ===");
 #endif
+
 }
 
 Quoridor::~Quoridor(void)
@@ -138,12 +139,7 @@ void Quoridor::Init(void)
 	RefreshMoveCandidates();
 
 	auto& pythonRuntime = PythonRuntimeManager::GetInstance();
-
 	pythonAI_ = std::make_unique<PythonAI>();
-	/*bool ok = pythonAI_->Start(
-		L"Python\\Python-3.11.9-demo\\python.exe",
-		L"Python\\CPU_AI\\Quoridor_Ai.py"
-	);*/
 
 #ifdef _DEBUG
 	fs::exists(pythonRuntime.GetPythonExePath()) ?
@@ -170,7 +166,7 @@ void Quoridor::Init(void)
 
 #endif // DEBUG
 
-
+	// Python接続開始
 	bool ok = pythonAI_->Start(
 		pythonRuntime.GetPythonExePath(),
 		pythonRuntime.GetScriptPath(L"CPU_AI\\Quoridor_Ai.py")

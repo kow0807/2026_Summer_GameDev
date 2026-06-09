@@ -42,7 +42,8 @@ void Application::Init(void)
 	Setting::CreateInstance();
 
 	// ウィンドウサイズ
-	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);
+	SetGraphMode(Setting::GetInstance().GetWindowSize().width_, 
+		Setting::GetInstance().GetWindowSize().height_, 32);
 	ChangeWindowMode(true);
 
 	// DxLibの初期化

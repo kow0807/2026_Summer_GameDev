@@ -21,7 +21,7 @@ public:
 
 	// ウィンドウサイズの取得・設定
 	const WindowSize& GetWindowSize(void) const;
-	void SetWindowSize(int width = 1280, int height = 720);
+	void SetWindowSize(int width = 1024, int height = 640);
 
 	// フルスクリーンの状態確認・設定
 	bool IsFullScreen(void) const;
