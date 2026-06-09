@@ -187,6 +187,12 @@ void ResourceManager::Init(void)
 	// クオリドールの白いテクスチャ
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Quoridor/Texture/White.jpg");
 	resourcesMap_.emplace(SRC::QUORIDOR_TEXTURE_WHITE, res);
+
+	// 五々将棋の畳
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi");
+	resourcesMap_.emplace(SRC::MINISHOGI_TATAMI, res);
+
+	// 五々将棋の将棋台
 }
 
 void ResourceManager::Release(void)

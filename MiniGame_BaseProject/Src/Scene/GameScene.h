@@ -82,6 +82,7 @@ private:
 	void ExplanationQuizDrawUI(void);
 	void ExplanationButtonMashDrawUI(void);
 	void ExplanationQuoridorDrawUI(void);
+	void ExplanationMiniShogiUI(void);
 
 	void DrawRunTimeLoading(void);
 

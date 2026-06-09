@@ -15,6 +15,7 @@
 #include "../Scene/MiniGame/QuizGame.h"
 #include "../Scene/MiniGame/Reversi.h"
 #include "../Scene/MiniGame/Quoridor.h"
+#include "../Scene/MiniGame/MiniShogi.h"
 #include "GameScene.h"
 
 namespace
@@ -319,6 +320,7 @@ void GameScene::ExplanationDrawUI()
 	case MINI_STATE::HARE_AND_HOUNDS:
 		break;
 	case MINI_STATE::MINI_SHOGI:
+		ExplanationMiniShogiUI();
 		break;
 	}
 }
@@ -798,6 +800,10 @@ void GameScene::ExplanationQuoridorDrawUI(void)
 	DrawExtendString(noX, curY, fontScale, fontScale, "いいえ", noColor);
 }
 
+void GameScene::ExplanationMiniShogiUI(void)
+{
+}
+
 void GameScene::DrawRunTimeLoading(void)
 {
 	const auto& windowSize = Setting::GetInstance().GetWindowSize();
@@ -1182,19 +1188,15 @@ void GameScene::CreateMiniGame(void)
 	{
 	case MINI_STATE::FIRST_PRESS:
 		gameBase_ = std::make_unique<FirstPressGame>();
-		gameBase_->Init();
 		break;
 	case MINI_STATE::QUIZ:
 		gameBase_ = std::make_unique<QuizGame>();
-		gameBase_->Init();
 		break;
 	case MINI_STATE::REVERSI:
 		gameBase_ = std::make_unique<Reversi>();
-		gameBase_->Init();
 		break;
 	case MINI_STATE::BUTTON_MASH:
 		gameBase_ = std::make_unique<ButtonMashGame>();
-		gameBase_->Init();
 		break;
 	case MINI_STATE::FLASH_CALC:
 		break;
@@ -1204,6 +1206,7 @@ void GameScene::CreateMiniGame(void)
 	case MINI_STATE::HARE_AND_HOUNDS:
 		break;
 	case MINI_STATE::MINI_SHOGI:
+		gameBase_ = std::make_unique<MiniShogi>();
 		break;
 	}
 
