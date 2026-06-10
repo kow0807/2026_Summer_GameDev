@@ -193,6 +193,40 @@ void ResourceManager::Init(void)
 	resourcesMap_.emplace(SRC::MINISHOGI_TATAMI, res);
 
 	// 五々将棋の将棋台
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Shogiban/Shogiban.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_SHOGIBAN, res);
+
+	// 五々将棋の駒台
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Komadai/Komadai.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_KOMADAI, res);
+
+	// 五々将棋の歩
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Fu.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_FU, res);
+
+	// 五々将棋の歩
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Fu.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_FU, res);
+
+	// 五々将棋の歩
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Fu.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_FU, res);
+
+	// 五々将棋の歩
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Fu.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_FU, res);
+
+	// 五々将棋の歩
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Fu.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_FU, res);
+
+	// 五々将棋の歩
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Fu.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_FU, res);
+
+	// 五々将棋のUVテクスチャ
+	res = std::make_unique<RES>(RES_T::IMG, PATH_MDL + "MiniShogi/Shogiban/Texture/Wood_2K_NormalDX.jpg");
+	resourcesMap_.emplace(SRC::MINISHOGI_TEXTURE_UV, res);
 }
 
 void ResourceManager::Release(void)

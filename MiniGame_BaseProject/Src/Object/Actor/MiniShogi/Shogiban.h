@@ -5,6 +5,8 @@ class Shogiban :
 {
 public:
 
+    static constexpr VECTOR DEFAULT_SCALE = { 1.0f,1.0f,1.0f };
+
     Shogiban(void);
     ~Shogiban(void);
 

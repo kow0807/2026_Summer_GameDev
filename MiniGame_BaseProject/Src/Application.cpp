@@ -80,6 +80,12 @@ void Application::Init(void)
 
 	frameCount_ = 0;
 	fps_ = 0;
+
+
+	// ï`âÊï‚ê≥
+	SetFullSceneAntiAliasingMode(4, 2);
+
+
 }
 
 void Application::Run(void)
