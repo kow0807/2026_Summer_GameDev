@@ -6,7 +6,7 @@ enum class PieceType
 	OU,
 	KIN,
 	GIN,
-	KAKUGYOU,
+	KAKUGYO,
 	HISHA,
 	FU
 };

@@ -99,12 +99,12 @@ void MiniShogi::SelectUpdate(void)
 
 	if (!ins.IsTrgUp(KEY_INPUT_Z)) return;
 
+	int x = cursor_->GetX();
+	int y = cursor_->GetY();
+
 	switch (cursor_->GetArea())
 	{
 	case::CursorArea::BOARD:
-		
-		int x = cursor_->GetX();
-		int y = cursor_->GetY();
 
 		// –¢‘I‘ðŽž
 		if (!selector_->IsSelecting())

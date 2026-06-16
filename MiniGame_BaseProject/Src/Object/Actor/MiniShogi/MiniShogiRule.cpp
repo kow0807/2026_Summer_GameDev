@@ -56,7 +56,7 @@ std::vector<MoveData> MiniShogiRule::GetMoveList(const MiniShogiBoard& board, in
         AddLineMove(moveList, board, x, y, 1, 0, piece.isPlayer_);
     }
         break;
-    case PieceType::KAKUGYOU:
+    case PieceType::KAKUGYO:
     {
         AddLineMove(moveList, board, x, y, -1, -1, piece.isPlayer_);
         AddLineMove(moveList, board, x, y, 1, -1, piece.isPlayer_);

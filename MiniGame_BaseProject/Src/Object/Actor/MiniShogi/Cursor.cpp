@@ -14,6 +14,16 @@ Cursor::~Cursor(void)
 {
 }
 
+void Cursor::Init(void)
+{
+
+}
+
+void Cursor::Update(void)
+{
+
+}
+
 void Cursor::MoveUp(void)
 {
 	switch (myArea_)
