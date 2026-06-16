@@ -19,6 +19,23 @@ bool MiniShogiRule::CanSelectPiece(const MiniShogiBoard& board, int x, int y, bo
     return piece.isPlayer_ == isPlayerTurn;
 }
 
+bool MiniShogiRule::CanSelectHandPiece(const Hand& hand, int handIndex)
+{
+    if (hand.IsEmpty())
+    {
+        return false;
+    }
+
+    return handIndex >= 0 &&
+        handIndex < hand.GetPieceCount();
+}
+
+bool MiniShogiRule::CanDropPiece(const MiniShogiBoard& board, int x, int y)
+{
+    return IsInsideBoard(x, y) &&
+        !board.IsExistPiece(x, y);
+}
+
 std::vector<MoveData> MiniShogiRule::GetMoveList(const MiniShogiBoard& board, int x, int y)
 {
     std::vector<MoveData> moveList;

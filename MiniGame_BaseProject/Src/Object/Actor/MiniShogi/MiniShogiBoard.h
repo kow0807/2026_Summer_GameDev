@@ -19,10 +19,11 @@ public:
 
 	bool IsExistPiece(int x, int y) const;
 
+	void RemovePiece(int x, int y);
+
 private:
 
 	Piece board[5][5];
-
 
 };
 

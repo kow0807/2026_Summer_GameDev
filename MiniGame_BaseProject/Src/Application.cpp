@@ -81,8 +81,8 @@ void Application::Init(void)
 	frameCount_ = 0;
 	fps_ = 0;
 
-
 	// ï`âÊï‚ê≥
+	SetUseBackCulling(TRUE);
 	SetFullSceneAntiAliasingMode(4, 2);
 
 

@@ -6,7 +6,8 @@ Selector::Selector(void)
     selectArea_(CursorArea::BOARD),
     selectX_(0),
     selectY_(0),
-    selectHandIndex_(0)
+    selectHandIndex_(0),
+    selectPieceType_(PieceType::NONE)
 {
 }
 
@@ -21,6 +22,7 @@ void Selector::Select(bool flag)
     if (!flag)
     {
         moveList_.clear();
+        selectPieceType_ = PieceType::NONE;
     }
 }
 
@@ -35,6 +37,11 @@ void Selector::SetSelectPositon(CursorArea area, int x, int y, int handIndex)
     selectX_ = x;
     selectY_ = y;
     selectHandIndex_ = handIndex;
+}
+
+void Selector::SetSelectPieceType(PieceType type)
+{
+    selectPieceType_ = type;
 }
 
 void Selector::SetMoveList(const std::vector<MoveData>& moveList)
@@ -74,4 +81,9 @@ int Selector::GetSelectY(void) const
 int Selector::GetSelectHandIndex(void) const
 {
     return selectHandIndex_;
+}
+
+PieceType Selector::GetSelectPieceType(void) const
+{
+    return selectPieceType_;
 }

@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "MiniShogiBoard.h"
+#include "Hand.h"
 #include "MoveData.h"
 
 class MiniShogiRule
@@ -13,6 +14,10 @@ public:
 	~MiniShogiRule(void);
 
 	bool CanSelectPiece(const MiniShogiBoard& board, int x, int y, bool isPlayerTurn);
+
+	bool CanSelectHandPiece(const Hand& hand, int handIndex);
+
+	bool CanDropPiece(const MiniShogiBoard& board, int x, int y);
 
 	std::vector<MoveData> GetMoveList(
 		const MiniShogiBoard& board,

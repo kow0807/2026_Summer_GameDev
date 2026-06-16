@@ -9,6 +9,7 @@ class Cursor;
 class Selector;
 class MiniShogiBoard;
 class MiniShogiRule;
+class Hand;
 
 class MiniShogi :
     public GameBase
@@ -35,11 +36,21 @@ private:
     std::unique_ptr<MiniShogiBoard> board_;
     std::unique_ptr<MiniShogiRule> rule_;
 
+    std::unique_ptr<Hand> player1Hand_;
+    std::unique_ptr<Hand> player2Hand_;
+
     bool isPlayerTurn_;
 
     void InputUpdate(void);
 
     void SelectUpdate(void);
 
+    void SelectBoardUpdate(void);
+    void SelectHandUpdate(void);
+
+    void MovePiece(int fromX, int fromY, int toX, int toY);
+
+    Hand& GetCurrentHand(void);
+    const Hand& GetCurrentHand(void) const;
 };
 

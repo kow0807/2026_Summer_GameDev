@@ -34,8 +34,8 @@ public:
 	// マウス然りスティック然り
 
 	// BGMの音量の取得・設定
-	int GetVolume(void) const;
-	void SetVolume(int volume = 255);
+	int GetBGMVolume(void) const;
+	void SetBGMVolume(int volume = 255);
 
 	// SEの音量の取得・設定
 	int GetSEVolume(void) const;

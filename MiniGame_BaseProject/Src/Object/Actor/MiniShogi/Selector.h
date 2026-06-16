@@ -4,10 +4,10 @@
 
 #include "MoveData.h"
 #include "Cursor.h"
+#include "PieceType.h"
 
 class Selector
 {
-
 public:
 
 	Selector(void);
@@ -24,6 +24,8 @@ public:
 		int handIndex
 	);
 
+	void SetSelectPieceType(PieceType type);
+
 	void SetMoveList(
 		const std::vector<MoveData>& moveList
 	);
@@ -37,6 +39,8 @@ public:
 
 	int GetSelectHandIndex(void) const;
 
+	PieceType GetSelectPieceType(void) const;
+
 private:
 
 	bool isSelecting_;
@@ -46,6 +50,8 @@ private:
 	int selectX_, selectY_;
 
 	int selectHandIndex_;
+
+	PieceType selectPieceType_;
 
 	std::vector<MoveData> moveList_;
 };
