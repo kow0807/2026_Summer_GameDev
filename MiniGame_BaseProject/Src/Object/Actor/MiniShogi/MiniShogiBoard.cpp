@@ -2,13 +2,7 @@
 
 MiniShogiBoard::MiniShogiBoard(void)
 {
-	for (int y = 0; y < 5; y++)
-	{
-		for (int x = 0; x < 5; x++)
-		{
-			board[y][x] = { PieceType::NONE,false,false };
-		}
-	}
+	Init();
 }
 
 MiniShogiBoard::~MiniShogiBoard(void)

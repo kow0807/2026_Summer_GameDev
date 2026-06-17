@@ -554,4 +554,312 @@ void AsoUtility::DrawLineXYZ(const VECTOR& pos, const Quaternion& rot, float len
 
 }
 
+void AsoUtility::DrawBox3D(const VECTOR& minPos, VECTOR& maxPos, unsigned int color, int fillFlag)
+{
+    VECTOR v[8];
+
+    v[0] = VGet(minPos.x, minPos.y, minPos.z);
+    v[1] = VGet(maxPos.x, minPos.y, minPos.z);
+    v[2] = VGet(maxPos.x, minPos.y, maxPos.z);
+    v[3] = VGet(minPos.x, minPos.y, maxPos.z);
+
+    v[4] = VGet(minPos.x, maxPos.y, minPos.z);
+    v[5] = VGet(maxPos.x, maxPos.y, minPos.z);
+    v[6] = VGet(maxPos.x, maxPos.y, maxPos.z);
+    v[7] = VGet(minPos.x, maxPos.y, maxPos.z);
+
+    if (fillFlag)
+    {
+        // íÍñ 
+        DrawTriangle3D(v[0], v[1], v[2], color, TRUE);
+        DrawTriangle3D(v[0], v[2], v[3], color, TRUE);
+
+        // è„ñ 
+        DrawTriangle3D(v[4], v[6], v[5], color, TRUE);
+        DrawTriangle3D(v[4], v[7], v[6], color, TRUE);
+
+        // ëOñ 
+        DrawTriangle3D(v[0], v[4], v[5], color, TRUE);
+        DrawTriangle3D(v[0], v[5], v[1], color, TRUE);
+
+        // å„ñ 
+        DrawTriangle3D(v[3], v[2], v[6], color, TRUE);
+        DrawTriangle3D(v[3], v[6], v[7], color, TRUE);
+
+        // ç∂ñ 
+        DrawTriangle3D(v[0], v[3], v[7], color, TRUE);
+        DrawTriangle3D(v[0], v[7], v[4], color, TRUE);
+
+        // âEñ 
+        DrawTriangle3D(v[1], v[5], v[6], color, TRUE);
+        DrawTriangle3D(v[1], v[6], v[2], color, TRUE);
+    }
+    else
+    {
+        // â∫òg
+        DrawLine3D(v[0], v[1], color);
+        DrawLine3D(v[1], v[2], color);
+        DrawLine3D(v[2], v[3], color);
+        DrawLine3D(v[3], v[0], color);
+
+        // è„òg
+        DrawLine3D(v[4], v[5], color);
+        DrawLine3D(v[5], v[6], color);
+        DrawLine3D(v[6], v[7], color);
+        DrawLine3D(v[7], v[4], color);
+
+        // ècê¸
+        DrawLine3D(v[0], v[4], color);
+        DrawLine3D(v[1], v[5], color);
+        DrawLine3D(v[2], v[6], color);
+        DrawLine3D(v[3], v[7], color);
+    }
+}
+
+void AsoUtility::DrawBox3DThick(const VECTOR& minPos, const VECTOR& maxPos, float thickness, unsigned int color)
+{
+    VECTOR min;
+    VECTOR max;
+
+    //----------------------------------
+    // â∫ë§4ï”
+    //----------------------------------
+
+    min = VGet(
+        minPos.x,
+        minPos.y,
+        minPos.z
+    );
+
+    max = VGet(
+        maxPos.x,
+        minPos.y + thickness,
+        minPos.z + thickness
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    min = VGet(
+        minPos.x,
+        minPos.y,
+        maxPos.z - thickness
+    );
+
+    max = VGet(
+        maxPos.x,
+        minPos.y + thickness,
+        maxPos.z
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    min = VGet(
+        minPos.x,
+        minPos.y,
+        minPos.z
+    );
+
+    max = VGet(
+        minPos.x + thickness,
+        minPos.y + thickness,
+        maxPos.z
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    min = VGet(
+        maxPos.x - thickness,
+        minPos.y,
+        minPos.z
+    );
+
+    max = VGet(
+        maxPos.x,
+        minPos.y + thickness,
+        maxPos.z
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    //----------------------------------
+    // è„ë§4ï”
+    //----------------------------------
+
+    min = VGet(
+        minPos.x,
+        maxPos.y - thickness,
+        minPos.z
+    );
+
+    max = VGet(
+        maxPos.x,
+        maxPos.y,
+        minPos.z + thickness
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    min = VGet(
+        minPos.x,
+        maxPos.y - thickness,
+        maxPos.z - thickness
+    );
+
+    max = VGet(
+        maxPos.x,
+        maxPos.y,
+        maxPos.z
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    min = VGet(
+        minPos.x,
+        maxPos.y - thickness,
+        minPos.z
+    );
+
+    max = VGet(
+        minPos.x + thickness,
+        maxPos.y,
+        maxPos.z
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    min = VGet(
+        maxPos.x - thickness,
+        maxPos.y - thickness,
+        minPos.z
+    );
+
+    max = VGet(
+        maxPos.x,
+        maxPos.y,
+        maxPos.z
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    //----------------------------------
+    // èc4ï”
+    //----------------------------------
+
+    min = VGet(
+        minPos.x,
+        minPos.y,
+        minPos.z
+    );
+
+    max = VGet(
+        minPos.x + thickness,
+        maxPos.y,
+        minPos.z + thickness
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    min = VGet(
+        maxPos.x - thickness,
+        minPos.y,
+        minPos.z
+    );
+
+    max = VGet(
+        maxPos.x,
+        maxPos.y,
+        minPos.z + thickness
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    min = VGet(
+        minPos.x,
+        minPos.y,
+        maxPos.z - thickness
+    );
+
+    max = VGet(
+        minPos.x + thickness,
+        maxPos.y,
+        maxPos.z
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+
+    min = VGet(
+        maxPos.x - thickness,
+        minPos.y,
+        maxPos.z - thickness
+    );
+
+    max = VGet(
+        maxPos.x,
+        maxPos.y,
+        maxPos.z
+    );
+
+    DrawBox3D(
+        min,
+        max,
+        color,
+        TRUE
+    );
+}
+
 

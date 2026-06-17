@@ -30,6 +30,8 @@ public:
 		const std::vector<MoveData>& moveList
 	);
 
+	const std::vector<MoveData>& GetMoveList(void) const;
+
 	bool IsMovePosition(int x, int y) const;
 
 	CursorArea GetSelectArea(void) const;
