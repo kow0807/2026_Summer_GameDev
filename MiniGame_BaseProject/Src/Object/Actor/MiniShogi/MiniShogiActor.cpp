@@ -55,5 +55,5 @@ void MiniShogiActor::DrawMoveList(void)
 
 VECTOR MiniShogiActor::GetBoardPostion(int x, int y) const
 {
-
+    return VECTOR();
 }
