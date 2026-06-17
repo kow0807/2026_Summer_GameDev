@@ -7,7 +7,7 @@
 #include "../../Object/Actor/Quoridor/PythonAI.h"
 
 class Desk;
-class Board;
+class QuoridorBoard;
 class Wall;
 class PlayerPiece;
 class PythonAI;
@@ -106,7 +106,7 @@ private:
 
 	// 描画用オブジェクト
 	std::unique_ptr<Desk> desk_;
-	std::unique_ptr<Board> board_;
+	std::unique_ptr<QuoridorBoard> board_;
 	std::unique_ptr<Wall> previewWall_;
 	std::unique_ptr<PlayerPiece> playerPieces_[2];
 	std::unique_ptr<PythonAI> pythonAI_;

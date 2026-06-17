@@ -31,6 +31,9 @@ public:
 
 	std::string SyncQuery(const std::string& jsonInput); // 内部用（ブロッキング）
 
+	// 強制終了
+	void Shutdown(void);
+
 private:
 	HANDLE hStdinWrite_ = INVALID_HANDLE_VALUE;
 	HANDLE hStdoutRead_ = INVALID_HANDLE_VALUE;

@@ -21,7 +21,7 @@ public:
 
 	// ウィンドウサイズの取得・設定
 	const WindowSize& GetWindowSize(void) const;
-	void SetWindowSize(int width = 1280, int height = 720);
+	void SetWindowSize(int width = 1024, int height = 640);
 
 	// フルスクリーンの状態確認・設定
 	bool IsFullScreen(void) const;
@@ -34,8 +34,8 @@ public:
 	// マウス然りスティック然り
 
 	// BGMの音量の取得・設定
-	int GetVolume(void) const;
-	void SetVolume(int volume = 255);
+	int GetBGMVolume(void) const;
+	void SetBGMVolume(int volume = 255);
 
 	// SEの音量の取得・設定
 	int GetSEVolume(void) const;

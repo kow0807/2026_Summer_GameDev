@@ -28,8 +28,10 @@ public:
 	{
 		GAME_SELECT,
 		EXPLANATION,
+		RUNTIME_LOADING,
 		PLAYING
 	};
+
 
 	// 定数
 	// ----------------------------
@@ -83,6 +85,9 @@ private:
 	void ExplanationReversiDrawUI(void);
 	void ExplanationButtonMashDrawUI(void);
 	void ExplanationQuoridorDrawUI(void);
+	void ExplanationMiniShogiUI(void);
+
+	void DrawRunTimeLoading(void);
 
 	//　ミニゲーム生成
 	void CreateMiniGame(void);

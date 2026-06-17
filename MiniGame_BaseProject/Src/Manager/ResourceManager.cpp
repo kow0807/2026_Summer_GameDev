@@ -195,6 +195,50 @@ void ResourceManager::Init(void)
 	// クオリドールの白いテクスチャ
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Quoridor/Texture/White.jpg");
 	resourcesMap_.emplace(SRC::QUORIDOR_TEXTURE_WHITE, res);
+
+	// 五々将棋の畳
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi");
+	resourcesMap_.emplace(SRC::MINISHOGI_TATAMI, res);
+
+	// 五々将棋の将棋台
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Shogiban/Shogiban.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_SHOGIBAN, res);
+
+	// 五々将棋の駒台
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Komadai/Komadai.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_KOMADAI, res);
+
+	// 五々将棋の歩
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Fu/Fu.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_FU, res);
+
+	// 五々将棋の銀
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Gin/Gin.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_GIN, res);
+
+	// 五々将棋の金
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Kin/Kin.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_KIN, res);
+
+	// 五々将棋の角
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Kakugyo/Kakugyo.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_KAKU, res);
+
+	// 五々将棋の飛
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Hisha/Hisha.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_HISHA, res);
+
+	// 五々将棋の王
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Ou/Ou.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_OU, res);
+
+	// 五々将棋の玉
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi/Koma/Gyoku/Gyoku.mv1");
+	resourcesMap_.emplace(SRC::MINISHOGI_GYOKU, res);
+
+	// 五々将棋のUVテクスチャ
+	res = std::make_unique<RES>(RES_T::IMG, PATH_MDL + "MiniShogi/Shogiban/Texture/Wood_2K_NormalDX.jpg");
+	resourcesMap_.emplace(SRC::MINISHOGI_TEXTURE_UV, res);
 }
 
 void ResourceManager::Release(void)

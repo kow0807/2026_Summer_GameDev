@@ -6,6 +6,7 @@
 #include "../Manager/ResourceManager.h"
 #include "../Manager/InputManager.h"
 #include "../Manager/Setting.h"
+#include "../Manager/PythonRuntimeManager.h"
 #include "../Renderer/PixelMaterial.h"
 #include "../Renderer/PixelRenderer.h"
 #include "../Scene/MiniGame/GameBase.h"
@@ -14,8 +15,14 @@
 #include "../Scene/MiniGame/QuizGame.h"
 #include "../Scene/MiniGame/Reversi.h"
 #include "../Scene/MiniGame/Quoridor.h"
+#include "../Scene/MiniGame/MiniShogi.h"
 #include "GameScene.h"
 
+namespace
+{
+	float g_loadingAnim = 0.0f;
+}
+	
 GameScene::GameScene(void)
 	: 
 	miniState_(MINI_STATE::FIRST_PRESS),
@@ -34,6 +41,9 @@ void GameScene::Init(void)
 	// 定点カメラ
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FIXED_POINT);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::MOUSE);
+
+	// Pythonランタイムの初期化
+	PythonRuntimeManager::CreateInstance();
 
 	explanationFontHandle_ = CreateFontToHandle(
 		"游明朝",
@@ -58,6 +68,15 @@ void GameScene::Update(void)
 		ExplanationUpdate();
 		break;
 
+	case SELECT_STATE::RUNTIME_LOADING:
+		if(PythonRuntimeManager::GetInstance().IsFinished())
+		{
+			CreateMiniGame();
+		
+			selectState_ = SELECT_STATE::PLAYING;
+		}
+		break;
+
 	case SELECT_STATE::PLAYING:
 		GameUpdate();
 		break;
@@ -72,6 +91,10 @@ void GameScene::Draw(void)
 		break;
 
 	case SELECT_STATE::EXPLANATION:
+		break;
+		
+	case SELECT_STATE::RUNTIME_LOADING:
+		DrawRunTimeLoading();
 		break;
 
 	case SELECT_STATE::PLAYING:
@@ -163,9 +186,17 @@ void GameScene::ExplanationUpdate()
 	{
 		if (isYes_)
 		{
-			//　生成と初期化
-			CreateMiniGame();
-			selectState_ = SELECT_STATE::PLAYING;
+			if(miniState_==MINI_STATE::QUORIDOR)
+			{
+				PythonRuntimeManager::GetInstance().StartExtractAsync();
+				selectState_ = SELECT_STATE::RUNTIME_LOADING;
+			}
+			else
+			{
+				//　生成と初期化
+				CreateMiniGame();
+				selectState_ = SELECT_STATE::PLAYING;
+			}
 		}
 		else
 		{
@@ -304,6 +335,7 @@ void GameScene::ExplanationDrawUI()
 	case MINI_STATE::HARE_AND_HOUNDS:
 		break;
 	case MINI_STATE::MINI_SHOGI:
+		ExplanationMiniShogiUI();
 		break;
 	}
 }
@@ -1137,6 +1169,453 @@ void GameScene::ExplanationQuoridorDrawUI(void)
 	DrawExtendString(noX, curY, fontScale, fontScale, "いいえ", noColor);
 }
 
+void GameScene::ExplanationMiniShogiUI(void)
+{
+	int index = static_cast<int>(miniState_);
+
+	// 🎨 画面解像度に応じた比率（スケール）の計算
+	const auto& windowSize = Setting::GetInstance().GetWindowSize();
+	float scaleX = static_cast<float>(windowSize.width_) / 1024.0f;
+	float scaleY = static_cast<float>(windowSize.height_) / 640.0f;
+
+	// 文字の大きさの基準（縦横の比率が極端に崩れないよう、小さい方の比率をベースにする）
+	float fontScale = (scaleX < scaleY) ? scaleX : scaleY;
+	if (fontScale < 0.1f) fontScale = 1.0f; // 安全対策
+
+	// 色定義
+	int titleColor = GetColor(240, 200, 80);	// 上品なアンティークゴールド
+	int headerColor = GetColor(230, 210, 150); // 落ち着いたライトゴールド
+	int textColor = GetColor(240, 240, 240); // 眩しすぎないオフホワイト
+	int alertColor = GetColor(255, 130, 130); // 規則用のサーモンピンク
+	int yellowColor = GetColor(255, 255, 150); // 注意を引く明るいイエロー
+	int whiteColor = GetColor(240, 240, 240); // 説明文のオフホワイト
+
+	int selectActiveColor = GetColor(255, 230, 100); // 選択中の鮮やかなゴールド
+	int selectInactiveColor = GetColor(160, 180, 180); // 非選択時のくすんだシルバー
+
+	// 📐 画面比率を掛けた基準座標（左端のライン）
+	int baseX = static_cast<int>(180 * scaleX);
+	int baseY = static_cast<int>(110 * scaleY);
+	int lineSpace = static_cast<int>(28 * scaleY);
+
+	int curY = baseY;
+
+	// 📢 ルール説明文の描画（baseXを基準に美しく整列）
+	DrawExtendString(baseX, curY, fontScale, fontScale, "【 コリドール (Quoridor) 概要 】", titleColor);
+	curY += lineSpace * 2;
+
+	DrawExtendString(baseX, curY, fontScale, fontScale, "■ 勝利条件", headerColor);
+	curY += lineSpace;
+	DrawExtendString(baseX, curY, fontScale, fontScale, "自分のコマ(赤)を、一番奥(最上段)の列へ相手(青)より先に到達させたら勝利！", whiteColor);
+	curY += lineSpace * 2;
+
+	DrawExtendString(baseX, curY, fontScale, fontScale, "■ あなたのターンでできること（どちらか1つ）", yellowColor);
+	curY += lineSpace;
+	DrawExtendString(baseX + static_cast<int>(20 * scaleX), curY, fontScale, fontScale, "【1】 コマの移動 : 上下左右に1マス動かせます。(敵と隣接時は飛び越し可能)", whiteColor);
+	curY += lineSpace;
+	DrawExtendString(baseX + static_cast<int>(20 * scaleX), curY, fontScale, fontScale, "【2】 壁の設置 : 残り壁を消費して、相手の進路を邪魔する壁を置けます。", whiteColor);
+	curY += lineSpace * 2;
+
+	DrawExtendString(baseX, curY, fontScale, fontScale, "注意：相手を完全に閉じ込める壁の配置は禁止です！(常にゴールへの道を1マス以上残す)", alertColor);
+	curY += lineSpace * 3;
+
+	// ──────────────────────────────────────────
+	// 🔘 画像 image_85dec1.png のレイアウトを完全再現する部分
+	// ──────────────────────────────────────────
+	int yesColor = isYes_ ? selectActiveColor : selectInactiveColor;
+	int noColor = !isYes_ ? selectActiveColor : selectInactiveColor;
+
+	// 1. 質問文の描画：タイトルより少し右（インデント）にずらして配置
+	DrawExtendString(baseX + static_cast<int>(100 * scaleX), curY, fontScale, fontScale, "このゲームを開始しますか？", textColor);
+
+	// 下方向に移動
+	curY += static_cast<int>(50 * scaleY);
+
+	// 2. 「はい」の描画：★タイトルの左端（baseX）から少し右（例: +160px）の位置に固定
+	// これにより、上の文章構造と完全に美しい縦ラインが形成されます。
+	int yesX = baseX + static_cast<int>(160 * scaleX);
+	DrawExtendString(yesX, curY, fontScale, fontScale, "はい", yesColor);
+
+	// 3. 「いいえ」の描画：「はい」の開始位置からさらに右に一定の距離（例: +160px）離して配置
+	int noX = yesX + static_cast<int>(160 * scaleX);
+	DrawExtendString(noX, curY, fontScale, fontScale, "いいえ", noColor);
+}
+
+void GameScene::DrawRunTimeLoading(void)
+{
+	const auto& windowSize = Setting::GetInstance().GetWindowSize();
+
+	//==================================================
+	// Screen
+	//==================================================
+
+	const int screenW = windowSize.width_;
+	const int screenH = windowSize.height_;
+
+	const int screenCenterX = screenW / 2;
+	const int screenCenterY = screenH / 2;
+
+	//==================================================
+	// Progress
+	//==================================================
+
+	float progress =
+		PythonRuntimeManager::GetInstance().GetProgress();
+
+	static float visualProgress = 0.0f;
+
+	visualProgress +=
+		(progress - visualProgress) * 0.05f;
+
+	//==================================================
+	// Color
+	//==================================================
+
+	const int bgColor =
+		GetColor(250, 238, 218);
+
+	const int panelColor =
+		GetColor(255, 253, 228);
+
+	const int frameColor =
+		GetColor(240, 153, 123);
+
+	const int accentColor =
+		GetColor(216, 90, 48);
+
+	const int textColor =
+		GetColor(180, 60, 20);
+
+	const int subTextColor =
+		GetColor(224, 148, 106);
+
+	//==================================================
+	// Background
+	//==================================================
+
+	DrawBox(
+		0,
+		0,
+		screenW,
+		screenH,
+		bgColor,
+		TRUE
+	);
+
+	//==================================================
+	// Scale
+	//==================================================
+
+	const float scale =
+		static_cast<float>(screenH) / 720.0f;
+
+	//==================================================
+	// Element Size
+	//==================================================
+
+	const int dotRadius =
+		static_cast<int>(14 * scale);
+
+	const int dotSpacing =
+		static_cast<int>(14 * scale);
+
+	const int barWidth =
+		static_cast<int>(420 * scale);
+
+	const int barHeight =
+		static_cast<int>(24 * scale);
+
+	//==================================================
+	// UI GROUP SIZE
+	//==================================================
+
+	const int uiWidth =
+		barWidth;
+
+	const int uiHeight =
+		static_cast<int>(383 * scale) + 16;
+
+	//==================================================
+	// UI GROUP POSITION
+	//==================================================
+
+	const int uiX =
+		screenCenterX - (uiWidth / 2);
+
+	const int uiY =
+		screenCenterY - (uiHeight / 2);
+
+	//==================================================
+	// Panel
+	//==================================================
+
+	const int panelPaddingX =
+		static_cast<int>(60 * scale);
+
+	const int panelPaddingY =
+		static_cast<int>(60 * scale);
+
+	const int panelX =
+		uiX - panelPaddingX;
+
+	const int panelY =
+		uiY - panelPaddingY;
+
+	const int panelW =
+		uiWidth + (panelPaddingX * 2);
+
+	const int panelH =
+		uiHeight + (panelPaddingY * 2);
+
+	const int cornerRadius =
+		static_cast<int>(20 * scale);
+
+	DrawRoundRect(
+		panelX,
+		panelY,
+		panelX + panelW,
+		panelY + panelH,
+		cornerRadius,
+		cornerRadius,
+		panelColor,
+		TRUE
+	);
+
+	DrawRoundRect(
+		panelX,
+		panelY,
+		panelX + panelW,
+		panelY + panelH,
+		cornerRadius,
+		cornerRadius,
+		frameColor,
+		FALSE
+	);
+
+	//==================================================
+	// UI CENTER
+	//==================================================
+
+	const int uiCenterX =
+		uiX + (uiWidth / 2);
+
+	//==================================================
+	// Y Layout
+	//==================================================
+
+	int currentY = uiY;
+
+	//==================================================
+	// Title
+	//==================================================
+
+	const char* title =
+		"Now Loading!";
+
+	int titleWidth =
+		GetDrawStringWidth(
+			title,
+			strlen(title)
+		);
+
+	DrawString(
+		uiCenterX - (titleWidth / 2),
+		currentY,
+		title,
+		textColor
+	);
+
+	currentY += static_cast<int>(45 * scale);
+
+	//==================================================
+	// Subtitle
+	//==================================================
+
+	const char* subTitle =
+		"Preparing your game...";
+
+	int subTitleWidth =
+		GetDrawStringWidth(
+			subTitle,
+			strlen(subTitle)
+		);
+
+	DrawString(
+		uiCenterX - (subTitleWidth / 2),
+		currentY,
+		subTitle,
+		subTextColor
+	);
+
+	currentY += static_cast<int>(75 * scale);
+
+	//==================================================
+	// Bouncing Dots
+	//==================================================
+
+	const int dotColors[5][3] =
+	{
+		{ 240, 153, 123 },  // coral
+		{ 250, 199, 117 },  // yellow
+		{ 151, 196,  89 },  // green
+		{  93, 202, 165 },  // teal
+		{ 133, 183, 235 },  // blue
+	};
+
+	const int dotCount = 5;
+
+	const int dotsWidth =
+		(dotRadius * 2) * dotCount + dotSpacing * (dotCount - 1);
+
+	const int dotsStartX =
+		uiCenterX - (dotsWidth / 2) + dotRadius;
+
+	const int dotBaseY =
+		currentY + dotRadius + 10;
+
+	const int dotSwing =
+		static_cast<int>(18 * scale);
+
+	for (int i = 0; i < dotCount; i++)
+	{
+		float phase =
+			static_cast<float>(GetNowCount()) * 0.005f
+			+ i * 0.5f;
+
+		int offsetY =
+			static_cast<int>(sin(phase) * dotSwing);
+
+		int cx =
+			dotsStartX + i * (dotRadius * 2 + dotSpacing);
+
+		int cy =
+			dotBaseY + offsetY;
+
+		DrawCircle(
+			cx,
+			cy,
+			dotRadius,
+			GetColor(
+				dotColors[i][0],
+				dotColors[i][1],
+				dotColors[i][2]
+			),
+			TRUE
+		);
+	}
+
+	currentY += static_cast<int>(30 * scale);
+	currentY += static_cast<int>(40 * scale);
+
+	//==================================================
+	// Loading
+	//==================================================
+
+	static int dotAnim = 0;
+
+	if (GetNowCount() % 20 == 0)
+	{
+		dotAnim =
+			(dotAnim + 1) % 4;
+	}
+
+	std::string loadingText =
+		"Loading";
+
+	for (int i = 0; i < dotAnim; i++)
+	{
+		loadingText += ".";
+	}
+
+	int loadingWidth =
+		GetDrawStringWidth(
+			loadingText.c_str(),
+			static_cast<int>(loadingText.size())
+		);
+
+	DrawString(
+		uiCenterX - (loadingWidth / 2),
+		currentY,
+		loadingText.c_str(),
+		subTextColor
+	);
+
+	currentY += static_cast<int>(50 * scale);
+
+	//==================================================
+	// Bar
+	//==================================================
+
+	const int barX =
+		uiCenterX - (barWidth / 2);
+
+	const int barY =
+		currentY;
+
+	const int barRadius =
+		static_cast<int>(12 * scale);
+
+	DrawRoundRect(
+		barX - 2,
+		barY - 2,
+		barX + barWidth,
+		barY + barHeight,
+		barRadius,
+		barRadius,
+		GetColor(255, 225, 200),
+		TRUE
+	);
+
+	DrawRoundRect(
+		barX,
+		barY,
+		barX + barWidth,
+		barY + barHeight,
+		barRadius,
+		barRadius,
+		GetColor(255, 225, 200),
+		TRUE
+	);
+
+	int filledWidth =
+		static_cast<int>(
+			barWidth * visualProgress
+		);
+
+	DrawRoundRect(
+		barX,
+		barY,
+		barX + filledWidth,
+		barY + barHeight,
+		barRadius,
+		barRadius,
+		accentColor,
+		TRUE
+	);
+
+	currentY += static_cast<int>(70 * scale);
+
+	//==================================================
+	// Wait
+	//==================================================
+
+	const char* waitText = visualProgress >= 0.8f ?
+		"Almost there!" : "Hang tight";
+
+	int waitWidth =
+		GetDrawStringWidth(
+			waitText,
+			strlen(waitText)
+		);
+
+	DrawString(
+		uiCenterX - (waitWidth / 2),
+		currentY,
+		waitText,
+		subTextColor
+	);
+}
+
 void GameScene::CreateMiniGame(void)
 {
 	// gameBase_のポインタ生成ができていないところを選択した場合
@@ -1146,19 +1625,15 @@ void GameScene::CreateMiniGame(void)
 	{
 	case MINI_STATE::FIRST_PRESS:
 		gameBase_ = std::make_unique<FirstPressGame>();
-		gameBase_->Init();
 		break;
 	case MINI_STATE::QUIZ:
 		gameBase_ = std::make_unique<QuizGame>();
-		gameBase_->Init();
 		break;
 	case MINI_STATE::REVERSI:
 		gameBase_ = std::make_unique<Reversi>();
-		gameBase_->Init();
 		break;
 	case MINI_STATE::BUTTON_MASH:
 		gameBase_ = std::make_unique<ButtonMashGame>();
-		gameBase_->Init();
 		break;
 	case MINI_STATE::FLASH_CALC:
 		break;
@@ -1168,6 +1643,7 @@ void GameScene::CreateMiniGame(void)
 	case MINI_STATE::HARE_AND_HOUNDS:
 		break;
 	case MINI_STATE::MINI_SHOGI:
+		gameBase_ = std::make_unique<MiniShogi>();
 		break;
 	}
 

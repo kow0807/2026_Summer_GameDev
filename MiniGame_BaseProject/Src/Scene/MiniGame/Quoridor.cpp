@@ -5,13 +5,19 @@
 #include "../../Manager/InputManager.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Setting.h"
+#include "../../Manager/PythonRuntimeManager.h"
 #include "../../Object/Actor/Quoridor/Desk.h"
-#include "../../Object/Actor/Quoridor/Board.h"
+#include "../../Object/Actor/Quoridor/QuoridorBoard.h"
 #include "../../Object/Actor/Quoridor/Wall.h"
 #include "../../Object/Actor/Quoridor/PlayerPiece.h"
 #include "../../Object/Actor/Quoridor/PythonAI.h"
 #include "../../Object/Actor/Quoridor/Triangle.h"
 #include "Quoridor.h"
+
+#ifdef _DEBUG
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif // _DEBUG
 
 std::string Quoridor::debugLogPath_ = "quoridor_debug.log";
 
@@ -66,6 +72,7 @@ Quoridor::Quoridor(void)
 #ifdef _DEBUG
 	DbgLog("=== Quoridor START ===");
 #endif
+
 }
 
 Quoridor::~Quoridor(void)
@@ -101,24 +108,23 @@ void Quoridor::Init(void)
 	fontTitle_ = CreateFontToHandle("游明朝", (int)(30.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
 	fontMain_ = CreateFontToHandle("游明朝", (int)(16.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
 
-
 	// オブジェクトの初期化
 	desk_ = std::make_unique<Desk>();
 	desk_->Init();
 	desk_->SetPosition(Desk::DEFAULT_POSITION);
 
-	board_ = std::make_unique<Board>();
+	board_ = std::make_unique<QuoridorBoard>();
 	board_->Init();
 
 	previewWall_ = std::make_unique<Wall>();
-	previewWall_->SetCellSize(Board::CELL_SIZE);
+	previewWall_->SetCellSize(QuoridorBoard::CELL_SIZE);
 	previewWall_->InitTransform();
 	previewWall_->SetType(Wall::TYPE::VERTICAL);
 
 	for (int i = 0; i < 2; ++i)
 	{
 		playerPieces_[i] = std::make_unique<PlayerPiece>();
-		playerPieces_[i]->SetCellSize(Board::CELL_SIZE);
+		playerPieces_[i]->SetCellSize(QuoridorBoard::CELL_SIZE);
 		playerPieces_[i]->Init();
 		playerPieces_[i]->SetBoardPosition(players_[i].x_, players_[i].y_);
 		playerPieces_[i]->SetColor(players_[i].r_, players_[i].g_, players_[i].b_);
@@ -132,10 +138,38 @@ void Quoridor::Init(void)
 
 	RefreshMoveCandidates();
 
+	auto& pythonRuntime = PythonRuntimeManager::GetInstance();
 	pythonAI_ = std::make_unique<PythonAI>();
+
+#ifdef _DEBUG
+	fs::exists(pythonRuntime.GetPythonExePath()) ?
+		DbgLog("[Init] Python runtime found: ") :
+		DbgLog("[Init] Python runtime NOT found: ");
+
+	if(fs::exists(pythonRuntime.GetPythonExePath()))
+	{
+		MessageBoxW(
+			nullptr,
+			pythonRuntime.GetPythonExePath().c_str(),
+			L"Path",
+			MB_OK
+		);
+	}
+	if (fs::exists(pythonRuntime.GetPythonExePath()))
+	{
+		MessageBoxW(nullptr, L"FOUND", L"DEBUG", MB_OK);
+	}
+	else
+	{
+		MessageBoxW(nullptr, L"NOT FOUND", L"DEBUG", MB_OK);
+	}
+
+#endif // DEBUG
+
+	// Python接続開始
 	bool ok = pythonAI_->Start(
-		L"Python\\Python-3.11.9-demo\\python.exe",
-		L"Python\\CPU_AI\\Quoridor_Ai.py"
+		pythonRuntime.GetPythonExePath(),
+		pythonRuntime.GetScriptPath(L"CPU_AI\\Quoridor_Ai.py")
 	);
 
 	if (ok)
@@ -782,12 +816,12 @@ void Quoridor::UpdateCpu(void)
 
 VECTOR Quoridor::GetWorldPos(int x, int y) const
 {
-	return VGet(x * Board::CELL_SIZE, 0.0f, y * Board::CELL_SIZE);
+	return VGet(x * QuoridorBoard::CELL_SIZE, 0.0f, y * QuoridorBoard::CELL_SIZE);
 }
 
 VECTOR Quoridor::GetCellCenter(int x, int y) const
 {
-	return VGet(x * Board::CELL_SIZE, 0.0f, y * Board::CELL_SIZE);
+	return VGet(x * QuoridorBoard::CELL_SIZE, 0.0f, y * QuoridorBoard::CELL_SIZE);
 }
 
 void Quoridor::DrawBoard(void)
@@ -825,8 +859,8 @@ void Quoridor::DrawMoveCandidates(void)
 	VECTOR playerPos = GetWorldPos(curPlayer.x_, curPlayer.y_);
 
 	// 斜め移動の候補がある場合、通常のオフセットより少し広めに取るための変数
-	float offset = Board::CELL_SIZE * 0.58f;
-	float diagOffset = Board::CELL_SIZE * 1.0f;
+	float offset = QuoridorBoard::CELL_SIZE * 0.58f;
+	float diagOffset = QuoridorBoard::CELL_SIZE * 1.0f;
 
 	// 8方向の設定定義（0~3: 十字、4~7: 斜め）
 	struct DirectionConfig {

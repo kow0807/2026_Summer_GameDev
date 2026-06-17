@@ -20,9 +20,14 @@ public:
 
 private:
 
-    int x_, y_; // 盤面座標
-    	float cellSize_; // セルのサイズ
-	float r_, g_, b_; // 色
+    // 盤面座標
+    int x_, y_;
+    
+    // セルのサイズ
+    float cellSize_;
+	
+    // 色
+    float r_, g_, b_;
 
 	void UpdateTransform(void);
 

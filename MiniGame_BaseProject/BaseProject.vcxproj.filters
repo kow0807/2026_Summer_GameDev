@@ -156,7 +156,7 @@
     <ClCompile Include="Src\Object\Actor\Quoridor\Desk.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Object\Actor\Quoridor\Board.cpp">
+    <ClCompile Include="Src\Object\Actor\Quoridor\QuoridorBoard.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Src\Object\Actor\Quoridor\QuoridorPlayer.cpp">
@@ -187,6 +187,36 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Src\Scene\MiniGame\Reversi.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Manager\PythonRuntimeManager.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Scene\MiniGame\MiniShogi.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\MiniShogi\Shogiban.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\MiniShogi\Komadai.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\MiniShogi\Cursor.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\MiniShogi\Selector.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\MiniShogi\MiniShogiBoard.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\MiniShogi\MiniShogiRule.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\MiniShogi\Hand.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\MiniShogi\MiniShogiActor.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -290,7 +320,7 @@
     <ClInclude Include="Src\Object\Actor\Quoridor\Desk.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Object\Actor\Quoridor\Board.h">
+    <ClInclude Include="Src\Object\Actor\Quoridor\QuoridorBoard.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Src\Object\Actor\Quoridor\QuoridorPlayer.h">
@@ -321,6 +351,45 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Src\Scene\MiniGame\Reversi.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Manager\PythonRuntimeManager.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Scene\MiniGame\MiniShogi.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\Shogiban.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\Komadai.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\Cursor.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\Selector.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\MiniShogiBoard.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\PieceType.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\Piece.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\MiniShogiRule.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\MoveData.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\Hand.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\MiniShogiActor.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
@@ -556,18 +625,23 @@
     <None Include="Python\python314\zipapp.pyc" />
     <None Include="Python\python314\zipimport.pyc" />
     <None Include="Python\ai\ai.py" />
+    <None Include="Python\CPU_AI\Quoridor_Ai.py" />
+    <None Include="Python\CPU_AI\Self_play_collector.py" />
+    <None Include="Python\CPU_AI\quoridor_net.py" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Src\Shader\Model\Desk_VS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\Desk_PS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\Wall_VS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\Wall_PS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\Piece_VS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\Piece_PS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\Grid_VS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\Grid_PS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\BoardBase_VS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\BoardBase_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Quoridor\Desk_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Quoridor\Desk_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Quoridor\Wall_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Quoridor\Wall_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Quoridor\Piece_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Quoridor\Piece_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Quoridor\Grid_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Quoridor\Grid_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Quoridor\BoardBase_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Quoridor\BoardBase_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Minishogi\Shogiban_VS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Minishogi\Shogiban_PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Python\python-3.14.5-embed-amd64\LICENSE.txt" />

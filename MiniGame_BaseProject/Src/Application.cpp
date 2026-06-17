@@ -6,6 +6,7 @@
 #include "Manager/ResourceManager.h"
 #include "Manager/SceneManager.h"
 #include "Manager/Setting.h"
+#include "Manager/PythonRuntimeManager.h"
 #include "Application.h"
 
 Application* Application::instance_ = nullptr;
@@ -41,7 +42,8 @@ void Application::Init(void)
 	Setting::CreateInstance();
 
 	// ウィンドウサイズ
-	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);
+	SetGraphMode(Setting::GetInstance().GetWindowSize().width_, 
+		Setting::GetInstance().GetWindowSize().height_, 32);
 	ChangeWindowMode(true);
 
 	// DxLibの初期化
@@ -67,6 +69,10 @@ void Application::Init(void)
 	// シーン管理初期化
 	SceneManager::CreateInstance();
 
+	// Pythonランタイムの初期化
+	PythonRuntimeManager::CreateInstance();
+	PythonRuntimeManager::GetInstance().CleanupRuntime();
+
 	// ライティングの初期化
 	SetUseLighting(true);
 	SetLightDirection(VGet(0.0f, -1.0f, 0.0f));
@@ -74,6 +80,12 @@ void Application::Init(void)
 
 	frameCount_ = 0;
 	fps_ = 0;
+
+	// 描画補正
+	SetUseBackCulling(TRUE);
+	SetFullSceneAntiAliasingMode(4, 2);
+
+
 }
 
 void Application::Run(void)
@@ -81,6 +93,7 @@ void Application::Run(void)
 
 	auto& inputManager = InputManager::GetInstance();
 	auto& sceneManager = SceneManager::GetInstance();
+	auto& pythonRuntimeManager = PythonRuntimeManager::GetInstance();
 
 	// ゲームループ
 	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0 && !SceneManager::GetInstance().IsGameEnd())
@@ -116,6 +129,7 @@ void Application::Run(void)
 			std::this_thread::sleep_for(std::chrono::milliseconds(FRAME_TIME - elapsed));
 		}
 	}
+	
 
 }
 
@@ -125,6 +139,7 @@ void Application::Destroy(void)
 	InputManager::GetInstance().Destroy();
 	ResourceManager::GetInstance().Destroy();
 	SceneManager::GetInstance().Destroy();
+	PythonRuntimeManager::GetInstance().Destroy();
 
 	// Effekseerを終了する。
 	Effkseer_End();
