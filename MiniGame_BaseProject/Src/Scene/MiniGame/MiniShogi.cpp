@@ -13,6 +13,7 @@
 #include "../../Object/Actor/MiniShogi/MiniShogiBoard.h"
 #include "../../Object/Actor/MiniShogi/MiniShogiRule.h"
 #include "../../Object/Actor/MiniShogi/Hand.h"
+#include "../../Object/Actor/MiniShogi/MiniShogiActor.h"
 
 #include "MiniShogi.h"
 
@@ -28,10 +29,11 @@ MiniShogi::~MiniShogi(void)
 
 void MiniShogi::Init(void)
 {
-	//SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::MINI_GAME);
-	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FREE);
-	//SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
-	//SceneManager::GetInstance().GetCamera()->ChangeGameTypeCamera(Camera::GAME_TYPE::QUORIDOR);
+	//SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FREE);
+
+	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::MINI_GAME);
+	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
+	SceneManager::GetInstance().GetCamera()->ChangeGameTypeCamera(Camera::GAME_TYPE::MINISHOGI);
 
 	shogiban_ = std::make_unique<Shogiban>();
 	shogiban_->Init();
@@ -44,14 +46,17 @@ void MiniShogi::Init(void)
 
 	selector_ = std::make_unique<Selector>();
 	
+	
 	rule_ = std::make_unique <MiniShogiRule>();
 
 	board_ = std::make_unique<MiniShogiBoard>();
 	board_->Init();
 
 	player1Hand_ = std::make_unique<Hand>();
-
 	player2Hand_ = std::make_unique<Hand>();
+
+	actor_ = std::make_unique<MiniShogiActor>(board_.get(), cursor_.get(), selector_.get(),isPlayerTurn_);
+	actor_->Init();
 }
 
 void MiniShogi::Update(void)
@@ -63,7 +68,7 @@ void MiniShogi::Update(void)
 
 	InputUpdate();
 	SelectUpdate();
-
+	actor_->Update();
 
 	cursor_->Update();
 	board_->Update();
@@ -73,8 +78,9 @@ void MiniShogi::Update(void)
 void MiniShogi::Draw(void)
 {
 
-	shogiban_->Draw();
+	//shogiban_->Draw();
 	komadai_->Draw();
+	actor_->Draw();
 
 }
 
@@ -93,8 +99,8 @@ void MiniShogi::InputUpdate(void)
 
 	if (ins.IsTrgUp(KEY_INPUT_UP)) cursor_->MoveUp();
 	if (ins.IsTrgUp(KEY_INPUT_DOWN)) cursor_->MoveDown();
-	if (ins.IsTrgUp(KEY_INPUT_LEFT)) cursor_->MoveLeft();
-	if (ins.IsTrgUp(KEY_INPUT_RIGHT)) cursor_->MoveRight();
+	if (ins.IsTrgUp(KEY_INPUT_LEFT)) cursor_->MoveRight();
+	if (ins.IsTrgUp(KEY_INPUT_RIGHT)) cursor_->MoveLeft();
 }
 
 void MiniShogi::SelectUpdate(void)
@@ -115,179 +121,6 @@ void MiniShogi::SelectUpdate(void)
 	default:
 		break;
 	}
-
-#pragma region no
-
-
-	int x = cursor_->GetX();
-	int y = cursor_->GetY();
-
-	switch (cursor_->GetArea())
-	{
-	case::CursorArea::BOARD:
-
-		// –¢‘I‘ðŽž
-		if (!selector_->IsSelecting())
-		{
-			if (!rule_->CanSelectPiece(
-				*board_,
-				x,
-				y,
-				isPlayerTurn_
-			))
-			{
-				return;
-			}
-
-			selector_->Select(true);
-
-			selector_->SetSelectPositon(
-				CursorArea::BOARD,
-				x,
-				y,
-				0
-			);
-
-			selector_->SetSelectPieceType(
-				board_->GetPiece(x, y).type_
-			);
-
-			selector_->SetMoveList(
-				rule_->GetMoveList(
-					*board_,
-					x,
-					y
-				)
-			);
-		}
-		// ‘I‘ð’†
-		else
-		{
-			// ˆÚ“®‰Â”\
-			if (selector_->IsMovePosition(x, y))
-			{
-				MovePiece(
-					selector_->GetSelectX(),
-					selector_->GetSelectY(),
-					x,
-					y
-				);
-
-				selector_->Select(false);
-
-				isPlayerTurn_ = !isPlayerTurn_;
-			}
-			else
-			{
-				selector_->Select(false);
-			}
-		}
-		break;
-	case::CursorArea::PLAYER1_HAND:
-	{
-		Hand& hand = isPlayerTurn_ ? *player1Hand_ : *player2Hand_;
-
-		if (!selector_->IsSelecting())
-		{
-			if (!rule_->CanSelectHandPiece(hand, cursor_->GetHandIndex()))
-			{
-				return;
-			}
-
-			selector_->Select(true);
-			selector_->SetSelectPositon(
-				CursorArea::PLAYER1_HAND,
-				0,
-				0,
-				cursor_->GetHandIndex()
-			);
-
-			selector_->SetSelectPieceType(
-				hand.GetPiece(cursor_->GetHandIndex()).type_
-			);
-		}
-		else
-		{
-			if (rule_->CanDropPiece(*board_, x, y))
-			{
-				Piece dropPiece =
-				{
-					selector_->GetSelectPieceType(),
-					isPlayerTurn_,
-					false
-				};
-
-				board_->SetPiece(x, y, dropPiece);
-
-				hand.RemovePiece(
-					selector_->GetSelectPieceType()
-				);
-
-				selector_->Select(false);
-				isPlayerTurn_ = !isPlayerTurn_;
-			}
-			else
-			{
-				selector_->Select(false);
-			}
-		}
-	}
-	break;
-	case::CursorArea::PLAYER2_HAND:
-	{
-		Hand& hand = isPlayerTurn_ ? *player1Hand_ : *player2Hand_;
-
-		if (!selector_->IsSelecting())
-		{
-			if (!rule_->CanSelectHandPiece(hand, cursor_->GetHandIndex()))
-			{
-				return;
-			}
-
-			selector_->Select(true);
-			selector_->SetSelectPositon(
-				CursorArea::PLAYER2_HAND,
-				0,
-				0,
-				cursor_->GetHandIndex()
-			);
-
-			selector_->SetSelectPieceType(
-				hand.GetPiece(cursor_->GetHandIndex()).type_
-			);
-		}
-		else
-		{
-			if (rule_->CanDropPiece(*board_, x, y))
-			{
-				Piece dropPiece =
-				{
-					selector_->GetSelectPieceType(),
-					isPlayerTurn_,
-					false
-				};
-
-				board_->SetPiece(x, y, dropPiece);
-
-				hand.RemovePiece(
-					selector_->GetSelectPieceType()
-				);
-
-				selector_->Select(false);
-				isPlayerTurn_ = !isPlayerTurn_;
-			}
-			else
-			{
-				selector_->Select(false);
-			}
-		}
-	}
-	break;
-	default:
-		break;
-	}
-
-#pragma endregion
 
 
 }

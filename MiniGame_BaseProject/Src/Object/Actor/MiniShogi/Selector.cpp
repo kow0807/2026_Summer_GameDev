@@ -49,6 +49,11 @@ void Selector::SetMoveList(const std::vector<MoveData>& moveList)
     moveList_ = moveList;
 }
 
+const std::vector<MoveData>& Selector::GetMoveList(void) const
+{
+    return moveList_;
+}
+
 bool Selector::IsMovePosition(int x, int y) const
 {
     for (const auto& move : moveList_)

@@ -120,6 +120,7 @@ public:
 	static void DrawLineDir(const VECTOR& pos, const VECTOR& dir, int color, float len = 50.0f);
 	static void DrawLineXYZ(const VECTOR& pos, const MATRIX& rot, float len = 50.0f);
 	static void DrawLineXYZ(const VECTOR& pos, const Quaternion& rot, float len = 50.0f);
-
+	static void DrawBox3D(const VECTOR& minPos, VECTOR& maxPos, unsigned int color, int fillFlag);
+	static void DrawBox3DThick(const VECTOR& minPos,const VECTOR& maxPos,float thickness,unsigned int color);
 };
 

@@ -10,6 +10,7 @@ class Selector;
 class MiniShogiBoard;
 class MiniShogiRule;
 class Hand;
+class MiniShogiActor;
 
 class MiniShogi :
     public GameBase
@@ -38,6 +39,8 @@ private:
 
     std::unique_ptr<Hand> player1Hand_;
     std::unique_ptr<Hand> player2Hand_;
+
+    std::unique_ptr<MiniShogiActor> actor_;
 
     bool isPlayerTurn_;
 
