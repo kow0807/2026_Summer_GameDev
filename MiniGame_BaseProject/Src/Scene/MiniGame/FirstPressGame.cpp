@@ -93,7 +93,7 @@ void FirstPressGame::Update(void)
         }
 
         // フライング
-        if (ins.IsTrgDown(KEY_INPUT_SPACE))
+        if (ins.IsTrgDown(KEY_INPUT_SPACE) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1,InputManager::JOYPAD_BTN::DOWN))
         {
             isFlash_ = true;
             pressFrame_ = -1;
@@ -105,7 +105,7 @@ void FirstPressGame::Update(void)
     case GameState::GO:
         FakeFalling();
         // プレイヤー
-        if (ins.IsTrgDown(KEY_INPUT_SPACE) && !isPressed_)
+        if ((ins.IsTrgDown(KEY_INPUT_SPACE) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN)) && !isPressed_)
         {
             isFlash_ = true;
             isPressed_ = true;

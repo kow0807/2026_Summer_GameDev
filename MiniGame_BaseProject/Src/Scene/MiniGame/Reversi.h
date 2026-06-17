@@ -34,6 +34,10 @@ private:
 
 	Stone board_[8][8];
 
+	int yuMinchoFontHandle_;
+
+	int backImg_;
+
 	int cursorX_;
 	int cursorY_;
 
@@ -47,6 +51,12 @@ private:
 
 	// CPU‚Ì’…è”
 	int cpuMoveCount_;
+
+	bool skipMessage_;
+	int skipTimer_;
+	bool playerSkipped_;
+
+	int resultTimer_;
 
 	bool CanPlace(int x, int y, Stone stone);
 	void FlipStone(int x, int y, Stone stone);

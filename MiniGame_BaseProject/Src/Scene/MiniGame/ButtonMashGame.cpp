@@ -69,7 +69,7 @@ void ButtonMashGame::Update(void)
     case GameState::GO:
 
         // PLAYER˜A‘Å
-        if (ins.IsTrgDown(KEY_INPUT_SPACE))
+        if (ins.IsTrgDown(KEY_INPUT_SPACE) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
         {
             battleRate_ += 0.03f;
 

@@ -57,7 +57,9 @@ private:
 
 	int firstPressExplanationImg_;
 	int quizExplanationImg_;
+	int reversiExplanationImg_;
 	int buttonMashExplanationImg_;
+	bool isKeyboard_;
 
 	bool isYes_;
 
@@ -78,6 +80,7 @@ private:
 	// 各ミニゲームの説明UI
 	void ExplanationFirstPressDrawUI(void);
 	void ExplanationQuizDrawUI(void);
+	void ExplanationReversiDrawUI(void);
 	void ExplanationButtonMashDrawUI(void);
 	void ExplanationQuoridorDrawUI(void);
 

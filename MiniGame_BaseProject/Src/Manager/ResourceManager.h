@@ -46,6 +46,9 @@ public:
 		QUIZ_GAME_EXPLANATION,				// à–¾‰æ‘œ
 
 
+		REVERSI_BACK,						// ”wŒi
+		REVERSI_EXPLANATION,				// à–¾‰æ‘œ
+
 		BOARD,								// ƒ{[ƒh
 		QUORIDOR_BASE,
 		QUORIDOR_DESK,

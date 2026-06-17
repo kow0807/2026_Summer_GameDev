@@ -155,6 +155,14 @@ void ResourceManager::Init(void)
 	resourcesMap_.emplace(SRC::QUIZ_GAME_EXPLANATION, res);
 
 
+	// îwåi
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Reversi/Back.png");
+	resourcesMap_.emplace(SRC::REVERSI_BACK, res);
+
+	// ê‡ñæâÊëú
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Reversi/Explanation.png");
+	resourcesMap_.emplace(SRC::REVERSI_EXPLANATION, res);
+
 
 	// î¬
 	res = std::make_shared<RES>(RES_T::MODEL, PATH_MDL + "Board/Board.mv1");

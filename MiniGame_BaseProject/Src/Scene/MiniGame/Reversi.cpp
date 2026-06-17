@@ -11,10 +11,18 @@ Reversi::Reversi(void)
 
 Reversi::~Reversi(void)
 {
+	DeleteFontToHandle(yuMinchoFontHandle_);
 }
 
 void Reversi::Init(void)
 {
+	yuMinchoFontHandle_ =
+		CreateFontToHandle(
+			"游明朝",
+			16,
+			3);
+	backImg_ = resMng_.Load(ResourceManager::SRC::REVERSI_BACK).handleId_;
+
 	gameState_ = GameState::GO;
 
 	for (int y = 0; y < 8; y++)
@@ -40,11 +48,29 @@ void Reversi::Init(void)
 
 	cpuThinkTimer_ = 0;
 	cpuMoveCount_ = 0;
+
+	skipMessage_ = false;
+	skipTimer_ = 0;
+	playerSkipped_ = false;
+	resultTimer_ = 0;
 }
 
 void Reversi::Update(void)
 {
 	UpdateStoneCount();
+	
+	if (gameState_ == GameState::RESULT)
+	{
+		resultTimer_++;
+
+		if (resultTimer_ >= 180)
+		{
+			isReturn_ = true;
+		}
+
+		return;
+	}
+
 	InputManager& ins = InputManager::GetInstance();
 
 	if (gameState_ != GameState::GO)
@@ -52,24 +78,55 @@ void Reversi::Update(void)
 		return;
 	}
 
+	if (!HasValidMove(BLACK) &&
+		!HasValidMove(WHITE))
+	{
+		gameState_ = GameState::RESULT;
+	}
+
+	if (skipTimer_ > 0)
+	{
+		skipTimer_--;
+
+		if (skipTimer_ <= 0)
+		{
+			skipMessage_ = false;
+		}
+
+		return;
+	}
+
 	if (playerTurn_)
 	{
-		if (ins.IsTrgDown(KEY_INPUT_LEFT))
+		if (!HasValidMove(BLACK))
+		{
+			playerTurn_ = false;
+
+			skipMessage_ = true;
+			playerSkipped_ = true;
+			skipTimer_ = 120;
+
+			cpuThinkTimer_ = 60;
+
+			return;
+		}
+
+		if (ins.IsTrgDown(KEY_INPUT_LEFT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT))
 		{
 			cursorX_--;
 		}
 
-		if (ins.IsTrgDown(KEY_INPUT_RIGHT))
+		if (ins.IsTrgDown(KEY_INPUT_RIGHT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT))
 		{
 			cursorX_++;
 		}
 
-		if (ins.IsTrgDown(KEY_INPUT_UP))
+		if (ins.IsTrgDown(KEY_INPUT_UP) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP))
 		{
 			cursorY_--;
 		}
 
-		if (ins.IsTrgDown(KEY_INPUT_DOWN))
+		if (ins.IsTrgDown(KEY_INPUT_DOWN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))
 		{
 			cursorY_++;
 		}
@@ -77,7 +134,7 @@ void Reversi::Update(void)
 		cursorX_ = max(0, min(7, cursorX_));
 		cursorY_ = max(0, min(7, cursorY_));
 
-		if (ins.IsTrgDown(KEY_INPUT_RETURN))
+		if (ins.IsTrgDown(KEY_INPUT_RETURN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
 		{
 			if (CanPlace(cursorX_, cursorY_, BLACK))
 			{
@@ -107,6 +164,15 @@ void Reversi::Draw(void)
 	int startX = 400;
 	int startY = 80;
 	int size = 64;
+
+	int screenX = Application::SCREEN_SIZE_X;
+	int screenY = Application::SCREEN_SIZE_Y;
+
+	int centerX = screenX / 2;
+	int centerY = screenY / 2;
+
+	// 背景
+	DrawRotaGraph(centerX, centerY, 0.7, 0.0, backImg_, true);
 
 	for (int y = 0; y < 8; y++)
 	{
@@ -176,7 +242,7 @@ void Reversi::DrawUI(void)
 		30,
 		30,
 		330,
-		650,
+		580,
 		GetColor(20, 20, 20),
 		TRUE);
 
@@ -184,23 +250,25 @@ void Reversi::DrawUI(void)
 		30,
 		30,
 		330,
-		650,
+		580,
 		GetColor(0, 180, 255),
 		FALSE);
 
 	// タイトル
-	DrawString(
+	DrawStringToHandle(
 		110,
 		50,
 		"REVERSI",
-		GetColor(0, 220, 255));
+		GetColor(0, 220, 255),
+		yuMinchoFontHandle_);
 
 	// プレイヤー情報
-	DrawString(
+	DrawStringToHandle(
 		50,
 		120,
 		"PLAYER",
-		GetColor(255, 255, 255));
+		GetColor(255, 255, 255),
+		yuMinchoFontHandle_);
 
 	DrawCircle(
 		200,
@@ -209,18 +277,20 @@ void Reversi::DrawUI(void)
 		GetColor(0, 0, 0),
 		TRUE);
 
-	DrawString(
+	DrawStringToHandle(
 		225,
 		120,
 		"BLACK",
-		GetColor(255, 255, 255));
+		GetColor(255, 255, 255),
+		yuMinchoFontHandle_);
 
 	// CPU情報
-	DrawString(
+	DrawStringToHandle(
 		50,
 		180,
 		"CPU",
-		GetColor(255, 255, 255));
+		GetColor(255, 255, 255),
+		yuMinchoFontHandle_);
 
 	DrawCircle(
 		200,
@@ -229,11 +299,12 @@ void Reversi::DrawUI(void)
 		GetColor(255, 255, 255),
 		TRUE);
 
-	DrawString(
+	DrawStringToHandle(
 		225,
 		180,
 		"WHITE",
-		GetColor(255, 255, 255));
+		GetColor(255, 255, 255),
+		yuMinchoFontHandle_);
 
 	// 石数
 	DrawLine(
@@ -243,17 +314,19 @@ void Reversi::DrawUI(void)
 		240,
 		GetColor(0, 180, 255));
 
-	DrawFormatString(
+	DrawFormatStringToHandle(
 		50,
 		270,
 		GetColor(255, 255, 255),
+		yuMinchoFontHandle_,
 		"BLACK : %d",
 		blackCount_);
 
-	DrawFormatString(
+	DrawFormatStringToHandle(
 		50,
 		310,
 		GetColor(255, 255, 255),
+		yuMinchoFontHandle_,
 		"WHITE : %d",
 		whiteCount_);
 
@@ -267,32 +340,34 @@ void Reversi::DrawUI(void)
 
 	if (playerTurn_)
 	{
-		DrawString(
+		DrawStringToHandle(
 			50,
 			410,
 			"YOUR TURN",
-			GetColor(0, 255, 100));
+			GetColor(0, 255, 100),
+			yuMinchoFontHandle_);
 	}
 	else
 	{
-		DrawString(
+		DrawStringToHandle(
 			50,
 			410,
 			"CPU TURN",
-			GetColor(255, 180, 0));
+			GetColor(255, 180, 0),
+			yuMinchoFontHandle_);
 	}
 
 	// CPU思考中
 	if (!playerTurn_ && cpuThinkTimer_ > 0)
 	{
-		DrawString(
+		DrawStringToHandle(
 			50,
 			450,
 			"CPU Thinking...",
-			GetColor(255, 255, 0));
+			GetColor(255, 255, 0),
+			yuMinchoFontHandle_);
 	}
 
-	// 操作説明
 	DrawLine(
 		50,
 		520,
@@ -300,17 +375,89 @@ void Reversi::DrawUI(void)
 		520,
 		GetColor(0, 180, 255));
 
-	DrawString(
-		50,
-		550,
-		"Arrow Key : Move",
-		GetColor(200, 200, 200));
+	if (skipMessage_)
+	{
+		DrawBox(
+			380,
+			300,
+			900,
+			400,
+			GetColor(0, 0, 0),
+			TRUE);
 
-	DrawString(
-		50,
-		580,
-		"Enter : Place Stone",
-		GetColor(200, 200, 200));
+		DrawBox(
+			380,
+			300,
+			900,
+			400,
+			GetColor(0, 180, 255),
+			FALSE);
+
+		if (playerSkipped_)
+		{
+			DrawStringToHandle(
+				500,
+				340,
+				"PLAYER SKIP!",
+				GetColor(255, 120, 120),
+				yuMinchoFontHandle_);
+		}
+		else
+		{
+			DrawStringToHandle(
+				520,
+				340,
+				"CPU SKIP!",
+				GetColor(255, 255, 0),
+				yuMinchoFontHandle_);
+		}
+	}
+
+	if (gameState_ == GameState::RESULT)
+	{
+		DrawBox(
+			350,
+			200,
+			950,
+			500,
+			GetColor(0, 0, 0),
+			TRUE);
+
+		DrawStringToHandle(
+			550,
+			260,
+			"ゲーム終了",
+			GetColor(255, 255, 255),
+			yuMinchoFontHandle_);
+
+		if (blackCount_ > whiteCount_)
+		{
+			DrawStringToHandle(
+				520,
+				340,
+				"PLAYER WIN!",
+				GetColor(0, 255, 100),
+				yuMinchoFontHandle_);
+		}
+		else if (whiteCount_ > blackCount_)
+		{
+			DrawStringToHandle(
+				540,
+				340,
+				"CPU WIN!",
+				GetColor(255, 100, 100),
+				yuMinchoFontHandle_);
+		}
+		else
+		{
+			DrawStringToHandle(
+				580,
+				340,
+				"DRAW",
+				GetColor(255, 255, 0),
+				yuMinchoFontHandle_);
+		}
+	}
 }
 
 void Reversi::Reset(void)
@@ -578,6 +725,17 @@ bool Reversi::HasValidMove(Stone stone)
 
 void Reversi::CPUAction()
 {
+	if (!HasValidMove(WHITE))
+	{
+		playerTurn_ = true;
+
+		skipMessage_ = true;
+		playerSkipped_ = false;
+		skipTimer_ = 120;
+
+		return;
+	}
+
 	int bestX = -1;
 	int bestY = -1;
 	int bestScore = -999999;

@@ -315,6 +315,19 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 		idx = static_cast<int>(JOYPAD_BTN::DOWN);
 		ret.ButtonsNew[idx] = d.Buttons[0];// A
 
+		// 十字キー
+		idx = static_cast<int>(JOYPAD_BTN::DPAD_UP);
+		ret.ButtonsNew[idx] = (d.POV[0] == 0);
+
+		idx = static_cast<int>(JOYPAD_BTN::DPAD_RIGHT);
+		ret.ButtonsNew[idx] = (d.POV[0] == 9000);
+
+		idx = static_cast<int>(JOYPAD_BTN::DPAD_DOWN);
+		ret.ButtonsNew[idx] = (d.POV[0] == 18000);
+
+		idx = static_cast<int>(JOYPAD_BTN::DPAD_LEFT);
+		ret.ButtonsNew[idx] = (d.POV[0] == 27000);
+
 		idx = static_cast<int>(JOYPAD_BTN::R_TRIGGER);
 		ret.ButtonsNew[idx] = x.RightTrigger;// R_TRIGGER
 
@@ -357,6 +370,19 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 
 		idx = static_cast<int>(JOYPAD_BTN::DOWN);
 		ret.ButtonsNew[idx] = d.Buttons[1];// ×
+
+		// 十字キー
+		idx = static_cast<int>(JOYPAD_BTN::DPAD_UP);
+		ret.ButtonsNew[idx] = (d.POV[0] == 0);
+
+		idx = static_cast<int>(JOYPAD_BTN::DPAD_RIGHT);
+		ret.ButtonsNew[idx] = (d.POV[0] == 9000);
+
+		idx = static_cast<int>(JOYPAD_BTN::DPAD_DOWN);
+		ret.ButtonsNew[idx] = (d.POV[0] == 18000);
+
+		idx = static_cast<int>(JOYPAD_BTN::DPAD_LEFT);
+		ret.ButtonsNew[idx] = (d.POV[0] == 27000);
 
 		// 左スティック
 		ret.AKeyLX = d.X;

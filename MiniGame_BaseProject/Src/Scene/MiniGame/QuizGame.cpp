@@ -339,7 +339,7 @@ void QuizGame::UpdatePlay(void)
         return;
     }
 
-    if (ins.IsTrgDown(KEY_INPUT_UP))
+    if (ins.IsTrgDown(KEY_INPUT_UP) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP))
     {
         selectIndex_--;
 
@@ -349,7 +349,7 @@ void QuizGame::UpdatePlay(void)
         }
     }
 
-    if (ins.IsTrgDown(KEY_INPUT_DOWN))
+    if (ins.IsTrgDown(KEY_INPUT_DOWN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))
     {
         selectIndex_++;
 
@@ -359,7 +359,7 @@ void QuizGame::UpdatePlay(void)
         }
     }
 
-    if (ins.IsTrgDown(KEY_INPUT_RETURN))
+    if (ins.IsTrgDown(KEY_INPUT_RETURN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
     {
         if (selectIndex_ == quizList_[currentQuizIndex_].answerIndex)
         {

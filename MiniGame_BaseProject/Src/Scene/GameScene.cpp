@@ -20,7 +20,8 @@ GameScene::GameScene(void)
 	: 
 	miniState_(MINI_STATE::FIRST_PRESS),
 	selectState_(SELECT_STATE::GAME_SELECT),
-	isYes_(true)
+	isYes_(true),
+	isKeyboard_(true)
 {
 }
 
@@ -41,6 +42,7 @@ void GameScene::Init(void)
 
 	firstPressExplanationImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_EXPLANATION).handleId_;
 	quizExplanationImg_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_EXPLANATION).handleId_;
+	reversiExplanationImg_ = resMng_.Load(ResourceManager::SRC::REVERSI_EXPLANATION).handleId_;
 	buttonMashExplanationImg_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_EXPLANATION).handleId_;
 }
 
@@ -109,16 +111,18 @@ void GameScene::SelectGameUpdate(void)
 {
 	InputManager& ins = InputManager::GetInstance();
 
+	isKeyboard_ = true;
+
 	int index = static_cast<int>(miniState_);
 	const int max = static_cast<int>(MINI_STATE::MAX);
 
-	if (ins.IsTrgDown(KEY_INPUT_RIGHT))
+	if (ins.IsTrgDown(KEY_INPUT_RIGHT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT))
 	{
 		index++;
 		if (index >= max) index = 0;
 	}
 
-	if (ins.IsTrgDown(KEY_INPUT_LEFT))
+	if (ins.IsTrgDown(KEY_INPUT_LEFT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT))
 	{
 		index--;
 		if (index < 0) index = max - 1;
@@ -127,7 +131,7 @@ void GameScene::SelectGameUpdate(void)
 	miniState_ = static_cast<MINI_STATE>(index);
 
 	// 決定 → 説明画面へ
-	if (ins.IsTrgDown(KEY_INPUT_RETURN))
+	if (ins.IsTrgDown(KEY_INPUT_RETURN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
 	{
 		selectState_ = SELECT_STATE::EXPLANATION;
 		isYes_ = true; // 初期は「はい」
@@ -139,13 +143,23 @@ void GameScene::ExplanationUpdate()
 	InputManager& ins = InputManager::GetInstance();
 
 	// 左右で YES / NO 切り替え
-	if (ins.IsTrgDown(KEY_INPUT_LEFT) || ins.IsTrgDown(KEY_INPUT_RIGHT))
+	if (ins.IsTrgDown(KEY_INPUT_LEFT) || ins.IsTrgDown(KEY_INPUT_RIGHT)
+		|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT)
+		|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT))
 	{
 		isYes_ = !isYes_;
 	}
 
+	// 上下で説明切り替え
+	if (ins.IsTrgDown(KEY_INPUT_UP) || ins.IsTrgDown(KEY_INPUT_DOWN)
+		|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP)
+		|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))
+	{
+		isKeyboard_ = !isKeyboard_;
+	}
+
 	// 決定
-	if (ins.IsTrgDown(KEY_INPUT_RETURN))
+	if (ins.IsTrgDown(KEY_INPUT_RETURN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
 	{
 		if (isYes_)
 		{
@@ -276,6 +290,7 @@ void GameScene::ExplanationDrawUI()
 		ExplanationQuizDrawUI();
 		break;
 	case MINI_STATE::REVERSI:
+		ExplanationReversiDrawUI();
 		break;
 	case MINI_STATE::BUTTON_MASH:
 		ExplanationButtonMashDrawUI();
@@ -352,17 +367,72 @@ void GameScene::ExplanationFirstPressDrawUI(void)
 
 	DrawStringToHandle(textX, textY, "■ ルール説明", GetColor(255, 255, 255), explanationFontHandle_);
 
-	DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+	// ページ切替案内
+	DrawStringToHandle(
+		textX + 180,
+		textY,
+		"↑↓切替",
+		GetColor(180, 180, 180),
+		explanationFontHandle_);
 
-	DrawStringToHandle(textX, textY + 90, "・合図が表示された瞬間に", GetColor(220, 220, 220), explanationFontHandle_);
+	if (isKeyboard_)
+	{
+		// ページ番号
+		DrawStringToHandle(
+			textX + 300,
+			textY,
+			"[ 1/2 ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
 
-	DrawStringToHandle(textX + 25, textY + 130, "Spaceキーを押してください", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
 
-	DrawStringToHandle(textX, textY + 210, "・2本先取で勝利", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawStringToHandle(
+			textX,
+			textY + 55,
+			"[ キーボード ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
 
-	DrawStringToHandle(textX, textY + 290, "・フェイクに騙されないように", GetColor(255, 220, 120), explanationFontHandle_);
+		DrawStringToHandle(textX, textY + 110, "・合図が表示された瞬間に", GetColor(220, 220, 220), explanationFontHandle_);
 
-	DrawStringToHandle(textX + 25, textY + 330, "気を付けましょう", GetColor(255, 220, 120), explanationFontHandle_);
+		DrawStringToHandle(textX + 25, textY + 150, "Spaceキーを押してください", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 230, "・2本先取で勝利", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 310, "・フェイクに騙されないように", GetColor(255, 220, 120), explanationFontHandle_);
+
+		DrawStringToHandle(textX + 25, textY + 350, "気を付けましょう", GetColor(255, 220, 120), explanationFontHandle_);
+	}
+	else
+	{
+		// ページ番号
+		DrawStringToHandle(
+			textX + 300,
+			textY,
+			"[ 2/2 ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
+
+		DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+
+		DrawStringToHandle(
+			textX,
+			textY + 55,
+			"[ PAD ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 110, "・合図が表示された瞬間に", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX + 25, textY + 150, "Aボタンを押してください", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 230, "・2本先取で勝利", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 310, "・フェイクに騙されないように", GetColor(255, 220, 120), explanationFontHandle_);
+
+		DrawStringToHandle(textX + 25, textY + 350, "気を付けましょう", GetColor(255, 220, 120), explanationFontHandle_);
+	}
 
 	// 下部 : 開始確認
 	DrawLine(panelX + 40, panelY + 540, panelX + panelW - 40, panelY + 540, GetColor(0, 180, 255));
@@ -486,15 +556,257 @@ void GameScene::ExplanationQuizDrawUI(void)
 
 	DrawStringToHandle(textX, textY, "■ ルール説明", GetColor(255, 255, 255), explanationFontHandle_);
 
-	DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+	// ページ切替案内
+	DrawStringToHandle(
+		textX + 180,
+		textY,
+		"↑↓切替",
+		GetColor(180, 180, 180),
+		explanationFontHandle_);
 
-	DrawStringToHandle(textX, textY + 90, "・クイズに10問中8問", GetColor(220, 220, 220), explanationFontHandle_);
+	if (isKeyboard_)
+	{
+		// ページ番号
+		DrawStringToHandle(
+			textX + 300,
+			textY,
+			"[ 1/2 ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
 
-	DrawStringToHandle(textX + 25, textY + 130, "正解でクリア", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
 
-	DrawStringToHandle(textX, textY + 210, "・矢印キーで回答を選択", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawStringToHandle(
+			textX,
+			textY + 55,
+			"[ キーボード ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
 
-	DrawStringToHandle(textX, textY + 290, "・Enterキーで決定", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawStringToHandle(textX, textY + 110, "・クイズに10問中8問", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX + 25, textY + 150, "正解でクリア", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 230, "・矢印キーで回答を選択", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 310, "・Enterキーで決定", GetColor(220, 220, 220), explanationFontHandle_);
+
+	}
+	else
+	{
+		// ページ番号
+		DrawStringToHandle(
+			textX + 300,
+			textY,
+			"[ 2/2 ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
+
+		DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+
+		DrawStringToHandle(
+			textX,
+			textY + 55,
+			"[ PAD ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 110, "・クイズに10問中8問", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX + 25, textY + 150, "正解でクリア", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 230, "・十字ボタンで回答を選択", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 310, "・Aボタンで決定", GetColor(220, 220, 220), explanationFontHandle_);
+
+	}
+
+	// 下部 : 開始確認
+	DrawLine(panelX + 40, panelY + 540, panelX + panelW - 40, panelY + 540, GetColor(0, 180, 255));
+
+
+	// タイトル文字を中央配置
+	const char* startText = "ゲームを開始しますか？";
+
+	int startTextW = GetDrawStringWidthToHandle(startText, strlen(startText), explanationFontHandle_);
+
+	DrawStringToHandle(centerX - startTextW / 2, panelY + 560, startText, GetColor(255, 255, 255), explanationFontHandle_);
+
+
+	// はい / いいえ
+	int yesColor = isYes_ ? GetColor(255, 255, 0) : GetColor(180, 180, 180);
+
+	int noColor = !isYes_ ? GetColor(255, 255, 0) : GetColor(180, 180, 180);
+
+
+	// ボタン設定
+	int buttonW = 180;
+	int buttonH = 42;
+	int buttonGap = 40;
+
+	int totalW = buttonW * 2 + buttonGap;
+
+	int startX = centerX - totalW / 2;
+	int buttonY = panelY + 595;
+
+
+	// はいボタン
+	int yesX = startX;
+
+	DrawBox(yesX, buttonY, yesX + buttonW, buttonY + buttonH, GetColor(25, 35, 55), true);
+
+	if (isYes_)
+	{
+		DrawBox(yesX, buttonY, yesX + buttonW, buttonY + buttonH, GetColor(255, 255, 0), false);
+	}
+
+	const char* yesText = "はい";
+
+	int yesTextW = GetDrawStringWidthToHandle(yesText, strlen(yesText), explanationFontHandle_);
+
+	DrawStringToHandle(yesX + buttonW / 2 - yesTextW / 2, buttonY + 12, yesText, yesColor, explanationFontHandle_);
+
+
+	// いいえボタン
+	int noX = yesX + buttonW + buttonGap;
+
+	DrawBox(noX, buttonY, noX + buttonW, buttonY + buttonH, GetColor(25, 35, 55), true);
+
+	if (!isYes_)
+	{
+		DrawBox(noX, buttonY, noX + buttonW, buttonY + buttonH, GetColor(255, 255, 0), false);
+	}
+
+	const char* noText = "いいえ";
+
+	int noTextW = GetDrawStringWidthToHandle(noText, strlen(noText), explanationFontHandle_);
+
+	DrawStringToHandle(noX + buttonW / 2 - noTextW / 2, buttonY + 12, noText, noColor, explanationFontHandle_);
+}
+
+void GameScene::ExplanationReversiDrawUI(void)
+{
+	int screenX = Application::SCREEN_SIZE_X;
+	int screenY = Application::SCREEN_SIZE_Y;
+
+	int centerX = screenX / 2;
+	int centerY = screenY / 2;
+
+	// 背景暗転
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 190);
+
+	DrawBox(0, 0, screenX, screenY, GetColor(0, 0, 0), true);
+
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	// メインパネル
+	int panelW = 1200;
+	int panelH = 650;
+
+	int panelX = centerX - panelW / 2;
+	int panelY = centerY - panelH / 2;
+
+	// 外枠
+	DrawBox(panelX - 3, panelY - 3, panelX + panelW + 3, panelY + panelH + 3, GetColor(0, 255, 255), true);
+
+	// 内側
+	DrawBox(panelX, panelY, panelX + panelW, panelY + panelH, GetColor(12, 18, 30), true);
+
+	// タイトル
+	DrawStringToHandle(panelX + 120, panelY + 20, "オセロ", GetColor(0, 255, 255), explanationFontHandle_);
+
+	// 区切り線
+	DrawLine(panelX + 30, panelY + 70, panelX + panelW - 30, panelY + 70, GetColor(0, 180, 255));
+
+	// 左側 : 説明画像
+	int imageFrameX = panelX + 40;
+	int imageFrameY = panelY + 110;
+
+	int imageFrameW = 600;
+	int imageFrameH = 390;
+
+	// 画像背景
+	DrawBox(imageFrameX, imageFrameY, imageFrameX + imageFrameW, imageFrameY + imageFrameH, GetColor(20, 28, 45), true);
+
+	DrawBox(imageFrameX, imageFrameY, imageFrameX + imageFrameW, imageFrameY + imageFrameH, GetColor(0, 180, 255), false);
+
+	// 枠中央
+	int imageCenterX = imageFrameX + imageFrameW / 2;
+	int imageCenterY = imageFrameY + imageFrameH / 2;
+
+	// 説明画像
+	DrawRotaGraph(imageCenterX, imageCenterY, 0.5, 0.0, reversiExplanationImg_, true);
+
+	// 右側 : ルール説明
+	int textX = panelX + 700;
+	int textY = panelY + 140;
+
+	DrawStringToHandle(textX, textY, "■ ルール説明", GetColor(255, 255, 255), explanationFontHandle_);
+
+	// ページ切替案内
+	DrawStringToHandle(
+		textX + 180,
+		textY,
+		"↑↓切替",
+		GetColor(180, 180, 180),
+		explanationFontHandle_);
+
+	if (isKeyboard_)
+	{
+		// ページ番号
+		DrawStringToHandle(
+			textX + 300,
+			textY,
+			"[ 1/2 ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
+
+		DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+
+		DrawStringToHandle(
+			textX,
+			textY + 55,
+			"[ キーボード ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 110, "・矢印キーでマスを選択", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 170, "・Enterキーで決定", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 230, "・盤面が埋まるか", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawStringToHandle(textX + 25, textY + 270, "駒を置けなくなると終了", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 330, "・駒の多いほうの勝利", GetColor(220, 220, 220), explanationFontHandle_);
+	}
+	else
+	{
+		// ページ番号
+		DrawStringToHandle(
+			textX + 300,
+			textY,
+			"[ 2/2 ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
+
+		DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+
+		DrawStringToHandle(
+			textX,
+			textY + 55,
+			"[ PAD ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 110, "・十字ボタンでマスを選択", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 170, "・Aボタンで決定", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 230, "・盤面が埋まるか", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawStringToHandle(textX + 25, textY + 270, "駒を置けなくなると終了", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 330, "・駒の多いほうの勝利", GetColor(220, 220, 220), explanationFontHandle_);
+	}
 
 	// 下部 : 開始確認
 	DrawLine(panelX + 40, panelY + 540, panelX + panelW - 40, panelY + 540, GetColor(0, 180, 255));
@@ -618,19 +930,76 @@ void GameScene::ExplanationButtonMashDrawUI(void)
 
 	DrawStringToHandle(textX, textY, "■ ルール説明", GetColor(255, 255, 255), explanationFontHandle_);
 
-	DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+	// ページ切替案内
+	DrawStringToHandle(
+		textX + 180,
+		textY,
+		"↑↓切替",
+		GetColor(180, 180, 180),
+		explanationFontHandle_);
 
-	DrawStringToHandle(textX, textY + 90, "・合図が表示された後", GetColor(220, 220, 220), explanationFontHandle_);
+	if (isKeyboard_)
+	{
+		// ページ番号
+		DrawStringToHandle(
+			textX + 300,
+			textY,
+			"[ 1/2 ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
 
-	DrawStringToHandle(textX + 25, textY + 130, "Spaceキーを連打してください", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
 
-	DrawStringToHandle(textX, textY + 210, "・連打の優勢状況によって", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawStringToHandle(
+			textX,
+			textY + 55,
+			"[ キーボード ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
 
-	DrawStringToHandle(textX + 25, textY + 250, "画面の色が変化します", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawStringToHandle(textX, textY + 110, "・合図が表示された後", GetColor(220, 220, 220), explanationFontHandle_);
 
-	DrawStringToHandle(textX, textY + 330, "・青で埋め尽くすと1本獲得し", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawStringToHandle(textX + 25, textY + 150, "Spaceキーを連打してください", GetColor(220, 220, 220), explanationFontHandle_);
 
-	DrawStringToHandle(textX + 25, textY + 370, "2本先取で勝利", GetColor(220, 220, 220), explanationFontHandle_);
+		DrawStringToHandle(textX, textY + 210, "・連打の優勢状況によって", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX + 25, textY + 250, "画面の色が変化します", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 310, "・青で埋め尽くすと1本獲得し", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX + 25, textY + 350, "2本先取で勝利", GetColor(220, 220, 220), explanationFontHandle_);
+	}
+	else
+	{
+		// ページ番号
+		DrawStringToHandle(
+			textX + 300,
+			textY,
+			"[ 2/2 ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
+
+		DrawLine(textX, textY + 40, textX + 320, textY + 40, GetColor(0, 180, 255));
+
+		DrawStringToHandle(
+			textX,
+			textY + 55,
+			"[ PAD ]",
+			GetColor(0, 255, 255),
+			explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 110, "・合図が表示された後", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX + 25, textY + 150, "Aボタンを連打してください", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 210, "・連打の優勢状況によって", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX + 25, textY + 250, "画面の色が変化します", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX, textY + 310, "・青で埋め尽くすと1本獲得し", GetColor(220, 220, 220), explanationFontHandle_);
+
+		DrawStringToHandle(textX + 25, textY + 350, "2本先取で勝利", GetColor(220, 220, 220), explanationFontHandle_);
+	}
 
 	// 下部 : 開始確認
 	DrawLine(panelX + 40, panelY + 540, panelX + panelW - 40, panelY + 540, GetColor(0, 180, 255));

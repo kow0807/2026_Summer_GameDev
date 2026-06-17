@@ -42,9 +42,16 @@ public:
 		RIGHT,
 		TOP,
 		DOWN,
+
+		DPAD_UP,
+		DPAD_RIGHT,
+		DPAD_DOWN,
+		DPAD_LEFT,
+
 		R_TRIGGER,
 		L_TRIGGER,
 		SEVEN,
+
 		MAX
 	};
 
