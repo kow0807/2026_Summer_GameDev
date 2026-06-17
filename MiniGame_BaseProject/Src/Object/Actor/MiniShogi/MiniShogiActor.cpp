@@ -311,10 +311,6 @@ void MiniShogiActor::DrawMoveList(void)
 
 VECTOR MiniShogiActor::GetCellCenter(int x, int y) const
 {
-<<<<<<< HEAD
-    return VECTOR();
-}
-=======
 	return VGet(
 		boardOffset_.x + (x * cellSize_),
 		0.0f,
@@ -342,4 +338,4 @@ unsigned int MiniShogiActor::GetCursorColor(void) const
 
 	return GetColor(255, 0, 0);
 }
->>>>>>> feature/Update-MiniShogi-Draw
+
