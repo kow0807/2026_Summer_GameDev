@@ -90,6 +90,10 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Explanation.png");
 	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_EXPLANATION, res);
 
+	// Pressâπ
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Press.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_PRESS_SE, res);
+
 
 
 	// îwåi
