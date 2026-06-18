@@ -356,19 +356,34 @@ void Quoridor::DrawUI(void)
 
 	int modeY = (int)(screenH * 0.30f);
 	DrawFormatStringToHandle(leftX, modeY, colorGray, fontMain_, "MODE");
-	const char* modeText = (mode_ == MODE::MOVE) ? "MOVE [TAB]" : "WALL [TAB]";
+	const char* modeText = (mode_ == MODE::MOVE) ? "MOVE" : "WALL";
 	DrawFormatStringToHandle(leftX, modeY + lineGap, colorWhite, fontMain_, "%s", modeText);
+
+	bool isPadConnected = (GetJoypadNum() > 0);
 
 	// --------------------------------------------------
 	// 左下：操作説明
 	// --------------------------------------------------
 	int menuY = (int)(screenH * 0.52f);
 	int itemGap = (int)(screenH * 0.042f);
-	DrawFormatStringToHandle(leftX, menuY, colorGray, fontMain_, "移動    ：方向キー");
-	DrawFormatStringToHandle(leftX, menuY + itemGap, colorGray, fontMain_, "モード切替：TAB");
-	DrawFormatStringToHandle(leftX, menuY + itemGap * 2, colorGray, fontMain_, "壁の回転  ：RSHIFT");
-	DrawFormatStringToHandle(leftX, menuY + itemGap * 3, colorGray, fontMain_, "決定    ：ENTER");
-	DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "リセット  ：R");
+
+	if (isPadConnected)
+	{
+		DrawFormatStringToHandle(leftX, menuY, colorGray, fontMain_, "移動      ：十字ボタン");
+		DrawFormatStringToHandle(leftX, menuY + itemGap, colorGray, fontMain_, "モード切替：X");
+		DrawFormatStringToHandle(leftX, menuY + itemGap * 2, colorGray, fontMain_, "壁の回転  ：Y");
+		DrawFormatStringToHandle(leftX, menuY + itemGap * 3, colorGray, fontMain_, "決定      ：A");
+		//DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "リセット  ：X");
+	}
+	else
+	{
+		DrawFormatStringToHandle(leftX, menuY, colorGray, fontMain_, "移動      ：方向キー");
+		DrawFormatStringToHandle(leftX, menuY + itemGap, colorGray, fontMain_, "モード切替：TAB");
+		DrawFormatStringToHandle(leftX, menuY + itemGap * 2, colorGray, fontMain_, "壁の回転  ：RSHIFT");
+		DrawFormatStringToHandle(leftX, menuY + itemGap * 3, colorGray, fontMain_, "決定      ：ENTER");
+		//DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "リセット  ：R");
+	}
+
 
 	// --------------------------------------------------
 	// 右側：プレイヤー情報
@@ -622,7 +637,8 @@ void Quoridor::UpdatePlayer(void)
 	//static bool isDiagChoosing = false; // 斜め移動の候補選択中かどうか
 	//static std::pair<int, int> diagTarget = { 0,0 }; // 選択中の斜め移動先座標
 
-	if (ins.IsTrgUp(KEY_INPUT_TAB))
+	if (ins.IsTrgUp(KEY_INPUT_TAB)||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1,InputManager::JOYPAD_BTN::LEFT))
 	{
 		if (isDiagChoosing_)
 		{
@@ -653,7 +669,8 @@ void Quoridor::UpdatePlayer(void)
 	{
 		if (isDiagChoosing_)
 		{
-			if (ins.IsTrgUp(KEY_INPUT_RETURN))
+			if (ins.IsTrgUp(KEY_INPUT_RETURN)||
+				ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
 			{
 				player.x_ = diagTarget_.first;
 				player.y_ = diagTarget_.second;
@@ -664,7 +681,8 @@ void Quoridor::UpdatePlayer(void)
 				return;
 			}
 
-			if (ins.IsTrgUp(KEY_INPUT_BACK))
+			if (ins.IsTrgUp(KEY_INPUT_BACK)||
+				ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::RIGHT))
 			{
 				isDiagChoosing_ = false;
 				DbgLog("[UpdatePlayer] 斜め移動キャンセル(BACK)");
@@ -677,10 +695,10 @@ void Quoridor::UpdatePlayer(void)
 
 		int DirX = 0, DirY = 0;
 
-		if (ins.IsTrgUp(KEY_INPUT_UP))    DirY += player.forwardDirY_;
-		if (ins.IsTrgUp(KEY_INPUT_DOWN))  DirY -= player.forwardDirY_;
-		if (ins.IsTrgUp(KEY_INPUT_LEFT))  DirX -= player.rightDirX_;
-		if (ins.IsTrgUp(KEY_INPUT_RIGHT)) DirX += player.rightDirX_;
+		if (ins.IsTrgUp(KEY_INPUT_UP)|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP))    DirY += player.forwardDirY_;
+		if (ins.IsTrgUp(KEY_INPUT_DOWN)|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))  DirY -= player.forwardDirY_;
+		if (ins.IsTrgUp(KEY_INPUT_LEFT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT))  DirX -= player.rightDirX_;
+		if (ins.IsTrgUp(KEY_INPUT_RIGHT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT)) DirX += player.rightDirX_;
 
 		if (DirX != 0 || DirY != 0)
 		{
@@ -721,12 +739,12 @@ void Quoridor::UpdatePlayer(void)
 	}
 	else if (mode_ == MODE::WALL)
 	{
-		if (ins.IsTrgUp(KEY_INPUT_UP))    wallCursorY_ += player.forwardDirY_;
-		if (ins.IsTrgUp(KEY_INPUT_DOWN))  wallCursorY_ -= player.forwardDirY_;
-		if (ins.IsTrgUp(KEY_INPUT_LEFT))  wallCursorX_ -= player.rightDirX_;
-		if (ins.IsTrgUp(KEY_INPUT_RIGHT)) wallCursorX_ += player.rightDirX_;
+		if (ins.IsTrgUp(KEY_INPUT_UP) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP))    wallCursorY_ += player.forwardDirY_;
+		if (ins.IsTrgUp(KEY_INPUT_DOWN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))  wallCursorY_ -= player.forwardDirY_;
+		if (ins.IsTrgUp(KEY_INPUT_LEFT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT))  wallCursorX_ -= player.rightDirX_;
+		if (ins.IsTrgUp(KEY_INPUT_RIGHT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT)) wallCursorX_ += player.rightDirX_;
 
-		if (ins.IsTrgUp(KEY_INPUT_RSHIFT))
+		if (ins.IsTrgUp(KEY_INPUT_RSHIFT)|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::TOP))
 			wallVertical_ = !wallVertical_;
 
 		wallCursorX_ = max(0, min(wallCursorX_, BOARD_SIZE - 2));
@@ -736,7 +754,7 @@ void Quoridor::UpdatePlayer(void)
 		previewWall_->SetBoardPosition(wallCursorX_, wallCursorY_);
 		previewWall_->RefreshTransform();
 
-		if (ins.IsTrgUp(KEY_INPUT_RETURN))
+		if (ins.IsTrgUp(KEY_INPUT_RETURN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
 		{
 			if (player.remainingWalls_ <= 0)return;
 

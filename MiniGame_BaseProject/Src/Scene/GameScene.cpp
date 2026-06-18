@@ -1103,8 +1103,8 @@ void GameScene::ExplanationQuoridorDrawUI(void)
 
 	// 🎨 画面解像度に応じた比率（スケール）の計算
 	const auto& windowSize = Setting::GetInstance().GetWindowSize();
-	float scaleX = static_cast<float>(windowSize.width_) / 1280.0f;
-	float scaleY = static_cast<float>(windowSize.height_) / 720.0f;
+	float scaleX = static_cast<float>(windowSize.width_) / 1024.0f;
+	float scaleY = static_cast<float>(windowSize.height_) / 640.0f;
 
 	// 文字の大きさの基準（縦横の比率が極端に崩れないよう、小さい方の比率をベースにする）
 	float fontScale = (scaleX < scaleY) ? scaleX : scaleY;
