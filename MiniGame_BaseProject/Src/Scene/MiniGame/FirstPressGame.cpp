@@ -59,6 +59,7 @@ void FirstPressGame::Init(void)
     pointUIImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_POINT_UI).handleId_;
     lostUIImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_LOST_UI).handleId_;
     flyingUIImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_FLYING_UI).handleId_;
+    pressSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_PRESS_SE).handleId_;
     ResetRound();
 }
 
@@ -88,6 +89,7 @@ void FirstPressGame::Update(void)
 
         if (timer_ > waitTime_)
         {
+            PlaySoundMem(pressSe_, DX_PLAYTYPE_BACK);
             gameState_ = GameState::GO;
             timer_ = 0;
         }
