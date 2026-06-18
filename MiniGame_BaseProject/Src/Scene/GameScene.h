@@ -29,6 +29,8 @@ public:
 		GAME_SELECT,
 		EXPLANATION,
 		RUNTIME_LOADING,
+		TRANSITION_OUT,
+		TRANSITION_IN,
 		PLAYING
 	};
 
@@ -63,7 +65,11 @@ private:
 	int buttonMashExplanationImg_;
 	bool isKeyboard_;
 
+	int decideSEH_;
+
 	bool isYes_;
+
+	int fadeAlpha_;
 
 	// ミニゲームの基底クラス
 	std::unique_ptr<GameBase> gameBase_;
@@ -91,4 +97,6 @@ private:
 
 	//　ミニゲーム生成
 	void CreateMiniGame(void);
+
+	void DrawFade(void);
 };

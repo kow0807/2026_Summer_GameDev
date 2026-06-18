@@ -80,6 +80,17 @@ private:
 	// 移動先候補（ハイライト用）
 	std::vector<std::pair<int, int>> moveCandidates_;
 
+	// seハンドル
+	int pMH_;// 駒が動いたとき
+	int wMH_;// 壁が動いたとき
+	int wRH_;// 壁が回転した時
+	int mCH_;// モードが切り替わった時
+	int vicH_;//勝利した時
+	int defH_;//敗北した時
+
+	// 斜め移動中のフラグ
+	bool isDiagonalSelect_;
+	
 	// 座標変換
 	VECTOR GetWorldPos(int x, int y) const;
 	VECTOR GetCellCenter(int x, int y) const;

@@ -63,7 +63,8 @@ Quoridor::Quoridor(void)
 	fontMain_(-1),
 	rFrameCount_(0),
 	isWallWarningActive_(false),
-	wallWarningTimer_(0)
+	wallWarningTimer_(0),
+	isDiagonalSelect_(false)
 {
 	// プレイヤーの初期化
 	players_[0] = { 4, 0, 1.0f, 0.31f, 0.31f, 0, 1, 1, 0, MAX_WALLS,{1.0f, 0.31f, 0.31f} };
@@ -86,6 +87,13 @@ void Quoridor::Init(void)
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::MINI_GAME);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
 	SceneManager::GetInstance().GetCamera()->ChangeGameTypeCamera(Camera::GAME_TYPE::QUORIDOR);
+
+	pMH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_PIECEMOVE_SE).handleId_;
+	wMH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_WALLMOVE_SE).handleId_;
+	wRH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_WALLROTATION_SE).handleId_;
+	mCH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_MODECHANGE_SE).handleId_;
+	vicH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_VICTORY_SE).handleId_;
+	defH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_PIECEMOVE_SE).handleId_;
 
 	// 描画環境設定
 	SetGlobalAmbientLight(GetColorF(0.55f, 0.55f, 0.55f, 1.0f));
@@ -251,7 +259,19 @@ void Quoridor::Update(void)
 	winner_ = board_->CheckWinner(players_);
 	if (winner_ >= 0)
 	{
-		isGameOver_ = true;
+		if (!isGameOver_)
+		{
+			isGameOver_ = true;
+
+			if (winner_ == 0)
+			{
+				PlaySoundMem(vicH_, DX_PLAYTYPE_BACK);
+			}
+			else
+			{
+				PlaySoundMem(defH_, DX_PLAYTYPE_BACK);
+			}
+		}
 		return;
 	}
 
@@ -373,7 +393,12 @@ void Quoridor::DrawUI(void)
 		DrawFormatStringToHandle(leftX, menuY + itemGap, colorGray, fontMain_, "モード切替：X");
 		DrawFormatStringToHandle(leftX, menuY + itemGap * 2, colorGray, fontMain_, "壁の回転  ：Y");
 		DrawFormatStringToHandle(leftX, menuY + itemGap * 3, colorGray, fontMain_, "決定      ：A");
-		//DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "リセット  ：X");
+		
+		if (isDiagonalSelect_)
+		{
+			DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "斜め移動  ：前後→左右→ENTER");
+			DrawFormatStringToHandle(leftX, menuY + itemGap * 5, colorGray, fontMain_, "斜め移動取り消し  ：B");
+		}
 	}
 	else
 	{
@@ -381,7 +406,12 @@ void Quoridor::DrawUI(void)
 		DrawFormatStringToHandle(leftX, menuY + itemGap, colorGray, fontMain_, "モード切替：TAB");
 		DrawFormatStringToHandle(leftX, menuY + itemGap * 2, colorGray, fontMain_, "壁の回転  ：RSHIFT");
 		DrawFormatStringToHandle(leftX, menuY + itemGap * 3, colorGray, fontMain_, "決定      ：ENTER");
-		//DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "リセット  ：R");
+		
+		if (isDiagonalSelect_)
+		{
+			DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "斜め移動  ：前後→左右→ENTER");
+			DrawFormatStringToHandle(leftX, menuY + itemGap * 5, colorGray, fontMain_, "斜め移動取り消し  ：BackSpace");
+		}
 	}
 
 
@@ -536,6 +566,7 @@ void Quoridor::ApplyCpuMove(const std::string& json)
 				{
 					cpu.x_ = x;
 					cpu.y_ = y;
+					PlaySoundMem(pMH_, DX_PLAYTYPE_BACK);
 					moved = true;
 					DbgLog("[ApplyCpuMove] MOVE APPLIED: cpu -> (" + std::to_string(x) + "," + std::to_string(y) + ")");
 					break;
@@ -565,6 +596,7 @@ void Quoridor::ApplyCpuMove(const std::string& json)
 			if (placed)
 			{
 				cpu.remainingWalls_--;
+				PlaySoundMem(wMH_, DX_PLAYTYPE_BACK);
 				mode_ = MODE::MOVE;
 				DbgLog("[ApplyCpuMove] WALL placed at (" + std::to_string(x) + "," + std::to_string(y) + ")");
 			}
@@ -643,6 +675,7 @@ void Quoridor::UpdatePlayer(void)
 		if (isDiagChoosing_)
 		{
 			isDiagChoosing_ = false;
+			isDiagonalSelect_ = false;
 			return;
 		}
 
@@ -660,6 +693,7 @@ void Quoridor::UpdatePlayer(void)
 		if (player.remainingWalls_ > 0)
 		{
 			mode_ = (mode_ == MODE::MOVE) ? MODE::WALL : MODE::MOVE;
+			PlaySoundMem(mCH_, DX_PLAYTYPE_BACK);
 			WaitTimer(150);
 			RefreshMoveCandidates();
 		}
@@ -674,8 +708,10 @@ void Quoridor::UpdatePlayer(void)
 			{
 				player.x_ = diagTarget_.first;
 				player.y_ = diagTarget_.second;
+				PlaySoundMem(pMH_, DX_PLAYTYPE_BACK);
 				isChangeTurn_ = true;
 				isDiagChoosing_ = false; // 状態を解除
+				isDiagonalSelect_ = false;
 				DbgLog("[UpdatePlayer] 斜め移動確定(ENTER): (" + std::to_string(player.x_) + "," + std::to_string(player.y_) + ")");
 				WaitTimer(150);
 				return;
@@ -685,6 +721,7 @@ void Quoridor::UpdatePlayer(void)
 				ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::RIGHT))
 			{
 				isDiagChoosing_ = false;
+				isDiagonalSelect_ = false;
 				DbgLog("[UpdatePlayer] 斜め移動キャンセル(BACK)");
 				WaitTimer(150);
 				return;
@@ -706,15 +743,9 @@ void Quoridor::UpdatePlayer(void)
 				player.x_, player.y_, DirX, DirY, players_
 			);
 			if (!cands.empty())
-			{
-				/*			player.x_ = cands[0].first;
-							player.y_ = cands[0].second;
-							isChangeTurn_ = true;
-							DbgLog("[UpdatePlayer] moved to (" + std::to_string(player.x_) + "," + std::to_string(player.y_) + ")");*/
-
-
-							// 取得した移動先（cands[0]）が、現在の位置から見て「斜め」かどうかをチェック
-							// （X座標もY座標も両方とも変わっていれば斜め移動）
+{
+				// 取得した移動先（cands[0]）が、現在の位置から見て「斜め」かどうかをチェック
+				// （X座標もY座標も両方とも変わっていれば斜め移動）
 				bool isDiagonal = (cands[0].first != player.x_) && (cands[0].second != player.y_);
 
 				if (!isDiagonal)
@@ -723,6 +754,7 @@ void Quoridor::UpdatePlayer(void)
 					// 十字方向への移動（または敵を直線に飛び越える移動）なら即座に確定
 					player.x_ = cands[0].first;
 					player.y_ = cands[0].second;
+					PlaySoundMem(pMH_, DX_PLAYTYPE_BACK);
 					isChangeTurn_ = true;
 					DbgLog("[UpdatePlayer] 通常移動確定: (" + std::to_string(player.x_) + "," + std::to_string(player.y_) + ")");
 				}
@@ -730,6 +762,7 @@ void Quoridor::UpdatePlayer(void)
 				{
 					// 【斜めジャンプ】 選択モードへ移行
 					isDiagChoosing_ = true;
+					isDiagonalSelect_ = true;
 					diagTarget_ = cands[0]; // 最初に見つかった斜め移動先をターゲットに設定
 
 					DbgLog("[UpdatePlayer] 斜めジャンプ選択モード開始。確定待ちターゲット: (" + std::to_string(diagTarget_.first) + "," + std::to_string(diagTarget_.second) + ")");
@@ -739,13 +772,23 @@ void Quoridor::UpdatePlayer(void)
 	}
 	else if (mode_ == MODE::WALL)
 	{
-		if (ins.IsTrgUp(KEY_INPUT_UP) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP))    wallCursorY_ += player.forwardDirY_;
-		if (ins.IsTrgUp(KEY_INPUT_DOWN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))  wallCursorY_ -= player.forwardDirY_;
-		if (ins.IsTrgUp(KEY_INPUT_LEFT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT))  wallCursorX_ -= player.rightDirX_;
-		if (ins.IsTrgUp(KEY_INPUT_RIGHT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT)) wallCursorX_ += player.rightDirX_;
+		bool moved = false;
 
-		if (ins.IsTrgUp(KEY_INPUT_RSHIFT)|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::TOP))
+		if (ins.IsTrgUp(KEY_INPUT_UP) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP)) { wallCursorY_ += player.forwardDirY_; moved = true; }
+		if (ins.IsTrgUp(KEY_INPUT_DOWN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN)) { wallCursorY_ -= player.forwardDirY_; moved = true; }
+		if (ins.IsTrgUp(KEY_INPUT_LEFT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT)) { wallCursorX_ -= player.rightDirX_; moved = true;}
+		if (ins.IsTrgUp(KEY_INPUT_RIGHT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT)) { wallCursorX_ += player.rightDirX_; moved = true;	}
+
+		if (moved)
+		{
+			PlaySoundMem(wMH_, DX_PLAYTYPE_BACK);
+		}
+
+		if (ins.IsTrgUp(KEY_INPUT_RSHIFT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::TOP))
+		{
 			wallVertical_ = !wallVertical_;
+			PlaySoundMem(wRH_, DX_PLAYTYPE_BACK);
+		}
 
 		wallCursorX_ = max(0, min(wallCursorX_, BOARD_SIZE - 2));
 		wallCursorY_ = max(0, min(wallCursorY_, BOARD_SIZE - 2));
@@ -764,6 +807,7 @@ void Quoridor::UpdatePlayer(void)
 			if (placed)
 			{
 				player.remainingWalls_--;
+				PlaySoundMem(wMH_, DX_PLAYTYPE_BACK);
 				mode_ = MODE::MOVE;
 				isChangeTurn_ = true;
 				WaitTimer(150);
@@ -902,7 +946,6 @@ void Quoridor::DrawMoveCandidates(void)
 		{  1, -1,  diagOffset, -diagOffset, VGet(0.0f,  DX_PI_F * 0.75f, 0.0f),  true }   // 7: 右下	
 	};
 
-	// ✨【修正ポイント】moveCandidates_.size() ではなく、固定で「8方向すべて」をチェックする
 	for (int i = 0; i < 8; ++i)
 	{
 		// 斜め移動にしようとしている（Enter待ち）のときは、十字方向の矢印（0〜3）を非表示にする

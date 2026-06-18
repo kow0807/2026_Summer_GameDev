@@ -200,6 +200,30 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Quoridor/Texture/White.jpg");
 	resourcesMap_.emplace(SRC::QUORIDOR_TEXTURE_WHITE, res);
 
+	// クオリドールのピースの移動SE
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Quoridor/pieceMove.mp3");
+	resourcesMap_.emplace(SRC::QUORIDOR_PIECEMOVE_SE, res);
+
+	// クオリドールの壁移動
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Quoridor/wallMove.mp3");
+	resourcesMap_.emplace(SRC::QUORIDOR_WALLMOVE_SE, res);
+
+	// クオリドールの壁回転
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Quoridor/wallRotaion.mp3");
+	resourcesMap_.emplace(SRC::QUORIDOR_WALLROTATION_SE, res);
+
+	// クオリドールのモード切替SE
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Quoridor/modeChange.mp3");
+	resourcesMap_.emplace(SRC::QUORIDOR_MODECHANGE_SE, res);
+
+	// クオリドールの決定SE
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Quoridor/decide.mp3");
+	resourcesMap_.emplace(SRC::QUORIDOR_DICIDE_SE, res);
+
+	// クオリドールの勝利SE
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Quoridor/victory.mp3");
+	resourcesMap_.emplace(SRC::QUORIDOR_VICTORY_SE, res);
+
 	// 五々将棋の畳
 	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi");
 	resourcesMap_.emplace(SRC::MINISHOGI_TATAMI, res);
