@@ -262,7 +262,7 @@ void Camera::ChangeGameTypeCamera(GAME_TYPE gameType)
 		break;
 	case Camera::GAME_TYPE::QUORIDOR:
 		break;
-	case Camera::GAME_TYPE::HARE_AND_HOUNDS:
+	case Camera::GAME_TYPE::MINISHOGI:
 		break;
 	default:
 		break;
@@ -530,7 +530,8 @@ void Camera::SetBeforDrawMiniGame(void)
 	case Camera::GAME_TYPE::QUORIDOR:
 		SetBeforeDrawQuoridor();
 		break;
-	case Camera::GAME_TYPE::HARE_AND_HOUNDS:
+	case Camera::GAME_TYPE::MINISHOGI:
+		SetBeforeDrawMiniShogi();
 		break;
 	default:
 		break;
@@ -699,6 +700,43 @@ void Camera::SetBeforeDrawQuoridor(void)
 	);
 
 	// è„ï˚å¸
+	cameraUp_ = VGet(0, 1, 0);
+
+	SetupCamera_Perspective(DX_PI_F / 4.8f);
+}
+
+void Camera::SetBeforeDrawMiniShogi(void)
+{
+	constexpr float BOARD_OFFSET_X = -200.0f;
+	constexpr float BOARD_OFFSET_Z = -200.0f;
+	constexpr float CELL_SIZE = 100.0f;
+
+	// cell[3][3] ÇÃíÜêS
+	targetPos_ = VGet(
+		BOARD_OFFSET_X + 3 * CELL_SIZE + CELL_SIZE * 0.5f,
+		0.0f,
+		BOARD_OFFSET_Z + 3 * CELL_SIZE + CELL_SIZE * 0.5f
+	);
+
+	// cell[0][3] ÇÃíÜêSÇäÓèÄÇ…è≠Çµå„ÇÎÇ©ÇÁå©ÇÈ
+	pos_ = VGet(
+		BOARD_OFFSET_X + 0 * CELL_SIZE + CELL_SIZE * 0.5f,
+		350.0f,
+		BOARD_OFFSET_Z + 3 * CELL_SIZE + CELL_SIZE * 0.5f - 300.0f
+	);
+
+	pos_ = VGet(
+		0.0f,
+		650.0f,
+		550.0f
+	);
+
+	targetPos_ = VGet(
+		0.0f,
+		0.0f,
+		0.0f
+	);
+
 	cameraUp_ = VGet(0, 1, 0);
 
 	SetupCamera_Perspective(DX_PI_F / 4.8f);

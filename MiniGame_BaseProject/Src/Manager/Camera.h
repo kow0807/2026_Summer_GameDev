@@ -53,7 +53,7 @@ public:
 	{
 		NONE,
 		QUORIDOR,
-		HARE_AND_HOUNDS
+		MINISHOGI
 	};
 
 	Camera(void);
@@ -185,4 +185,5 @@ private:
 
 	// ゲーム種別更新ステップ
 	void SetBeforeDrawQuoridor(void);
+	void SetBeforeDrawMiniShogi(void);
 };

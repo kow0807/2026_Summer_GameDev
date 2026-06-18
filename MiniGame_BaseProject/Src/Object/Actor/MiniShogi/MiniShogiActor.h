@@ -1,40 +1,61 @@
 #pragma once
-#include <DxLib.h>
-#include "../ActorBase.h"
 
-class Shogiban;
+#include <array>
+#include <memory>
+
+#include "PieceType.h"
+#include "MiniShogiBoard.h"
+
+
+class MiniShogiGrid;
+class MiniShogiPiece;
 class Cursor;
 class Selector;
+class ResourceManager;
 
-class MiniShogiActor :
-    public ActorBase
+class MiniShogiActor
 {
 public:
 
-    MiniShogiActor(
-        Shogiban* board,
-        Cursor* cursor,
-        Selector* selector
-    );
+	static constexpr int PIECE_COUNT = 12;
 
-    virtual ~MiniShogiActor(void);
+	MiniShogiActor(MiniShogiBoard* board_, Cursor* cursor, Selector* selector, const bool& isPlayerTurn);
+	~MiniShogiActor(void);
 
-    virtual void Init(void) override;
-    virtual void Update(void) override;
-    virtual void Draw(void) override;
+	void Init(void);
+	void Update(void);
+	void Draw(void);
 
 private:
 
-    void DrawBoard(void);
+	MiniShogiBoard* board_;
+	Cursor* cursor_;
+	Selector* selector_;
+	const bool& isPlayerTurn_;
+	std::unique_ptr<MiniShogiGrid> grid_;
+	std::array<std::unique_ptr<MiniShogiPiece>, PIECE_COUNT> pieces_;
 
-    void DrawPieces(void);
+	ResourceManager& resMng_;
+	
+	int ouH_;
+	int gyokuH_;
+	int kinH_;
+	int ginH_;
+	int kakuH_;
+	int hishaH_;
+	int fuH_;
 
-    void DrawMoveList(void);
+	VECTOR boardOffset_;
+	float cellSize_;
 
-    VECTOR GetBoardPostion(int x, int y) const;
+	void SyncPieceActor(void);
+	int GetPrototypeModelHandle(PieceType type) const;
 
-    Shogiban* board_;
-    Cursor* cursor_;
-    Selector* selector_;
+	void DrawCursor(void);
+	void DrawSelectMarker(void);
+	void DrawMoveList(void);
+	VECTOR GetCellCenter(int x, int y) const;
+
+	unsigned int GetCursorColor(void) const;
 };
 
