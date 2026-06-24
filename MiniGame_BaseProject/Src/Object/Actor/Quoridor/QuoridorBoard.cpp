@@ -7,9 +7,6 @@
 #include "QuoridorBoard.h"
 
 QuoridorBoard::QuoridorBoard(void)
-    :
-    verticalWalls_(false),
-    horizontalWalls_(false)
 {
 }
 
@@ -19,6 +16,9 @@ QuoridorBoard::~QuoridorBoard(void)
 
 void QuoridorBoard::Init()
 {
+    verticalWalls_[BOARD_SIZE - 1][BOARD_SIZE] = false;
+    horizontalWalls_[BOARD_SIZE][BOARD_SIZE - 1] = false;
+
     memset(verticalWalls_, 0, sizeof(verticalWalls_));
     memset(horizontalWalls_, 0, sizeof(horizontalWalls_));
     
