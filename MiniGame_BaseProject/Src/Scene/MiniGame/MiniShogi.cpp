@@ -46,16 +46,23 @@ void MiniShogi::Init(void)
 
 	selector_ = std::make_unique<Selector>();
 	
-	
 	rule_ = std::make_unique <MiniShogiRule>();
 
 	board_ = std::make_unique<MiniShogiBoard>();
 	board_->Init();
 
+	player0Hand_ = std::make_unique<Hand>();
 	player1Hand_ = std::make_unique<Hand>();
-	player2Hand_ = std::make_unique<Hand>();
 
-	actor_ = std::make_unique<MiniShogiActor>(board_.get(), cursor_.get(), selector_.get(),isPlayerTurn_);
+	actor_ = std::make_unique<MiniShogiActor>
+		(
+		board_.get(),
+		player0Hand_.get(),
+		player1Hand_.get(),
+		cursor_.get(),
+		selector_.get(),
+		isPlayerTurn_);
+	
 	actor_->Init();
 }
 
@@ -65,6 +72,8 @@ void MiniShogi::Update(void)
 	shogiban_->Update();
 	komadai_->Update();
 
+	cursor_->SetHandPieceCount(CursorArea::PLAYER1_HAND, player0Hand_->GetPieceCount());
+	cursor_->SetHandPieceCount(CursorArea::PLAYER2_HAND, player1Hand_->GetPieceCount());
 
 	InputUpdate();
 	SelectUpdate();
@@ -109,14 +118,35 @@ void MiniShogi::SelectUpdate(void)
 
 	if (!ins.IsTrgUp(KEY_INPUT_Z)) return;
 
-	switch (cursor_->GetArea())
+	// 未選択時
+	if (!selector_->IsSelecting())
+	{
+		switch (cursor_->GetArea())
+		{
+		case CursorArea::BOARD:
+			SelectBoardPiece();
+			break;
+		case CursorArea::PLAYER1_HAND:
+		case CursorArea::PLAYER2_HAND:
+			SelectHandPiece();
+			break;
+
+		default:
+			break;
+		}
+
+		return;
+	}
+
+	// 選択済み
+	switch (selector_->GetSelectArea())
 	{
 	case CursorArea::BOARD:
-		SelectBoardUpdate();
+		MoveBoardPiece();
 		break;
 	case CursorArea::PLAYER1_HAND:
 	case CursorArea::PLAYER2_HAND:
-		SelectHandUpdate();
+		DropHandPiece();
 		break;
 	default:
 		break;
@@ -125,117 +155,93 @@ void MiniShogi::SelectUpdate(void)
 
 }
 
-void MiniShogi::SelectBoardUpdate(void)
+void MiniShogi::SelectBoardPiece(void)
 {
 	int x = cursor_->GetX();
 	int y = cursor_->GetY();
 
-	if (!selector_->IsSelecting())
-	{
-		if (!rule_->CanSelectPiece(
-			*board_,
-			x,
-			y,
-			isPlayerTurn_
-		))
-		{
-			return;
-		}
+	if (!rule_->CanSelectPiece(*board_, x, y, isPlayerTurn_)) return;
 
-		selector_->Select(true);
+	selector_->Select(true);
 
-		selector_->SetSelectPositon(
-			CursorArea::BOARD,
-			x,
-			y,
-			0
-		);
-		
-		selector_->SetSelectPieceType(
-			board_->GetPiece(x, y).type_
-		);
+	selector_->SetSelectPositon(CursorArea::BOARD, x, y, 0);
 
-		selector_->SetMoveList(
-			rule_->GetMoveList(
-				*board_,
-				x,
-				y
-			)
-		);
-	}
-	else
-	{
-		if (selector_->IsMovePosition(x, y))
-		{
-			MovePiece(
-				selector_->GetSelectX(),
-				selector_->GetSelectY(),
-				x,
-				y
-			);
+	selector_->SetSelectPieceType(board_->GetPiece(x, y).type_);
 
-			selector_->Select(false);
-			isPlayerTurn_ = !isPlayerTurn_;
-		}
-		else
-		{
-			selector_->Select(false);
-		}
-	}
+	selector_->SetMoveList(rule_->GetMoveList(*board_, x, y));
 }
 
-void MiniShogi::SelectHandUpdate(void)
+void MiniShogi::MoveBoardPiece(void)
 {
 	int x = cursor_->GetX();
 	int y = cursor_->GetY();
 
+	if(!selector_->IsMovePosition(x, y))
+	{
+		selector_->Select(false);
+		return;
+	}
+
+	MovePiece(
+		selector_->GetSelectX(),
+		selector_->GetSelectY(),
+		x,
+		y
+	);
+
+	selector_->Select(false);
+
+	isPlayerTurn_ = !isPlayerTurn_;
+}
+
+void MiniShogi::SelectHandPiece(void)
+{
 	Hand& hand = GetCurrentHand();
 
-	if (!selector_->IsSelecting())
+	if (!rule_->CanSelectHandPiece(hand, cursor_->GetHandIndex())) return;
+
+	selector_->Select(true);
+
+	selector_->SetSelectPositon(cursor_->GetArea(), 0, 0, cursor_->GetHandIndex());
+
+	PieceType pieceType = hand.GetPiece(cursor_->GetHandIndex()).type_;
+
+	// 打てる場所のリストを取得
+	selector_->SetMoveList(rule_->GetDropList(*board_, pieceType, isPlayerTurn_));
+
+	// 盤面へカーソルを戻す
+	cursor_->ChangeArea(CursorArea::BOARD);
+
+	cursor_->SetBoardPosition(2, 2);
+}
+
+void MiniShogi::DropHandPiece(void)
+{
+	int x = cursor_->GetX();
+	int y = cursor_->GetY();
+
+	if(!selector_->IsMovePosition( x, y))
 	{
-		if (!rule_->CanSelectHandPiece(hand, cursor_->GetHandIndex()))
-		{
-			return;
-		}
-
-		selector_->Select(true);
-
-		selector_->SetSelectPositon(
-			cursor_->GetArea(),
-			0,
-			0,
-			cursor_->GetHandIndex()
-		);
-
-		selector_->SetSelectPieceType(
-			hand.GetPiece(cursor_->GetHandIndex()).type_
-		);
+		selector_->Select(false);
+		return;
 	}
-	else
+	
+	Hand& hand = GetCurrentHand();
+
+	Piece dropPiece
 	{
-		if (rule_->CanDropPiece(*board_, x, y))
-		{
-			Piece dropPiece
-			{
-				selector_->GetSelectPieceType(),
-				isPlayerTurn_,
-				false
-			};
+		selector_->GetSelectPieceType(),
+		isPlayerTurn_,
+		false
+	};
 
-			board_->SetPiece(x, y, dropPiece);
+	board_->SetPiece(x, y, dropPiece);
 
-			hand.RemovePiece(
-				selector_->GetSelectPieceType()
-			);
+	hand.RemovePiece(dropPiece.type_);
 
-			selector_->Select(false);
-			isPlayerTurn_ = !isPlayerTurn_;
-		}
-		else
-		{
-			selector_->Select(false);
-		}
-	}
+	selector_->Select(false);
+
+	isPlayerTurn_ = !isPlayerTurn_;
 }
 
 void MiniShogi::MovePiece(int fromX, int fromY, int toX, int toY)
@@ -252,11 +258,11 @@ void MiniShogi::MovePiece(int fromX, int fromY, int toX, int toY)
 
 		if (isPlayerTurn_)
 		{
-			player1Hand_->AddPiece(capturePiece.type_);
+			player0Hand_->AddPiece(capturePiece.type_);
 		}
 		else
 		{
-			player2Hand_->AddPiece(capturePiece.type_);
+			player1Hand_->AddPiece(capturePiece.type_);
 		}
 	}
 
@@ -270,18 +276,18 @@ Hand& MiniShogi::GetCurrentHand(void)
 {
 	if (isPlayerTurn_)
 	{
-		return *player1Hand_;
+		return *player0Hand_;
 	}
 
-	return *player2Hand_;
+	return *player1Hand_;
 }
 
 const Hand& MiniShogi::GetCurrentHand(void) const
 {
 	if (isPlayerTurn_)
 	{
-		return *player1Hand_;
+		return *player0Hand_;
 	}
 
-	return *player2Hand_;
+	return *player1Hand_;
 }

@@ -35,6 +35,10 @@ public:
 
 	int GetHandIndex(void) const;
 
+	void SetHandPieceCount(CursorArea area, int count);
+
+	void SetBoardPosition(int x, int y);
+
 private:
 
 	CursorArea myArea_;
@@ -42,6 +46,8 @@ private:
 	int mX_, mY_;
 
 	int player1HandIndex_, player2HandIndex_;
+
+	int player1HandPieceCount_, player2HandPieceCount_;
 
 	void BoardMoveUp(void);
 	void BoardMoveDown(void);

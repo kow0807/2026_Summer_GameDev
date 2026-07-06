@@ -10,7 +10,7 @@ Hand::~Hand(void)
 
 void Hand::AddPiece(PieceType type)
 {
-    int index = FindPieceIndex(type);
+    int index = FindIndex(type);
 
     if (index >= 0)
     {
@@ -29,7 +29,7 @@ void Hand::AddPiece(PieceType type)
 
 void Hand::RemovePiece(PieceType type)
 {
-    int index = FindPieceIndex(type);
+    int index = FindIndex(type);
 
     if (index < 0)
     {
@@ -48,7 +48,7 @@ void Hand::RemovePiece(PieceType type)
 
 bool Hand::HasPiece(PieceType type)
 {
-    return FindPieceIndex(type) >= 0;
+    return FindIndex(type) >= 0;
 }
 
 bool Hand::IsEmpty(void) const
@@ -66,8 +66,9 @@ const HandPiece& Hand::GetPiece(int index) const
     return handPieceList_[index];
 }
 
-int Hand::FindPieceIndex(PieceType type) const
+int Hand::FindIndex(PieceType type) const
 {
+	// 手駒リストから指定された駒のインデックスを検索する
     for (int i = 0; i < static_cast<int>(handPieceList_.size()); i++)
     {
         if (handPieceList_[i].type_ == type)

@@ -6,6 +6,8 @@
 #include "MiniShogiPiece.h"
 #include "Cursor.h"
 #include "Selector.h"
+#include "Hand.h"
+#include "HandActor.h"
 #include "MiniShogiActor.h"
 
 namespace
@@ -18,12 +20,16 @@ namespace
 
 MiniShogiActor::MiniShogiActor(
 	MiniShogiBoard* board,
+	Hand* player0Hand, 
+	Hand* player1Hand,
 	Cursor* cursor,
 	Selector* selector,
 	const bool& isPlayerTurn)
 	:
 	resMng_(ResourceManager::GetInstance()),
 	board_(board),
+	player0Hand_(player0Hand),
+	player1Hand_(player1Hand),
 	cursor_(cursor),
 	selector_(selector),
 	isPlayerTurn_(isPlayerTurn),
@@ -67,6 +73,14 @@ void MiniShogiActor::Init(void)
 		piece->SetVisible(false);
 	}
 
+	player0HandActor_ = std::make_unique<HandActor>(player0Hand_, true);
+	player0HandActor_->SetOrigin(VGet(600.0f, 0.0f, -200.0f));
+	player0HandActor_->Init();
+
+	player1HandActor_ = std::make_unique<HandActor>(player1Hand_, true);
+	player1HandActor_->SetOrigin(VGet(600.0f, 0.0f, 200.0f));
+	player1HandActor_->Init();
+
 	for (int i = 6; i < 12; i++)
 	{
 		pieces_[i]->SetRotationY(180);
@@ -79,33 +93,32 @@ void MiniShogiActor::Update(void)
 {
 	SyncPieceActor();
 
-	if (grid_)
-	{
-		grid_->Update();
-	}
+	if (grid_) grid_->Update();
 
 	for (auto& piece : pieces_)
 	{
-
 		piece->Update();
 	}
+
+	player0HandActor_->Update();
+	player1HandActor_->Update();
 }
 
 void MiniShogiActor::Draw(void)
 {
-	if (grid_)
-	{
-		grid_->Draw();
-	}
+	if (grid_) grid_->Draw();
 
 	for (auto& piece : pieces_)
 	{
 		piece->Draw();
 	}
 
-	DrawCursor();
-	DrawSelectMarker();
-	DrawMoveList();
+	player0HandActor_->Draw();
+	player1HandActor_->Draw();
+
+	DrawBoardCursor();
+
+	DrawHandCursor();
 }
 
 void MiniShogiActor::SyncPieceActor(void)
@@ -133,6 +146,14 @@ void MiniShogiActor::SyncPieceActor(void)
 				pieces_[actorIndex];
 
 			actor->SetVisible(true);
+
+	/*		printfDx(
+				"%d,%d type=%d player=%d\n",
+				x,
+				y,
+				piece.type_,
+				piece.isPlayer_
+			);*/
 
 			actor->SetPiece(piece);
 
@@ -163,6 +184,8 @@ void MiniShogiActor::SyncPieceActor(void)
 	{
 		pieces_[actorIndex]->SetVisible(false);
 	}
+
+
 }
 
 int MiniShogiActor::GetPrototypeModelHandle(PieceType type) const
@@ -188,15 +211,10 @@ int MiniShogiActor::GetPrototypeModelHandle(PieceType type) const
 
 void MiniShogiActor::DrawCursor(void)
 {
-	if (cursor_ == nullptr)
-	{
-		return;
-	}
+	if (cursor_ == nullptr) return;
 
-	if (cursor_->GetArea() != CursorArea::BOARD)
-	{
-		return;
-	}
+	if (cursor_->GetArea() != CursorArea::BOARD) return;
+	
 	float posX =
 		boardOffset_.x +
 		cursor_->GetX() * cellSize_;
@@ -226,15 +244,9 @@ void MiniShogiActor::DrawCursor(void)
 
 void MiniShogiActor::DrawSelectMarker(void)
 {
-	if (!selector_)
-	{
-		return;
-	}
-
-	if (!selector_->IsSelecting())
-	{
-		return;
-	}
+	if (!selector_) return;
+	
+	if (!selector_->IsSelecting()) return;
 
 	const int x =
 		selector_->GetSelectX();
@@ -270,10 +282,7 @@ void MiniShogiActor::DrawSelectMarker(void)
 
 void MiniShogiActor::DrawMoveList(void)
 {
-	if (!selector_->IsSelecting())
-	{
-		return;
-	}
+	if (!selector_->IsSelecting()) return;
 
 	const auto& moveList =
 		selector_->GetMoveList();
@@ -337,5 +346,62 @@ unsigned int MiniShogiActor::GetCursorColor(void) const
 	}
 
 	return GetColor(255, 0, 0);
+}
+
+void MiniShogiActor::DrawBoardCursor(void)
+{
+	DrawCursor();
+	DrawSelectMarker();
+	DrawMoveList();
+}
+
+void MiniShogiActor::DrawHandCursor(void)
+{
+	if(cursor_->GetArea() == CursorArea::BOARD) return;
+
+	HandActor* handActor = nullptr;
+
+	switch (cursor_->GetArea())
+	{
+	case CursorArea::PLAYER1_HAND:
+		handActor = player0HandActor_.get();
+		break;
+	case CursorArea::PLAYER2_HAND:
+		handActor = player1HandActor_.get();
+		break;
+	default:
+		break;
+	}
+
+	if (handActor == nullptr) return;
+
+	if (handActor->GetPieceCount() == 0)
+	{
+		return;
+	}
+
+	const int index = cursor_->GetHandIndex();
+	if(index < 0 || index >= handActor->GetPieceCount())
+	{
+		return;
+	}
+
+	VECTOR pos = handActor->GetPieceWorldPosition(index);
+
+	VECTOR min =
+	{
+		pos.x - 35.0f,
+		pos.y,
+		pos.z - 35.0f
+	};
+
+	VECTOR max =
+	{
+		pos.x + 35.0f,
+		pos.y + 60.0f,
+		pos.z + 35.0f
+	};
+
+	AsoUtility::DrawBox3DThick(min, max, 2.0f, GetColor(0, 255, 0));
 }
 

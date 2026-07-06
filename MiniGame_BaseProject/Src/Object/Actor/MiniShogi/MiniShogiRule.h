@@ -25,6 +25,12 @@ public:
 		int y
 	);
 
+	std::vector<MoveData> GetDropList(
+		const MiniShogiBoard& board,
+		PieceType pieceType,
+		bool isPlayerTurn
+	);
+
 private:
 
 	void AddMove(std::vector<MoveData>& moveList,

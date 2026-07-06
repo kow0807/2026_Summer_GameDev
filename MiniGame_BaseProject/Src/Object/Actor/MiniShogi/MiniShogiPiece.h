@@ -32,6 +32,8 @@ public:
 
     void SetRotationY(float y);
 
+    void SetWorldPosition(VECTOR position);
+
 private:
 
     Piece piece_;

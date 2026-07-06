@@ -11,6 +11,8 @@ class MiniShogiGrid;
 class MiniShogiPiece;
 class Cursor;
 class Selector;
+class Hand;
+class HandActor;
 class ResourceManager;
 
 class MiniShogiActor
@@ -19,7 +21,7 @@ public:
 
 	static constexpr int PIECE_COUNT = 12;
 
-	MiniShogiActor(MiniShogiBoard* board_, Cursor* cursor, Selector* selector, const bool& isPlayerTurn);
+	MiniShogiActor(MiniShogiBoard* board_, Hand* player0Hand, Hand* player1Hand, Cursor* cursor, Selector* selector, const bool& isPlayerTurn);
 	~MiniShogiActor(void);
 
 	void Init(void);
@@ -34,6 +36,12 @@ private:
 	const bool& isPlayerTurn_;
 	std::unique_ptr<MiniShogiGrid> grid_;
 	std::array<std::unique_ptr<MiniShogiPiece>, PIECE_COUNT> pieces_;
+
+	Hand* player0Hand_;
+	Hand* player1Hand_;
+
+	std::unique_ptr<HandActor> player0HandActor_;
+	std::unique_ptr<HandActor> player1HandActor_;
 
 	ResourceManager& resMng_;
 	
@@ -57,5 +65,9 @@ private:
 	VECTOR GetCellCenter(int x, int y) const;
 
 	unsigned int GetCursorColor(void) const;
+
+	void DrawBoardCursor(void);
+
+	void DrawHandCursor(void);
 };
 

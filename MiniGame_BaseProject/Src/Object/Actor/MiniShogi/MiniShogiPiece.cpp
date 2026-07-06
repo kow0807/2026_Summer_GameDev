@@ -41,7 +41,7 @@ void MiniShogiPiece::Init(void)
 {
 	RefreshModel();
 
-	transform_.scl = { DEFAULT_PIECE_SCALE,DEFAULT_PIECE_SCALE ,DEFAULT_PIECE_SCALE };
+	transform_.scl = { DEFAULT_PIECE_SCALE ,DEFAULT_PIECE_SCALE ,DEFAULT_PIECE_SCALE };
 
 	transform_.Update();
 }
@@ -65,14 +65,14 @@ void MiniShogiPiece::Draw(void)
 	MV1SetPosition(transform_.modelId, transform_.pos);
 	MV1SetScale(transform_.modelId, transform_.scl);
 
-	if (piece_.isPlayer_)
-	{
-		MV1SetRotationXYZ(transform_.modelId, VGet(0.0f, DX_PI_F, 0.0f));
-	}
-	else
-	{
-		MV1SetRotationXYZ(transform_.modelId, VGet(0.0f, 0.0f, 0.0f));
-	}
+	//if (piece_.isPlayer_)
+	//{
+	//	MV1SetRotationXYZ(transform_.modelId, VGet(0.0f, DX_PI_F, 0.0f));
+	//}
+	//else
+	//{
+	//	MV1SetRotationXYZ(transform_.modelId, VGet(0.0f, 0.0f, 0.0f));
+	//}
 
 	if (!isVisible_) return;
 
@@ -99,6 +99,21 @@ void MiniShogiPiece::SetCellSize(float size)
 void MiniShogiPiece::SetPiece(const Piece& piece)
 {
 	piece_ = piece;
+
+	if (piece_.isPlayer_)
+	{
+		transform_.quaRotLocal =
+			Quaternion::Euler({
+				0.0f,
+				DX_PI_F,
+				0.0f
+				});
+	}
+	else
+	{
+		transform_.quaRotLocal =
+			Quaternion();
+	}
 }
 
 void MiniShogiPiece::SetModelHandle(int modelHandle)
@@ -136,6 +151,11 @@ VECTOR MiniShogiPiece::GetWorldPosition(void)
 
 void MiniShogiPiece::SetRotationY(float y)
 {
-	transform_.quaRotLocal = Quaternion::Euler({ AsoUtility::Deg2RadF(transform_.quaRot.x),
-		AsoUtility::Deg2RadF(y),AsoUtility::Deg2RadF(transform_.quaRot.z) });
+	transform_.quaRotLocal = Quaternion::Euler({ AsoUtility::Deg2RadF(static_cast<float>(transform_.quaRot.x)),
+		AsoUtility::Deg2RadF(static_cast<float>(y)),AsoUtility::Deg2RadF(static_cast<float>(transform_.quaRot.z)) });
+}
+
+void MiniShogiPiece::SetWorldPosition(VECTOR position)
+{
+	transform_.pos = position;
 }

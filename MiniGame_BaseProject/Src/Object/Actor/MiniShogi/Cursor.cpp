@@ -3,10 +3,12 @@
 Cursor::Cursor(void)
 	:
 	myArea_(CursorArea::BOARD),
-	mX_(0),
-	mY_(0),
+	mX_(2),
+	mY_(4),
 	player1HandIndex_(0),
-	player2HandIndex_(0)
+	player2HandIndex_(0),
+	player1HandPieceCount_(0),
+	player2HandPieceCount_(0)
 {
 }
 
@@ -106,7 +108,55 @@ int Cursor::GetY(void) const
 
 int Cursor::GetHandIndex(void) const
 {
-	return 0;
+	switch (myArea_)
+	{
+	case CursorArea::PLAYER1_HAND:
+		return player1HandIndex_;
+		break;
+
+	case CursorArea::PLAYER2_HAND:
+		return player2HandIndex_;
+		break;
+
+	default:
+		return 0;
+		break;
+	}
+}
+
+void Cursor::SetHandPieceCount(CursorArea area, int count)
+{
+	switch (area)
+	{
+	case CursorArea::PLAYER1_HAND:
+
+		player1HandPieceCount_ = count;
+		
+		if (player1HandIndex_ >= 0)
+		{
+			player1HandIndex_ = count > 0 ? count - 1 : 0;
+		}
+
+		break;
+	case CursorArea::PLAYER2_HAND:
+		
+		player2HandPieceCount_ = count;
+
+		if (player2HandIndex_ >= 0)
+		{
+			player2HandIndex_ = count > 0 ? count - 1 : 0;
+		}
+
+		break;
+	default:
+		break;
+	}
+}
+
+void Cursor::SetBoardPosition(int x, int y)
+{
+	mX_ = x;
+	mY_ = y;
 }
 
 void Cursor::BoardMoveUp(void)
@@ -172,7 +222,7 @@ void Cursor::HandMoveUp(void)
 		return;
 	}
 
-	if (*handIndex - 1 >= 0)
+	if (*handIndex >= 0)
 	{
 		(*handIndex)--;
 	}
@@ -181,6 +231,7 @@ void Cursor::HandMoveUp(void)
 void Cursor::HandMoveDown(void)
 {
 	int* handIndex = nullptr;
+	int pieceCount = 0;
 
 	switch (myArea_)
 	{
@@ -188,9 +239,11 @@ void Cursor::HandMoveDown(void)
 		break;
 	case CursorArea::PLAYER1_HAND:
 		handIndex = &player1HandIndex_;
+		pieceCount = player1HandPieceCount_;
 		break;
 	case CursorArea::PLAYER2_HAND:
 		handIndex = &player2HandIndex_;
+		pieceCount = player2HandPieceCount_;
 		break;
 	default:
 		break;
@@ -201,7 +254,7 @@ void Cursor::HandMoveDown(void)
 		return;
 	}
 
-	if (*handIndex + 1 < HAND_COLUMN * HAND_ROW)
+	if (*handIndex + 1 < pieceCount)
 	{
 		(*handIndex)++;
 	}

@@ -30,7 +30,7 @@ public:
 
 private:
 
-	int FindPieceIndex(PieceType type) const;
+	int FindIndex(PieceType type) const;
 
 	std::vector<HandPiece> handPieceList_;
 };
