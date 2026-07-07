@@ -47,6 +47,9 @@ private:
 
     bool isVisible_;
 
+    bool useWorldPosition_;
+    VECTOR worldPosition_;
+
     void RefreshModel(void);
 
     VECTOR GetWorldPosition(void);

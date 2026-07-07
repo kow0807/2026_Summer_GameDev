@@ -74,9 +74,12 @@ void HandActor::SetCellSize(float size)
 
 VECTOR HandActor::GetPieceWorldPosition(int index) const
 {
-	VECTOR pos = origin_;
-	pos.z += index % 3 * cellSize_;
-	return pos;
+	return CalcWorldPosition(index);
+}
+
+VECTOR HandActor::GetCellWorldPosition(int index) const
+{
+	return CalcWorldPosition(index);
 }
 
 int HandActor::GetPieceCount(void) const
@@ -142,21 +145,26 @@ int HandActor::GetModelHandle(PieceType type) const
 
 VECTOR HandActor::CalcWorldPosition(int index) const
 {
-	int row = index % 3;
-	int col = index / 3;
+	const int row = index / HAND_COL;
+	const int col = index % HAND_COL;
 
 	float x;
+	float z;
 
 	if (isPlayerSide_)
 	{
-		x = origin_.x + (col * cellSize_);
+		x = origin_.x + col * cellSize_;
 	}
 	else
 	{
-		x = origin_.x - (col * cellSize_);
+		x = origin_.x - col * cellSize_;
 	}
 
-	float z = origin_.z + (row * cellSize_);
+	z = origin_.z + row * cellSize_;
 
-	return VGet(x, 15.0f, z);
+	return VGet(
+		x,
+		15.0f,
+		z
+	);
 }

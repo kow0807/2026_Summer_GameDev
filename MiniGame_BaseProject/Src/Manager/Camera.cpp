@@ -19,6 +19,7 @@ Camera::Camera(void)
 	mode_(Camera::MODE::NONE),
 	gameCamera_(GAME_CAMERA::NONE),
 	gameType_(GAME_TYPE::NONE),
+	shogiType_(SHOGI_TYPE::NONE),
 	pos_({}),
 	targetPos_({}),
 	moveDir_({}),
@@ -27,7 +28,9 @@ Camera::Camera(void)
 	followEnemyTransform_(nullptr),
 	lockonSe_(-1),
 	isInitialized_(false),
-	isOperatable_(true)
+	isOperatable_(true),
+	destPos_({}),
+	destTargetPos_({})
 {
 }
 
@@ -210,6 +213,11 @@ void Camera::SetOperatable(bool flag)
 	isOperatable_ = flag;
 }
 
+Camera::SHOGI_TYPE Camera::GetShogiType(void) const
+{
+	return shogiType_;
+}
+
 void Camera::ChangeMode(MODE mode)
 {
 
@@ -263,6 +271,24 @@ void Camera::ChangeGameTypeCamera(GAME_TYPE gameType)
 	case Camera::GAME_TYPE::QUORIDOR:
 		break;
 	case Camera::GAME_TYPE::MINISHOGI:
+		pos_ = DEFAULT_CAMERA_POS;
+		break;
+	default:
+		break;
+	}
+}
+
+void Camera::ChangeShogiTypeCamera(SHOGI_TYPE shogiType)
+{
+	shogiType_ = shogiType;
+
+	switch (shogiType)
+	{
+	case Camera::SHOGI_TYPE::NONE:
+		break;
+	case Camera::SHOGI_TYPE::NORMAL:
+		break;
+	case Camera::SHOGI_TYPE::HAND_SELECT:
 		break;
 	default:
 		break;
@@ -707,37 +733,35 @@ void Camera::SetBeforeDrawQuoridor(void)
 
 void Camera::SetBeforeDrawMiniShogi(void)
 {
-	constexpr float BOARD_OFFSET_X = -200.0f;
-	constexpr float BOARD_OFFSET_Z = -200.0f;
-	constexpr float CELL_SIZE = 100.0f;
-
-	// cell[3][3] ÇÃíÜêS
-	targetPos_ = VGet(
-		BOARD_OFFSET_X + 3 * CELL_SIZE + CELL_SIZE * 0.5f,
-		0.0f,
-		BOARD_OFFSET_Z + 3 * CELL_SIZE + CELL_SIZE * 0.5f
-	);
-
-	// cell[0][3] ÇÃíÜêSÇäÓèÄÇ…è≠Çµå„ÇÎÇ©ÇÁå©ÇÈ
-	pos_ = VGet(
-		BOARD_OFFSET_X + 0 * CELL_SIZE + CELL_SIZE * 0.5f,
-		350.0f,
-		BOARD_OFFSET_Z + 3 * CELL_SIZE + CELL_SIZE * 0.5f - 300.0f
-	);
-
-	pos_ = VGet(
-		0.0f,
-		650.0f,
-		550.0f
-	);
-
-	targetPos_ = VGet(
-		0.0f,
-		0.0f,
-		0.0f
-	);
-
-	cameraUp_ = VGet(0, 1, 0);
+	switch (shogiType_)
+	{
+	case SHOGI_TYPE::NONE:
+		pos_ = VGet(0.0f, 650.0f, 550.0f);
+		targetPos_ = VGet(0.0f, 0.0f, 0.0f);
+		cameraUp_ = VGet(0, 1, 0);
+		break;
+	case SHOGI_TYPE::NORMAL:
+		SetBeforeDrawMiniShogiType(CAMERA_MINI_SHOGI_NORMAL_POS, VGet(0.0f, 0.0f, 0.0f), VGet(0, 1, 0));
+		break;
+	case SHOGI_TYPE::HAND_SELECT:
+		SetBeforeDrawMiniShogiType(CAMERA_MINI_SHOGI_HAND_SELECT_POS, VGet(0.0f, 0.0f, 0.0f), VGet(0, 1, 0));
+		break;
+	default:
+		break;
+	}
 
 	SetupCamera_Perspective(DX_PI_F / 4.8f);
+
+
+}
+
+void Camera::SetBeforeDrawMiniShogiType(const VECTOR& pos, const VECTOR& target, const VECTOR& cameraUp)
+{
+	destPos_ = pos;
+	destTargetPos_ = target;
+	cameraUp_ = cameraUp;
+
+	pos_ = AsoUtility::Lerp(pos_, destPos_, CAMERA_MINI_SHOGI_SPEED);
+	targetPos_ = AsoUtility::Lerp(targetPos_, destTargetPos_, CAMERA_MINI_SHOGI_SPEED);
+	cameraUp_ = AsoUtility::Lerp(cameraUp_, cameraUp_, CAMERA_MINI_SHOGI_SPEED);
 }

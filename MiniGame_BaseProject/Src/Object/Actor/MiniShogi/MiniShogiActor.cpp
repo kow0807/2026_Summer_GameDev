@@ -74,11 +74,11 @@ void MiniShogiActor::Init(void)
 	}
 
 	player0HandActor_ = std::make_unique<HandActor>(player0Hand_, true);
-	player0HandActor_->SetOrigin(VGet(600.0f, 0.0f, -200.0f));
+	player0HandActor_->SetOrigin(VGet(-420.0f, 0.0f, 100.0f));
 	player0HandActor_->Init();
 
-	player1HandActor_ = std::make_unique<HandActor>(player1Hand_, true);
-	player1HandActor_->SetOrigin(VGet(600.0f, 0.0f, 200.0f));
+	player1HandActor_ = std::make_unique<HandActor>(player1Hand_, false);
+	player1HandActor_->SetOrigin(VGet(420.0f, 0.0f, -200.0f));
 	player1HandActor_->Init();
 
 	for (int i = 6; i < 12; i++)
@@ -119,6 +119,22 @@ void MiniShogiActor::Draw(void)
 	DrawBoardCursor();
 
 	DrawHandCursor();
+
+	DrawSphere3D(
+		VGet(-420, 20, 100),
+		20,
+		16,
+		GetColor(255, 0, 0),
+		GetColor(255, 0, 0),
+		TRUE);
+
+	DrawSphere3D(
+		VGet(420, 20, -200),
+		20,
+		16,
+		GetColor(0, 0, 255),
+		GetColor(0, 0, 255),
+		TRUE);
 }
 
 void MiniShogiActor::SyncPieceActor(void)
@@ -146,14 +162,6 @@ void MiniShogiActor::SyncPieceActor(void)
 				pieces_[actorIndex];
 
 			actor->SetVisible(true);
-
-	/*		printfDx(
-				"%d,%d type=%d player=%d\n",
-				x,
-				y,
-				piece.type_,
-				piece.isPlayer_
-			);*/
 
 			actor->SetPiece(piece);
 
@@ -364,12 +372,13 @@ void MiniShogiActor::DrawHandCursor(void)
 	switch (cursor_->GetArea())
 	{
 	case CursorArea::PLAYER1_HAND:
-		handActor = player0HandActor_.get();
-		break;
-	case CursorArea::PLAYER2_HAND:
 		handActor = player1HandActor_.get();
 		break;
+	case CursorArea::PLAYER2_HAND:
+		handActor = player0HandActor_.get();
+		break;
 	default:
+		
 		break;
 	}
 
@@ -386,7 +395,7 @@ void MiniShogiActor::DrawHandCursor(void)
 		return;
 	}
 
-	VECTOR pos = handActor->GetPieceWorldPosition(index);
+	VECTOR pos = handActor->GetCellWorldPosition(index);
 
 	VECTOR min =
 	{
@@ -402,6 +411,32 @@ void MiniShogiActor::DrawHandCursor(void)
 		pos.z + 35.0f
 	};
 
-	AsoUtility::DrawBox3DThick(min, max, 2.0f, GetColor(0, 255, 0));
+	AsoUtility::DrawBox3DThick(min, max, 2.0f, GetHandCursorColor());
 }
 
+unsigned int MiniShogiActor::GetHandCursorColor(void) const
+{
+	switch (cursor_->GetArea())
+	{
+	case CursorArea::PLAYER2_HAND:
+
+		if (isPlayerTurn_)
+		{
+			return GetColor(0, 255, 0);
+		}
+
+		return GetColor(255, 0, 0);
+
+	case CursorArea::PLAYER1_HAND:
+
+		if (!isPlayerTurn_)
+		{
+			return GetColor(0, 255, 0);
+		}
+
+		return GetColor(255, 0, 0);
+
+	default:
+		return GetColor(255, 255, 255);
+	}
+}

@@ -45,6 +45,7 @@ private:
     bool isPlayerTurn_;
 
     void InputUpdate(void);
+	void UpdateCameraState(void);
 
     void SelectUpdate(void);
 

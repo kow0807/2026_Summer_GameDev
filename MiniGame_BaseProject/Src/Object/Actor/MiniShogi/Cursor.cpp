@@ -1,3 +1,4 @@
+#include <DxLib.h>
 #include "Cursor.h"
 
 Cursor::Cursor(void)
@@ -8,7 +9,8 @@ Cursor::Cursor(void)
 	player1HandIndex_(0),
 	player2HandIndex_(0),
 	player1HandPieceCount_(0),
-	player2HandPieceCount_(0)
+	player2HandPieceCount_(0),
+	isPlayerTurn_(false)
 {
 }
 
@@ -61,7 +63,7 @@ void Cursor::MoveLeft(void)
 	switch (myArea_)
 	{
 	case CursorArea::BOARD:
-		BoardMoveLeft();
+		BoardMoveLeft(isPlayerTurn_);
 		break;
 
 	case CursorArea::PLAYER1_HAND:
@@ -76,7 +78,7 @@ void Cursor::MoveRight(void)
 	switch (myArea_)
 	{
 	case CursorArea::BOARD:
-		BoardMoveRight();
+		BoardMoveRight(isPlayerTurn_);
 		break;
 
 	case CursorArea::PLAYER1_HAND:
@@ -131,24 +133,25 @@ void Cursor::SetHandPieceCount(CursorArea area, int count)
 	case CursorArea::PLAYER1_HAND:
 
 		player1HandPieceCount_ = count;
-		
-		if (player1HandIndex_ >= 0)
+
+		if (player1HandIndex_ >= count)
 		{
-			player1HandIndex_ = count > 0 ? count - 1 : 0;
+			player1HandIndex_ =
+				count > 0 ? count - 1 : 0;
 		}
 
 		break;
+
 	case CursorArea::PLAYER2_HAND:
-		
+
 		player2HandPieceCount_ = count;
 
-		if (player2HandIndex_ >= 0)
+		if (player2HandIndex_ >= count)
 		{
-			player2HandIndex_ = count > 0 ? count - 1 : 0;
+			player2HandIndex_ =
+				count > 0 ? count - 1 : 0;
 		}
 
-		break;
-	default:
 		break;
 	}
 }
@@ -157,6 +160,11 @@ void Cursor::SetBoardPosition(int x, int y)
 {
 	mX_ = x;
 	mY_ = y;
+}
+
+void Cursor::SetPlayerTurn(bool& isPlayerTurn)
+{
+	isPlayerTurn_ = isPlayerTurn;
 }
 
 void Cursor::BoardMoveUp(void)
@@ -175,11 +183,35 @@ void Cursor::BoardMoveDown(void)
 	}
 }
 
-void Cursor::BoardMoveLeft(void)
+void Cursor::BoardMoveLeft(bool isPlayerTurn)
+{
+	if (mX_ < BOARD_WIDTH - 1)
+	{
+		mX_++;
+		return;
+	}
+
+	if (isPlayerTurn)
+	{
+		ChangeArea(CursorArea::PLAYER2_HAND);
+	}
+	else
+	{
+		ChangeArea(CursorArea::PLAYER1_HAND);
+	}
+}
+
+void Cursor::BoardMoveRight(bool isPlayerTurn)
 {
 	if (mX_ > 0)
 	{
 		mX_--;
+		return;
+	}
+
+	if (isPlayerTurn)
+	{
+		ChangeArea(CursorArea::PLAYER1_HAND);
 	}
 	else
 	{
@@ -187,99 +219,83 @@ void Cursor::BoardMoveLeft(void)
 	}
 }
 
-void Cursor::BoardMoveRight(void)
-{
-	if (mX_ < BOARD_WIDTH - 1)
-	{
-		mX_++;
-	}
-	else
-	{
-		ChangeArea(CursorArea(CursorArea::PLAYER1_HAND));
-	}
-}
-
 void Cursor::HandMoveUp(void)
 {
-	int* handIndex = nullptr;
+	int* index = GetCurrentHandIndex();
 
-	switch (myArea_)
+	if (*index >= HAND_COL)
 	{
-	case CursorArea::BOARD:
-		break;
-	case CursorArea::PLAYER1_HAND:
-		handIndex = &player1HandIndex_;
-		break;
-	case CursorArea::PLAYER2_HAND:
-		handIndex = &player2HandIndex_;
-		break;
-	default:
-		break;
-	}
-
-	if (!handIndex)
-	{
-		return;
-	}
-
-	if (*handIndex >= 0)
-	{
-		(*handIndex)--;
+		*index -= HAND_COL;
 	}
 }
 
 void Cursor::HandMoveDown(void)
 {
-	int* handIndex = nullptr;
-	int pieceCount = 0;
+	int* index = GetCurrentHandIndex();
 
-	switch (myArea_)
+	if (*index + HAND_COL < HAND_COL * HAND_ROW)
 	{
-	case CursorArea::BOARD:
-		break;
-	case CursorArea::PLAYER1_HAND:
-		handIndex = &player1HandIndex_;
-		pieceCount = player1HandPieceCount_;
-		break;
-	case CursorArea::PLAYER2_HAND:
-		handIndex = &player2HandIndex_;
-		pieceCount = player2HandPieceCount_;
-		break;
-	default:
-		break;
-	}
-
-	if (!handIndex)
-	{
-		return;
-	}
-
-	if (*handIndex + 1 < pieceCount)
-	{
-		(*handIndex)++;
+		*index += HAND_COL;
 	}
 }
 
 void Cursor::HandMoveLeft(void)
 {
-	switch (myArea_)
+	int* index = GetCurrentHandIndex();
+
+	if (myArea_ == CursorArea::PLAYER1_HAND)
 	{
-	case CursorArea::PLAYER1_HAND:
+		if (*index > 0)
+		{
+			(*index)--;
+			return;
+		}
+
 		ChangeArea(CursorArea::BOARD);
-		break;
-	case CursorArea::PLAYER2_HAND:
-		break;
 	}
 }
 
 void Cursor::HandMoveRight(void)
 {
+	int* index = GetCurrentHandIndex();
+
+	if (myArea_ == CursorArea::PLAYER1_HAND)
+	{
+		if (*index + 1 < GetCurrentHandPieceCount())
+		{
+			(*index)++;
+		}
+
+		return;
+	}
+}
+
+int* Cursor::GetCurrentHandIndex(void)
+{
 	switch (myArea_)
 	{
 	case CursorArea::PLAYER1_HAND:
-		break;
+		return &player1HandIndex_;
+
 	case CursorArea::PLAYER2_HAND:
-		ChangeArea(CursorArea::BOARD);
-		break;
+		return &player2HandIndex_;
+
+	default:
+		return nullptr;
+	}
+}
+
+int Cursor::GetCurrentHandPieceCount(void) const
+{
+	switch (myArea_)
+	{
+	case CursorArea::PLAYER1_HAND:
+		return player1HandPieceCount_;
+
+	case CursorArea::PLAYER2_HAND:
+		return player2HandPieceCount_;
+
+	default:
+		return 0;
 	}
 }

@@ -15,7 +15,10 @@ class HandActor
 {
 public:
 
-	static constexpr int MAX_HAND_PIECE = 10;
+	static constexpr int HAND_ROW = 3;
+	static constexpr int HAND_COL = 3;
+	static constexpr int MAX_HAND_PIECE = HAND_ROW * HAND_COL;
+
 
 	HandActor(Hand* hand, bool isPlayerSide);
 	~HandActor(void);
@@ -28,7 +31,7 @@ public:
 	void SetCellSize(float size);
 
 	VECTOR GetPieceWorldPosition(int index) const;
-
+	VECTOR GetCellWorldPosition(int index) const;
 	int GetPieceCount(void) const;
 
 private:

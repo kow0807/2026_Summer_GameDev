@@ -69,5 +69,7 @@ private:
 	void DrawBoardCursor(void);
 
 	void DrawHandCursor(void);
+
+	unsigned int GetHandCursorColor(void) const;
 };
 

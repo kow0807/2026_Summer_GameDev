@@ -16,7 +16,9 @@ MiniShogiPiece::MiniShogiPiece(void)
 	boardOffset_(VGet(0.0f, 0.0f, 0.0f)),
 	cellSize_(100.0f),
 	pieceHeight_(DEFAULT_PIECE_HEIGHT),
-	isVisible_(false)
+	isVisible_(false),
+	useWorldPosition_(false),
+	worldPosition_(VGet(0, 0, 0))
 {
 
 	piece_=
@@ -57,22 +59,22 @@ void MiniShogiPiece::Draw(void)
 
 	if (transform_.modelId < 0) return;
 
-	VECTOR pos = GetWorldPosition();
+	VECTOR pos;
 
-	transform_.pos = { pos.x,pos.y,pos.z };
+	if (useWorldPosition_)
+	{
+		pos = worldPosition_;
+	}
+	else
+	{
+		pos = GetWorldPosition();
+	}
+
+	transform_.pos = pos;
 	transform_.Update();
 
 	MV1SetPosition(transform_.modelId, transform_.pos);
 	MV1SetScale(transform_.modelId, transform_.scl);
-
-	//if (piece_.isPlayer_)
-	//{
-	//	MV1SetRotationXYZ(transform_.modelId, VGet(0.0f, DX_PI_F, 0.0f));
-	//}
-	//else
-	//{
-	//	MV1SetRotationXYZ(transform_.modelId, VGet(0.0f, 0.0f, 0.0f));
-	//}
 
 	if (!isVisible_) return;
 
@@ -84,6 +86,8 @@ void MiniShogiPiece::SetBoardCell(int x, int y)
 {
 	boardX_ = x;
 	boardY_ = y;
+
+	useWorldPosition_ = false;
 }
 
 void MiniShogiPiece::SetBoardOffset(VECTOR offset)
@@ -157,5 +161,6 @@ void MiniShogiPiece::SetRotationY(float y)
 
 void MiniShogiPiece::SetWorldPosition(VECTOR position)
 {
-	transform_.pos = position;
+	worldPosition_ = position;
+	useWorldPosition_ = true;
 }
