@@ -37,19 +37,22 @@ private:
     std::unique_ptr<MiniShogiBoard> board_;
     std::unique_ptr<MiniShogiRule> rule_;
 
+    std::unique_ptr<Hand> player0Hand_;
     std::unique_ptr<Hand> player1Hand_;
-    std::unique_ptr<Hand> player2Hand_;
 
     std::unique_ptr<MiniShogiActor> actor_;
 
     bool isPlayerTurn_;
 
     void InputUpdate(void);
+	void UpdateCameraState(void);
 
     void SelectUpdate(void);
 
-    void SelectBoardUpdate(void);
-    void SelectHandUpdate(void);
+    void SelectBoardPiece(void);
+    void MoveBoardPiece(void);
+    void SelectHandPiece(void);
+    void DropHandPiece(void);
 
     void MovePiece(int fromX, int fromY, int toX, int toY);
 

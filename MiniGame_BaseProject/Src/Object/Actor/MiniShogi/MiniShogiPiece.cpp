@@ -16,7 +16,9 @@ MiniShogiPiece::MiniShogiPiece(void)
 	boardOffset_(VGet(0.0f, 0.0f, 0.0f)),
 	cellSize_(100.0f),
 	pieceHeight_(DEFAULT_PIECE_HEIGHT),
-	isVisible_(false)
+	isVisible_(false),
+	useWorldPosition_(false),
+	worldPosition_(VGet(0, 0, 0))
 {
 
 	piece_=
@@ -41,7 +43,7 @@ void MiniShogiPiece::Init(void)
 {
 	RefreshModel();
 
-	transform_.scl = { DEFAULT_PIECE_SCALE,DEFAULT_PIECE_SCALE ,DEFAULT_PIECE_SCALE };
+	transform_.scl = { DEFAULT_PIECE_SCALE ,DEFAULT_PIECE_SCALE ,DEFAULT_PIECE_SCALE };
 
 	transform_.Update();
 }
@@ -57,22 +59,22 @@ void MiniShogiPiece::Draw(void)
 
 	if (transform_.modelId < 0) return;
 
-	VECTOR pos = GetWorldPosition();
+	VECTOR pos;
 
-	transform_.pos = { pos.x,pos.y,pos.z };
+	if (useWorldPosition_)
+	{
+		pos = worldPosition_;
+	}
+	else
+	{
+		pos = GetWorldPosition();
+	}
+
+	transform_.pos = pos;
 	transform_.Update();
 
 	MV1SetPosition(transform_.modelId, transform_.pos);
 	MV1SetScale(transform_.modelId, transform_.scl);
-
-	if (piece_.isPlayer_)
-	{
-		MV1SetRotationXYZ(transform_.modelId, VGet(0.0f, DX_PI_F, 0.0f));
-	}
-	else
-	{
-		MV1SetRotationXYZ(transform_.modelId, VGet(0.0f, 0.0f, 0.0f));
-	}
 
 	if (!isVisible_) return;
 
@@ -84,6 +86,8 @@ void MiniShogiPiece::SetBoardCell(int x, int y)
 {
 	boardX_ = x;
 	boardY_ = y;
+
+	useWorldPosition_ = false;
 }
 
 void MiniShogiPiece::SetBoardOffset(VECTOR offset)
@@ -99,6 +103,21 @@ void MiniShogiPiece::SetCellSize(float size)
 void MiniShogiPiece::SetPiece(const Piece& piece)
 {
 	piece_ = piece;
+
+	if (piece_.isPlayer_)
+	{
+		transform_.quaRotLocal =
+			Quaternion::Euler({
+				0.0f,
+				DX_PI_F,
+				0.0f
+				});
+	}
+	else
+	{
+		transform_.quaRotLocal =
+			Quaternion();
+	}
 }
 
 void MiniShogiPiece::SetModelHandle(int modelHandle)
@@ -136,6 +155,12 @@ VECTOR MiniShogiPiece::GetWorldPosition(void)
 
 void MiniShogiPiece::SetRotationY(float y)
 {
-	transform_.quaRotLocal = Quaternion::Euler({ AsoUtility::Deg2RadF(transform_.quaRot.x),
-		AsoUtility::Deg2RadF(y),AsoUtility::Deg2RadF(transform_.quaRot.z) });
+	transform_.quaRotLocal = Quaternion::Euler({ AsoUtility::Deg2RadF(static_cast<float>(transform_.quaRot.x)),
+		AsoUtility::Deg2RadF(static_cast<float>(y)),AsoUtility::Deg2RadF(static_cast<float>(transform_.quaRot.z)) });
+}
+
+void MiniShogiPiece::SetWorldPosition(VECTOR position)
+{
+	worldPosition_ = position;
+	useWorldPosition_ = true;
 }

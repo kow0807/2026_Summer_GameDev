@@ -32,6 +32,8 @@ public:
 
     void SetRotationY(float y);
 
+    void SetWorldPosition(VECTOR position);
+
 private:
 
     Piece piece_;
@@ -44,6 +46,9 @@ private:
     float pieceHeight_;
 
     bool isVisible_;
+
+    bool useWorldPosition_;
+    VECTOR worldPosition_;
 
     void RefreshModel(void);
 

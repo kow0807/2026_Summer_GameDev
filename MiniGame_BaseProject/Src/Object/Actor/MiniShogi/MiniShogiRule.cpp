@@ -124,6 +124,26 @@ std::vector<MoveData> MiniShogiRule::GetMoveList(const MiniShogiBoard& board, in
     return moveList;
 }
 
+std::vector<MoveData> MiniShogiRule::GetDropList(
+    const MiniShogiBoard& board,
+    PieceType pieceType,
+    bool isPlayerTurn)
+{
+    std::vector<MoveData> dropList;
+    for (int y = 0; y < 5; y++)
+    {
+        for (int x = 0; x < 5; x++)
+        {
+            if (CanDropPiece(board, x, y))
+            {
+                dropList.push_back({ x,y });
+            }
+        }
+    }
+
+	return dropList;
+}
+
 void MiniShogiRule::AddMove(std::vector<MoveData>& moveList, const MiniShogiBoard& board, int x, int y, bool isPlayer)
 {
     if (!IsInsideBoard(x, y)) return;
@@ -145,17 +165,26 @@ void MiniShogiRule::AddLineMove(std::vector<MoveData>& moveList, const MiniShogi
 
     while (IsInsideBoard(moveX, moveY))
     {
+		// 盤外チェック
+        if(!board.IsExistPiece(moveX, moveY))
+        {
+            moveList.push_back({ moveX,moveY });
+
+			moveX += offsetX;
+            moveY+= offsetY;
+			continue;
+        }
+
         const Piece& piece = board.GetPiece(moveX, moveY);
 
-        if (piece.isPlayer_ != isPlayer) moveList.push_back({ moveX,moveY });
+        // 敵駒ならとれる
+        if (piece.isPlayer_ != isPlayer)
+        {
+            moveList.push_back({ moveX,moveY });
+        }
 
         break;
     }
-
-    moveList.push_back({ moveX,moveY });
-
-    moveX += offsetX;
-    moveY += offsetY;
 }
 
 bool MiniShogiRule::IsInsideBoard(int x, int y)

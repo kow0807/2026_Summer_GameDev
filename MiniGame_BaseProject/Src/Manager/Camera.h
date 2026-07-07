@@ -27,7 +27,9 @@ public:
 	static constexpr float CAMERA_MAX_ANGLE_X = 60.0f;							// カメラのX回転上限度角	
 	static constexpr float CAMERA_MIN_ANGLE_X = -60.0f;							// カメラのX回転下限度角
 	static constexpr float CAMERA_FREE_MOVE_SPEED = 20.0f;						// フリーモードのカメラ移動速度
-
+	static constexpr float CAMERA_MINI_SHOGI_SPEED = 0.05f;						// ミニ将棋モードのカメラLERP速度
+	static constexpr VECTOR CAMERA_MINI_SHOGI_NORMAL_POS = { 0.0f,650.0f,550.0f };			// ミニ将棋モードのカメラ位置
+	static constexpr VECTOR CAMERA_MINI_SHOGI_HAND_SELECT_POS = { 0.0f,900.0f,700.0f };		// ミニ将棋モードのカメラ位置(手番選択)
 
 	// カメラモード
 	enum class MODE
@@ -56,6 +58,13 @@ public:
 		MINISHOGI
 	};
 
+	enum class SHOGI_TYPE
+	{
+		NONE,
+		NORMAL,
+		HAND_SELECT
+	};;
+
 	Camera(void);
 	~Camera(void);
 
@@ -80,6 +89,7 @@ public:
 	void ChangeMode(MODE mode);
 	void ChangeGameCamera(GAME_CAMERA gameCamera);
 	void ChangeGameTypeCamera(GAME_TYPE gameType);
+	void ChangeShogiTypeCamera(SHOGI_TYPE shogiType);
 
 	// 追従対象の設定
 	void SetFollow(const Transform* follow);
@@ -113,6 +123,8 @@ public:
 	// カメラ操作設定
 	void SetOperatable(bool flag);
 
+	SHOGI_TYPE GetShogiType(void) const;
+
 private:
 
 
@@ -131,6 +143,9 @@ private:
 
 	// ゲームの種類
 	GAME_TYPE gameType_;
+
+	// 将棋の種類
+	SHOGI_TYPE shogiType_;
 
 	// カメラの位置
 	VECTOR pos_;
@@ -165,6 +180,12 @@ private:
 	// カメラが操作可能であるか
 	bool isOperatable_;
 
+	// 目的座標
+	VECTOR destPos_;
+
+	// 目的注視点
+	VECTOR destTargetPos_;
+
 	// カメラを初期位置に戻す
 	void SetDefault(void);
 
@@ -186,4 +207,8 @@ private:
 	// ゲーム種別更新ステップ
 	void SetBeforeDrawQuoridor(void);
 	void SetBeforeDrawMiniShogi(void);
+
+
+	// 五々将棋のカメラ更新
+	void SetBeforeDrawMiniShogiType(const VECTOR& pos,const VECTOR& target,const VECTOR& cameraUp);
 };

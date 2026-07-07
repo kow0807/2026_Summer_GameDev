@@ -14,7 +14,10 @@ public:
 	static constexpr int BOARD_WIDTH = 5;
 	static constexpr int BOARD_HEIGHT = 5;
 	static constexpr int HAND_COLUMN = 2;
+
 	static constexpr int HAND_ROW = 3;
+	static constexpr int HAND_COL = 3;
+	static constexpr int MAX_HAND_PIECE = HAND_ROW * HAND_COL;
 
 	Cursor(void);
 	~Cursor(void);
@@ -35,6 +38,12 @@ public:
 
 	int GetHandIndex(void) const;
 
+	void SetHandPieceCount(CursorArea area, int count);
+
+	void SetBoardPosition(int x, int y);
+
+	void SetPlayerTurn(bool& isPlayerTurn);
+
 private:
 
 	CursorArea myArea_;
@@ -43,14 +52,21 @@ private:
 
 	int player1HandIndex_, player2HandIndex_;
 
+	int player1HandPieceCount_, player2HandPieceCount_;
+
+	bool isPlayerTurn_;
+
 	void BoardMoveUp(void);
 	void BoardMoveDown(void);
-	void BoardMoveLeft(void);
-	void BoardMoveRight(void);
+	void BoardMoveLeft(bool isPlayerTurn);
+	void BoardMoveRight(bool isPlayerTurn);
 
 	void HandMoveUp(void);
 	void HandMoveDown(void);
 	void HandMoveLeft(void);
 	void HandMoveRight(void);
+
+	int* GetCurrentHandIndex(void);
+	int GetCurrentHandPieceCount(void) const;
 };
 
