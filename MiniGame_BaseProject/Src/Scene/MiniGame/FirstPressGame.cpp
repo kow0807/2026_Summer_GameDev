@@ -59,7 +59,19 @@ void FirstPressGame::Init(void)
     pointUIImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_POINT_UI).handleId_;
     lostUIImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_LOST_UI).handleId_;
     flyingUIImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_FLYING_UI).handleId_;
+    bgm_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_BGM).handleId_;
     pressSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_PRESS_SE).handleId_;
+    pointSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_POINT_SE).handleId_;
+    lostSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_LOST_SE).handleId_;
+    clearSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_CLEAR_SE).handleId_;
+    overSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_OVER_SE).handleId_;
+    fallingSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_FALLING_SE).handleId_;
+    noiseSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_NOISE_SE).handleId_;
+    countSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_COUNT_SE).handleId_;
+    errorSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_ERROR_SE).handleId_;
+    ChangeVolumeSoundMem(160, errorSe_);
+    triviaSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_TRIVIA_SE).handleId_;
+    ChangeVolumeSoundMem(210, triviaSe_);
     ResetRound();
 }
 
@@ -75,6 +87,7 @@ void FirstPressGame::Update(void)
         if (timer_ > 60)
         {
             gameState_ = GameState::READY;
+            PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP);
             timer_ = 0;
         }
         break;
@@ -89,6 +102,12 @@ void FirstPressGame::Update(void)
 
         if (timer_ > waitTime_)
         {
+            StopSoundMem(bgm_);
+            StopSoundMem(fallingSe_);
+            StopSoundMem(noiseSe_);
+            StopSoundMem(countSe_);
+            StopSoundMem(errorSe_);
+            StopSoundMem(triviaSe_);
             PlaySoundMem(pressSe_, DX_PLAYTYPE_BACK);
             gameState_ = GameState::GO;
             timer_ = 0;
@@ -97,6 +116,12 @@ void FirstPressGame::Update(void)
         // フライング
         if (ins.IsTrgDown(KEY_INPUT_SPACE) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1,InputManager::JOYPAD_BTN::DOWN))
         {
+            StopSoundMem(bgm_);
+            StopSoundMem(fallingSe_);
+            StopSoundMem(noiseSe_);
+            StopSoundMem(countSe_);
+            StopSoundMem(errorSe_);
+            StopSoundMem(triviaSe_);
             isFlash_ = true;
             pressFrame_ = -1;
             timer_ = 0;
@@ -136,18 +161,50 @@ void FirstPressGame::Update(void)
             if (pressFrame_ < 0)
             {
                 cpuWin_++;
+                if (playerWin_ < 2 && cpuWin_ < 2)
+                {
+                    PlaySoundMem(lostSe_, DX_PLAYTYPE_BACK);
+                }
+                if (playerWin_ >= 2 || cpuWin_ >= 2)
+                {
+                    PlaySoundMem(overSe_, DX_PLAYTYPE_BACK);
+                }
             }
             else if (!isPressed_)
             {
                 cpuWin_++;
+                if (playerWin_ < 2 && cpuWin_ < 2)
+                {
+                    PlaySoundMem(lostSe_, DX_PLAYTYPE_BACK);
+                }
+                if (playerWin_ >= 2 || cpuWin_ >= 2 || round_ >= 3)
+                {
+                    PlaySoundMem(overSe_, DX_PLAYTYPE_BACK);
+                }
             }
             else if (!cpuPressed_ || pressFrame_ < cpuPressFrame_)
             {
                 playerWin_++;
+                if (playerWin_ < 2 && cpuWin_ < 2)
+                {
+                    PlaySoundMem(pointSe_, DX_PLAYTYPE_BACK);
+                }
+                if (playerWin_ >= 2 || cpuWin_ >= 2 || round_ >= 3)
+                {
+                    PlaySoundMem(clearSe_, DX_PLAYTYPE_BACK);
+                }
             }
             else
             {
                 cpuWin_++;
+                if (playerWin_ < 2 && cpuWin_ < 2)
+                {
+                    PlaySoundMem(lostSe_, DX_PLAYTYPE_BACK);
+                }
+                if (playerWin_ >= 2 || cpuWin_ >= 2 || round_ >= 3)
+                {
+                    PlaySoundMem(overSe_, DX_PLAYTYPE_BACK);
+                }
             }
         }
 
@@ -157,8 +214,11 @@ void FirstPressGame::Update(void)
             // 2勝したら終了
             if (playerWin_ >= 2 || cpuWin_ >= 2 || round_ >= 3)
             {
-                // 完全終了
-                isReturn_ = true;
+                if (timer_ > 240)
+                {
+                    // 完全終了
+                    isReturn_ = true;
+                }
             }
             else
             {
@@ -443,6 +503,7 @@ void FirstPressGame::FakeFalling(void)
         int rand = GetRand(900);
         if (rand == 0)
         {
+            PlaySoundMem(fallingSe_, DX_PLAYTYPE_BACK);
             isFall_ = true;
         }
     }
@@ -473,6 +534,8 @@ void FirstPressGame::FakeNoise()
 
     if (rand == 0)
     {
+        PlaySoundMem(noiseSe_, DX_PLAYTYPE_BACK);
+
         //-----------------------------------------
         // 白っぽいフラッシュ
         //-----------------------------------------
@@ -565,6 +628,7 @@ void FirstPressGame::FakeCountDown()
 
         if (rand == 0)
         {
+            PlaySoundMem(countSe_, DX_PLAYTYPE_BACK);
             isCount = true;
             countDownFrame_ = 0;
         }
@@ -840,6 +904,7 @@ void FirstPressGame::FakeSystemError(void)
     //-----------------------------------------
     static bool isShow = false;
     static int timer = 0;
+    static int prevWindowCount = 0;
 
     //-----------------------------------------
     // READY / GO 以外ならリセット
@@ -849,6 +914,7 @@ void FirstPressGame::FakeSystemError(void)
     {
         isShow = false;
         timer = 0;
+        prevWindowCount = 0;
         return;
     }
 
@@ -861,6 +927,7 @@ void FirstPressGame::FakeSystemError(void)
         {
             isShow = true;
             timer = 0;
+            prevWindowCount = 0;
         }
     }
 
@@ -899,6 +966,16 @@ void FirstPressGame::FakeSystemError(void)
     {
         windowCount = 5;
     }
+
+    //-----------------------------------------
+    // ウィンドウが増えた瞬間だけSE
+    //-----------------------------------------
+    if (windowCount > prevWindowCount)
+    {
+        PlaySoundMem(errorSe_, DX_PLAYTYPE_BACK);
+    }
+
+    prevWindowCount = windowCount;
 
     //-----------------------------------------
     // 描画
@@ -1131,6 +1208,8 @@ void FirstPressGame::FakeTrivia(void)
     //-----------------------------------------
     if (GetRand(200) == 0)
     {
+        PlaySoundMem(triviaSe_, DX_PLAYTYPE_BACK);
+
         if (triviaCount < 20)
         {
             triviaIndex[triviaCount] =

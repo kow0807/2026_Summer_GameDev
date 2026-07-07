@@ -42,7 +42,17 @@ private:
 	int pointUIImg_;
 	int lostUIImg_;
 	int flyingUIImg_;
+	int bgm_;
 	int pressSe_;
+	int pointSe_;
+	int lostSe_;
+	int clearSe_;
+	int overSe_;
+	int fallingSe_;
+	int noiseSe_;
+	int countSe_;
+	int errorSe_;
+	int triviaSe_;
 
 	// フレームカウント
 	int timer_;

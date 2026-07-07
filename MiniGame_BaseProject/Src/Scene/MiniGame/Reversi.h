@@ -38,6 +38,15 @@ private:
 
 	int backImg_;
 
+	bool isBgm_;
+	int bgm_;
+	int pieceSe_;
+	bool isResult_;
+	int clearSe_;
+	int overSe_;
+	bool isSkip_;
+	int skipSe_;
+
 	int cursorX_;
 	int cursorY_;
 

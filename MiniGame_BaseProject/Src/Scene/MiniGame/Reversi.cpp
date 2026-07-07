@@ -23,6 +23,16 @@ void Reversi::Init(void)
 			3);
 	backImg_ = resMng_.Load(ResourceManager::SRC::REVERSI_BACK).handleId_;
 
+	isBgm_ = true;
+	bgm_ = resMng_.Load(ResourceManager::SRC::REVERSI_BGM).handleId_;
+	pieceSe_ = resMng_.Load(ResourceManager::SRC::REVERSI_PIECE_SE).handleId_;
+	isResult_ = true;
+	clearSe_ = resMng_.Load(ResourceManager::SRC::REVERSI_CLEAR_SE).handleId_;
+	overSe_ = resMng_.Load(ResourceManager::SRC::REVERSI_OVER_SE).handleId_;
+	isSkip_ = true;
+	skipSe_ = resMng_.Load(ResourceManager::SRC::REVERSI_SKIP_SE).handleId_;
+	ChangeVolumeSoundMem(255, skipSe_);
+
 	gameState_ = GameState::GO;
 
 	for (int y = 0; y < 8; y++)
@@ -57,13 +67,18 @@ void Reversi::Init(void)
 
 void Reversi::Update(void)
 {
+	if (isBgm_)
+	{
+		PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP);
+		isBgm_ = false;
+	}
 	UpdateStoneCount();
 	
 	if (gameState_ == GameState::RESULT)
 	{
 		resultTimer_++;
 
-		if (resultTimer_ >= 180)
+		if (resultTimer_ >= 240)
 		{
 			isReturn_ = true;
 		}
@@ -81,16 +96,24 @@ void Reversi::Update(void)
 	if (!HasValidMove(BLACK) &&
 		!HasValidMove(WHITE))
 	{
+		StopSoundMem(bgm_);
 		gameState_ = GameState::RESULT;
 	}
 
 	if (skipTimer_ > 0)
 	{
+		if (isSkip_)
+		{
+			PlaySoundMem(skipSe_, DX_PLAYTYPE_BACK);
+			isSkip_ = false;
+		}
+
 		skipTimer_--;
 
 		if (skipTimer_ <= 0)
 		{
 			skipMessage_ = false;
+			isSkip_ = true;
 		}
 
 		return;
@@ -375,90 +398,210 @@ void Reversi::DrawUI(void)
 		520,
 		GetColor(0, 180, 255));
 
-	if (skipMessage_)
+	if (skipMessage_ && gameState_ != GameState::RESULT)
 	{
+		// 半透明の背景
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
 		DrawBox(
 			380,
 			300,
 			900,
-			400,
-			GetColor(0, 0, 0),
+			480,
+			GetColor(20, 20, 20),
 			TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
+		// 白い枠
 		DrawBox(
 			380,
 			300,
 			900,
-			400,
-			GetColor(0, 180, 255),
+			480,
+			GetColor(255, 255, 255),
 			FALSE);
+
+		const int centerX = (380 + 900) / 2;
+
+		// タイトル
+		const char* title = "SKIP";
+		int titleWidth = GetDrawStringWidthToHandle(
+			title,
+			strlen(title),
+			yuMinchoFontHandle_);
+
+		DrawStringToHandle(
+			centerX - titleWidth / 2,
+			325,
+			title,
+			GetColor(255, 255, 255),
+			yuMinchoFontHandle_);
+
+		// 区切り線
+		DrawLine(
+			430,
+			375,
+			850,
+			375,
+			GetColor(180, 180, 180));
+
+		// メッセージ
+		const char* skipText;
+		int skipColor;
 
 		if (playerSkipped_)
 		{
-			DrawStringToHandle(
-				500,
-				340,
-				"PLAYER SKIP!",
-				GetColor(255, 120, 120),
-				yuMinchoFontHandle_);
+			skipText = "PLAYER SKIP!";
+			skipColor = GetColor(255, 120, 120);
 		}
 		else
 		{
-			DrawStringToHandle(
-				520,
-				340,
-				"CPU SKIP!",
-				GetColor(255, 255, 0),
-				yuMinchoFontHandle_);
+			skipText = "CPU SKIP!";
+			skipColor = GetColor(255, 255, 0);
 		}
+
+		int textWidth = GetDrawStringWidthToHandle(
+			skipText,
+			strlen(skipText),
+			yuMinchoFontHandle_);
+
+		DrawStringToHandle(
+			centerX - textWidth / 2,
+			405,
+			skipText,
+			skipColor,
+			yuMinchoFontHandle_);
 	}
 
 	if (gameState_ == GameState::RESULT)
 	{
+		// 半透明の背景
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
 		DrawBox(
-			350,
-			200,
-			950,
-			500,
-			GetColor(0, 0, 0),
+			300,
+			140,
+			1000,
+			580,
+			GetColor(20, 20, 20),
 			TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+		// 白い枠
+		DrawBox(
+			300,
+			140,
+			1000,
+			580,
+			GetColor(255, 255, 255),
+			FALSE);
+
+		// ウィンドウ中央
+		const int centerX = (300 + 1000) / 2;
+
+		// タイトル（中央揃え）
+		const char* titleText = "RESULT";
+		int titleWidth = GetDrawStringWidthToHandle(
+			titleText,
+			strlen(titleText),
+			yuMinchoFontHandle_);
 
 		DrawStringToHandle(
-			550,
-			260,
-			"ゲーム終了",
+			centerX - titleWidth / 2,
+			170,
+			titleText,
 			GetColor(255, 255, 255),
 			yuMinchoFontHandle_);
 
+		// 区切り線
+		DrawLine(
+			360,
+			230,
+			940,
+			230,
+			GetColor(180, 180, 180));
+
+		// 石の数
+		DrawFormatStringToHandle(
+			420,
+			270,
+			GetColor(40, 220, 255),
+			yuMinchoFontHandle_,
+			"PLAYER : %d",
+			blackCount_);
+
+		DrawFormatStringToHandle(
+			740,
+			270,
+			GetColor(255, 120, 120),
+			yuMinchoFontHandle_,
+			"CPU    : %d",
+			whiteCount_);
+
+		// 勝敗表示
+		const char* resultText = nullptr;
+		int resultColor = GetColor(255, 255, 255);
+
 		if (blackCount_ > whiteCount_)
 		{
-			DrawStringToHandle(
-				520,
-				340,
-				"PLAYER WIN!",
-				GetColor(0, 255, 100),
-				yuMinchoFontHandle_);
+			if (isResult_)
+			{
+				PlaySoundMem(clearSe_, DX_PLAYTYPE_BACK);
+				isResult_ = false;
+			}
+
+			resultText = "PLAYER WIN!";
+			resultColor = GetColor(0, 255, 120);
 		}
 		else if (whiteCount_ > blackCount_)
 		{
-			DrawStringToHandle(
-				540,
-				340,
-				"CPU WIN!",
-				GetColor(255, 100, 100),
-				yuMinchoFontHandle_);
+			if (isResult_)
+			{
+				PlaySoundMem(overSe_, DX_PLAYTYPE_BACK);
+				isResult_ = false;
+			}
+
+			resultText = "CPU WIN!";
+			resultColor = GetColor(255, 80, 80);
 		}
 		else
 		{
-			DrawStringToHandle(
-				580,
-				340,
-				"DRAW",
-				GetColor(255, 255, 0),
-				yuMinchoFontHandle_);
+			if (isResult_)
+			{
+				PlaySoundMem(overSe_, DX_PLAYTYPE_BACK);
+				isResult_ = false;
+			}
+
+			resultText = "DRAW";
+			resultColor = GetColor(255, 230, 0);
 		}
-	}
-}
+
+		// 勝敗表示（中央揃え）
+		int resultWidth = GetDrawStringWidthToHandle(
+			resultText,
+			strlen(resultText),
+			yuMinchoFontHandle_);
+
+		DrawStringToHandle(
+			centerX - resultWidth / 2,
+			360,
+			resultText,
+			resultColor,
+			yuMinchoFontHandle_);
+
+		// 下部メッセージ（中央揃え）
+		//const char* message = "自動で画面が切り替わります";
+
+		//int messageWidth = GetDrawStringWidthToHandle(
+		//	message,
+		//	strlen(message),
+		//	yuMinchoFontHandle_);
+
+		//DrawStringToHandle(
+		//	centerX - messageWidth / 2,
+		//	500,
+		//	message,
+		//	GetColor(200, 200, 200),
+		//	yuMinchoFontHandle_);
+	}}
 
 void Reversi::Reset(void)
 {
@@ -513,6 +656,8 @@ bool Reversi::CanPlace(int x, int y, Stone stone)
 
 void Reversi::FlipStone(int x, int y, Stone stone)
 {
+	PlaySoundMem(pieceSe_, DX_PLAYTYPE_BACK);
+
 	Stone enemy = (stone == BLACK) ? WHITE : BLACK;
 
 	int dirX[8] = { -1,0,1,-1,1,-1,0,1 };

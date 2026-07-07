@@ -33,6 +33,16 @@ private:
     int winUIImg_;
     int loseUIImg_;
 
+    bool isReady_;
+    int readySe_;
+    bool isBgm_;
+    int bgm_;
+    int pushSe_;
+    int clearSe_;
+    int overSe_;
+    int pointSe_;
+    int lostSe_;
+
     float battleRate_;
 
     int playerWinCount_;

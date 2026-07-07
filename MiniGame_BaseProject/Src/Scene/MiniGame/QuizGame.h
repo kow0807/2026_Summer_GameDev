@@ -21,8 +21,6 @@ public:
         int answerIndex;
     };
 
-public:
-
     QuizGame(void);
     ~QuizGame(void);
 
@@ -34,19 +32,18 @@ public:
 
 private:
 
-    void UpdateReady(void);
-    void UpdatePlay(void);
-    void UpdateResult(void);
-
-    void DrawQuiz(void);
-
-private:
-
     GameState gameState_;
 
     int backImg_;
 
     std::vector<QuizData> quizList_;
+
+    int bgm_;
+    int readySe_;
+    int correctSe_;
+    int buzzerSe_;
+    int cursorSe_;
+    int resultSe_;
 
     int currentQuizIndex_;
     int score_;
@@ -69,4 +66,10 @@ private:
     int uiFont_;
 
     int resultFrame_;
+
+    void UpdateReady(void);
+    void UpdatePlay(void);
+    void UpdateResult(void);
+
+    void DrawQuiz(void);
 };

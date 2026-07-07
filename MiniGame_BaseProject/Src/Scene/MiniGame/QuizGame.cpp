@@ -30,6 +30,13 @@ void QuizGame::Init(void)
 {
     backImg_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_BACK).handleId_;
 
+    bgm_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_BGM).handleId_;
+    readySe_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_READY_SE).handleId_;
+    correctSe_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_CORRECT).handleId_;
+    buzzerSe_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_BUZZER).handleId_;
+    cursorSe_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_CURSOR).handleId_;
+    resultSe_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_RESULT).handleId_;
+
     titleFont_ = CreateFontToHandle(
         "Ÿà–¾’©",
         52,
@@ -290,6 +297,11 @@ void QuizGame::Update(void)
 
 void QuizGame::UpdateReady(void)
 {
+    if (countdownNumber_ == 3 && countdownFrame_ == 0)
+    {
+        PlaySoundMem(readySe_, DX_PLAYTYPE_BACK);
+    }
+
     countdownFrame_++;
 
     if (countdownFrame_ >= 60)
@@ -299,6 +311,7 @@ void QuizGame::UpdateReady(void)
 
         if (countdownNumber_ <= 0)
         {
+            PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP);
             gameState_ = GameState::PLAY;
         }
     }
@@ -322,6 +335,8 @@ void QuizGame::UpdatePlay(void)
 
             if (currentQuizIndex_ >= quizList_.size())
             {
+                PlaySoundMem(resultSe_, DX_PLAYTYPE_BACK);
+                StopSoundMem(bgm_);
                 gameState_ = GameState::RESULT;
             }
         }
@@ -341,6 +356,7 @@ void QuizGame::UpdatePlay(void)
 
     if (ins.IsTrgDown(KEY_INPUT_UP) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP))
     {
+        PlaySoundMem(cursorSe_, DX_PLAYTYPE_BACK);
         selectIndex_--;
 
         if (selectIndex_ < 0)
@@ -351,6 +367,7 @@ void QuizGame::UpdatePlay(void)
 
     if (ins.IsTrgDown(KEY_INPUT_DOWN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))
     {
+        PlaySoundMem(cursorSe_, DX_PLAYTYPE_BACK);
         selectIndex_++;
 
         if (selectIndex_ > 3)
@@ -363,11 +380,13 @@ void QuizGame::UpdatePlay(void)
     {
         if (selectIndex_ == quizList_[currentQuizIndex_].answerIndex)
         {
+            PlaySoundMem(correctSe_, DX_PLAYTYPE_BACK);
             score_++;
             isCorrectAnswer_ = true;
         }
         else
         {
+            PlaySoundMem(buzzerSe_, DX_PLAYTYPE_BACK);
             isCorrectAnswer_ = false;
         }
 
@@ -381,8 +400,8 @@ void QuizGame::UpdateResult(void)
 
     resultFrame_++;
 
-    // 2•bŒã(60fps‘z’è)
-    if (resultFrame_ >= 120)
+    // 6.5•bŒã(60fps‘z’è)
+    if (resultFrame_ >= 390)
     {
         isReturn_ = true;
     }

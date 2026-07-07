@@ -26,6 +26,15 @@ void ButtonMashGame::Init(void)
     loseCountUIImg_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_LOSE_COUNT_UI).handleId_;
     pointUIImg_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_POINT_UI).handleId_;
     lostUIImg_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_LOST_UI).handleId_;
+    readySe_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_READY_SE).handleId_;
+    isReady_ = true;
+    bgm_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_BGM).handleId_;
+    isBgm_ = true;
+    pushSe_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_PUSH_SE).handleId_;
+    clearSe_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_CLEAR_SE).handleId_;
+    overSe_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_OVER_SE).handleId_;
+    pointSe_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_POINT_SE).handleId_;
+    lostSe_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_LOST_SE).handleId_;
 
     playerWinCount_ = 0;
     cpuWinCount_ = 0;
@@ -41,9 +50,9 @@ void ButtonMashGame::Reset(void)
 
     readyTimer_ = 180;
 
-    resultTimer_ = 180;
+    resultTimer_ = 210;
 
-    isPlayerWin_ = false;
+    isPlayerWin_ = true;
 
     playerFlashPower_ = 0.0f;
     cpuFlashPower_ = 0.0f;
@@ -51,6 +60,12 @@ void ButtonMashGame::Reset(void)
 
 void ButtonMashGame::Update(void)
 {
+    if (isReady_)
+    {
+        PlaySoundMem(readySe_, DX_PLAYTYPE_BACK);
+        isReady_ = false;
+    }
+
     InputManager& ins = InputManager::GetInstance();
 
     switch (gameState_)
@@ -61,6 +76,11 @@ void ButtonMashGame::Update(void)
 
         if (readyTimer_ <= 0)
         {
+            if (isBgm_)
+            {
+                PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP);
+                isBgm_ = false;
+            }
             gameState_ = GameState::GO;
         }
 
@@ -71,6 +91,8 @@ void ButtonMashGame::Update(void)
         // PLAYERòAë≈
         if (ins.IsTrgDown(KEY_INPUT_SPACE) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
         {
+            PlaySoundMem(pushSe_, DX_PLAYTYPE_BACK);
+
             battleRate_ += 0.03f;
 
             // PLAYERë§î≠åı
@@ -80,7 +102,7 @@ void ButtonMashGame::Update(void)
         // CPUòAë≈
         if (GetRand(100) < 20)
         {
-            battleRate_ -= 0.02f;
+            battleRate_ -= 0.013f;
 
             // CPUë§î≠åı
             cpuFlashPower_ = 1.0f;
@@ -103,21 +125,39 @@ void ButtonMashGame::Update(void)
         // PLAYERèüóò
         if (battleRate_ >= 1.03f)
         {
-            gameState_ = GameState::RESULT;
-
             playerWinCount_++;
 
             isPlayerWin_ = true;
+
+            if (playerWinCount_ >= 2 || cpuWinCount_ >= 2)
+            {
+                StopSoundMem(bgm_);
+                PlaySoundMem(clearSe_, DX_PLAYTYPE_BACK);
+            }
+            else
+            {
+                PlaySoundMem(pointSe_, DX_PLAYTYPE_BACK);
+            }
+            gameState_ = GameState::RESULT;
         }
 
         // CPUèüóò
         if (battleRate_ <= -0.03f)
         {
-            gameState_ = GameState::RESULT;
-
             cpuWinCount_++;
 
             isPlayerWin_ = false;
+
+            if (playerWinCount_ >= 2 || cpuWinCount_ >= 2)
+            {
+                StopSoundMem(bgm_);
+                PlaySoundMem(overSe_, DX_PLAYTYPE_BACK);
+            }
+            else
+            {
+                PlaySoundMem(lostSe_, DX_PLAYTYPE_BACK);
+            }
+            gameState_ = GameState::RESULT;
         }
 
         break;

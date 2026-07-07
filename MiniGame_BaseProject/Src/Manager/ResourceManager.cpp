@@ -90,9 +90,49 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Explanation.png");
 	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_EXPLANATION, res);
 
+	// BGM
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Bgm.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_BGM, res);
+
 	// Press音
 	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Press.mp3");
 	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_PRESS_SE, res);
+
+	// Point音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Point.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_POINT_SE, res);
+
+	// Lost音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Lost.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_LOST_SE, res);
+
+	// クリア音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Clear.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_CLEAR_SE, res);
+
+	// 敗北音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Over.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_OVER_SE, res);
+
+	// 落下音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Falling.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_FALLING_SE, res);
+
+	// ノイズ音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Noise.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_NOISE_SE, res);
+
+	// カウント音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Count.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_COUNT_SE, res);
+
+	// エラー音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Error.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_ERROR_SE, res);
+
+	// トリビア音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "FirstPressGame/Trivia.mp3");
+	resourcesMap_.emplace(SRC::FIRST_PRESS_GAME_TRIVIA_SE, res);
 
 
 
@@ -148,6 +188,34 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "ButtonMashGame/Explanation.png");
 	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_EXPLANATION, res);
 
+	// Ready音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "ButtonMashGame/Ready.mp3");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_READY_SE, res);
+
+	// BGM
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "ButtonMashGame/Bgm.mp3");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_BGM, res);
+
+	// Push音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "ButtonMashGame/Push.mp3");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_PUSH_SE, res);
+
+	// クリア音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "ButtonMashGame/Clear.mp3");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_CLEAR_SE, res);
+
+	// 敗北音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "ButtonMashGame/Over.mp3");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_OVER_SE, res);
+
+	// ポイント音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "ButtonMashGame/Point.mp3");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_POINT_SE, res);
+
+	// ロスト音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "ButtonMashGame/Lost.mp3");
+	resourcesMap_.emplace(SRC::BUTTON_MASH_GAME_LOST_SE, res);
+
 
 
 	// 背景
@@ -158,6 +226,31 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "QuizGame/Explanation.png");
 	resourcesMap_.emplace(SRC::QUIZ_GAME_EXPLANATION, res);
 
+	// Ready音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "QuizGame/Ready.mp3");
+	resourcesMap_.emplace(SRC::QUIZ_GAME_READY_SE, res);
+
+	// BGM
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "QuizGame/Bgm.mp3");
+	resourcesMap_.emplace(SRC::QUIZ_GAME_BGM, res);
+
+	// 正解
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "QuizGame/Correct.mp3");
+	resourcesMap_.emplace(SRC::QUIZ_GAME_CORRECT, res);
+
+	// 不正解
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "QuizGame/Buzzer.mp3");
+	resourcesMap_.emplace(SRC::QUIZ_GAME_BUZZER, res);
+
+	// カーソル
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "QuizGame/Cursor.mp3");
+	resourcesMap_.emplace(SRC::QUIZ_GAME_CURSOR, res);
+
+	// 結果
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "QuizGame/Result.mp3");
+	resourcesMap_.emplace(SRC::QUIZ_GAME_RESULT, res);
+
+
 
 	// 背景
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Reversi/Back.png");
@@ -166,6 +259,26 @@ void ResourceManager::Init(void)
 	// 説明画像
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Reversi/Explanation.png");
 	resourcesMap_.emplace(SRC::REVERSI_EXPLANATION, res);
+
+	// BGM
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Reversi/Bgm.mp3");
+	resourcesMap_.emplace(SRC::REVERSI_BGM, res);
+
+	// 駒SE
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Reversi/Piece.mp3");
+	resourcesMap_.emplace(SRC::REVERSI_PIECE_SE, res);
+
+	// クリアSE
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Reversi/Clear.mp3");
+	resourcesMap_.emplace(SRC::REVERSI_CLEAR_SE, res);
+
+	// 敗北SE
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Reversi/Over.mp3");
+	resourcesMap_.emplace(SRC::REVERSI_OVER_SE, res);
+
+	// スキップSE
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Reversi/Skip.mp3");
+	resourcesMap_.emplace(SRC::REVERSI_SKIP_SE, res);
 
 
 	// 板

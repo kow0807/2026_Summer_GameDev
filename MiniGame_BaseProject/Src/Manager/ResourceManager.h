@@ -26,7 +26,17 @@ public:
 		FIRST_PRESS_GAME_LOST_UI,			// ロストUI
 		FIRST_PRESS_GAME_FLYING_UI,			// フライングUI
 		FIRST_PRESS_GAME_EXPLANATION,		// 説明画像
-		FIRST_PRESS_GAME_PRESS_SE,		// Press音
+		FIRST_PRESS_GAME_BGM,				// BGM
+		FIRST_PRESS_GAME_PRESS_SE,			// Press音
+		FIRST_PRESS_GAME_POINT_SE,			// Point音
+		FIRST_PRESS_GAME_LOST_SE,			// Lost音
+		FIRST_PRESS_GAME_CLEAR_SE,			// クリア音
+		FIRST_PRESS_GAME_OVER_SE,			// 敗北音
+		FIRST_PRESS_GAME_FALLING_SE,		// 落下音
+		FIRST_PRESS_GAME_NOISE_SE,			// ノイズ音
+		FIRST_PRESS_GAME_COUNT_SE,			// カウント音
+		FIRST_PRESS_GAME_ERROR_SE,			// エラー音
+		FIRST_PRESS_GAME_TRIVIA_SE,			// トリビア音
 
 		BUTTON_MASH_GAME_BACK,				// 背景
 		BUTTON_MASH_GAME_BACK_UI,			// 背景UI
@@ -41,14 +51,32 @@ public:
 		BUTTON_MASH_GAME_POINT_UI,			// ポイントUI
 		BUTTON_MASH_GAME_LOST_UI,			// ロストUI
 		BUTTON_MASH_GAME_EXPLANATION,		// 説明画像
+		BUTTON_MASH_GAME_READY_SE,			// Ready音
+		BUTTON_MASH_GAME_BGM,				// BGM
+		BUTTON_MASH_GAME_PUSH_SE,			// Push音
+		BUTTON_MASH_GAME_CLEAR_SE,			// クリア音
+		BUTTON_MASH_GAME_OVER_SE,			// ゲームオーバー音
+		BUTTON_MASH_GAME_POINT_SE,			// ポイント音
+		BUTTON_MASH_GAME_LOST_SE,			// ロスト音
 
 
 		QUIZ_GAME_BACK,						// 背景
 		QUIZ_GAME_EXPLANATION,				// 説明画像
+		QUIZ_GAME_READY_SE,					// Ready音
+		QUIZ_GAME_BGM,						// BGM
+		QUIZ_GAME_CORRECT,					// 正解
+		QUIZ_GAME_BUZZER,					// 不正解
+		QUIZ_GAME_CURSOR,					// カーソル
+		QUIZ_GAME_RESULT,					// 結果
 
 
 		REVERSI_BACK,						// 背景
 		REVERSI_EXPLANATION,				// 説明画像
+		REVERSI_BGM,						// BGM
+		REVERSI_PIECE_SE,					// 駒SE
+		REVERSI_CLEAR_SE,					// クリアSE
+		REVERSI_OVER_SE,					// 敗北SE
+		REVERSI_SKIP_SE,					// スキップSE
 
 		BOARD,								// ボード
 		QUORIDOR_BASE,
