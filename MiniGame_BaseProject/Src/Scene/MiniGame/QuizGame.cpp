@@ -12,7 +12,7 @@ int GetCenterX(const char* text, int fontHandle)
 {
     int width = GetDrawStringWidthToHandle(
         text,
-        strlen(text),
+        static_cast<int>(strlen(text)),
         fontHandle);
 
     return (Application::SCREEN_SIZE_X / 2) - (width / 2);
@@ -556,7 +556,7 @@ void QuizGame::Draw(void)
             scoreText,
             "ê≥âêî %d / %d",
             score_,
-            quizList_.size());
+            static_cast<int>(quizList_.size()));
 
         DrawStringToHandle(
             GetCenterX(scoreText, uiFont_),

@@ -276,7 +276,8 @@ void FirstPressGame::Draw(void)
 
     case GameState::RESULT:
     {
-        char buf[64];
+        // 使用していないのでコメント化している
+        //char buf[64];
 
         if (pressFrame_ < 0)
         {
@@ -695,13 +696,13 @@ void FirstPressGame::FakeCountDown()
     //-----------------------------------------
     // サイズ取得
     //-----------------------------------------
-    int textWidth = GetDrawStringWidth(text, strlen(text));
+    int textWidth = GetDrawStringWidth(text, static_cast<int>(strlen(text)));
 
     //-----------------------------------------
     // 青グロー
     //-----------------------------------------
     DrawExtendString(
-        centerX - (textWidth * scale) / 2,
+        centerX - static_cast<int>((textWidth * scale) / 2),
         centerY - 120,
         scale + 0.2,
         scale + 0.2,
@@ -713,7 +714,7 @@ void FirstPressGame::FakeCountDown()
     // 影
     //-----------------------------------------
     DrawExtendString(
-        centerX - (textWidth * scale) / 2 + 8,
+        centerX - static_cast<int>((textWidth * scale) / 2) + 8,
         centerY - 120 + 8,
         scale,
         scale,
@@ -725,7 +726,7 @@ void FirstPressGame::FakeCountDown()
     // 本体
     //-----------------------------------------
     DrawExtendString(
-        centerX - (textWidth * scale) / 2,
+        centerX - static_cast<int>((textWidth * scale) / 2),
         centerY - 120,
         scale,
         scale,

@@ -499,7 +499,7 @@ void GameScene::ExplanationFirstPressDrawUI(void)
 	// タイトル文字を中央配置
 	const char* startText = "ゲームを開始しますか？";
 
-	int startTextW = GetDrawStringWidthToHandle(startText, strlen(startText), explanationFontHandle_);
+	int startTextW = GetDrawStringWidthToHandle(startText, static_cast<int>(strlen(startText)), explanationFontHandle_);
 
 	DrawStringToHandle(centerX - startTextW / 2, panelY + 560, startText, GetColor(255, 255, 255), explanationFontHandle_);
 
@@ -533,7 +533,7 @@ void GameScene::ExplanationFirstPressDrawUI(void)
 
 	const char* yesText = "はい";
 
-	int yesTextW = GetDrawStringWidthToHandle(yesText, strlen(yesText), explanationFontHandle_);
+	int yesTextW = GetDrawStringWidthToHandle(yesText, static_cast<int>(strlen(yesText)), explanationFontHandle_);
 
 	DrawStringToHandle(yesX + buttonW / 2 - yesTextW / 2, buttonY + 12, yesText, yesColor, explanationFontHandle_);
 
@@ -550,7 +550,7 @@ void GameScene::ExplanationFirstPressDrawUI(void)
 
 	const char* noText = "いいえ";
 
-	int noTextW = GetDrawStringWidthToHandle(noText, strlen(noText), explanationFontHandle_);
+	int noTextW = GetDrawStringWidthToHandle(noText, static_cast<int>(strlen(noText)), explanationFontHandle_);
 
 	DrawStringToHandle(noX + buttonW / 2 - noTextW / 2, buttonY + 12, noText, noColor, explanationFontHandle_);
 }
@@ -686,7 +686,7 @@ void GameScene::ExplanationQuizDrawUI(void)
 	// タイトル文字を中央配置
 	const char* startText = "ゲームを開始しますか？";
 
-	int startTextW = GetDrawStringWidthToHandle(startText, strlen(startText), explanationFontHandle_);
+	int startTextW = GetDrawStringWidthToHandle(startText, static_cast<int>(strlen(startText)), explanationFontHandle_);
 
 	DrawStringToHandle(centerX - startTextW / 2, panelY + 560, startText, GetColor(255, 255, 255), explanationFontHandle_);
 
@@ -720,7 +720,7 @@ void GameScene::ExplanationQuizDrawUI(void)
 
 	const char* yesText = "はい";
 
-	int yesTextW = GetDrawStringWidthToHandle(yesText, strlen(yesText), explanationFontHandle_);
+	int yesTextW = GetDrawStringWidthToHandle(yesText, static_cast<int>(strlen(yesText)), explanationFontHandle_);
 
 	DrawStringToHandle(yesX + buttonW / 2 - yesTextW / 2, buttonY + 12, yesText, yesColor, explanationFontHandle_);
 
@@ -737,7 +737,7 @@ void GameScene::ExplanationQuizDrawUI(void)
 
 	const char* noText = "いいえ";
 
-	int noTextW = GetDrawStringWidthToHandle(noText, strlen(noText), explanationFontHandle_);
+	int noTextW = GetDrawStringWidthToHandle(noText, static_cast<int>(strlen(noText)), explanationFontHandle_);
 
 	DrawStringToHandle(noX + buttonW / 2 - noTextW / 2, buttonY + 12, noText, noColor, explanationFontHandle_);
 }
@@ -873,7 +873,7 @@ void GameScene::ExplanationReversiDrawUI(void)
 	// タイトル文字を中央配置
 	const char* startText = "ゲームを開始しますか？";
 
-	int startTextW = GetDrawStringWidthToHandle(startText, strlen(startText), explanationFontHandle_);
+	int startTextW = GetDrawStringWidthToHandle(startText, static_cast<int>(strlen(startText)), explanationFontHandle_);
 
 	DrawStringToHandle(centerX - startTextW / 2, panelY + 560, startText, GetColor(255, 255, 255), explanationFontHandle_);
 
@@ -907,7 +907,7 @@ void GameScene::ExplanationReversiDrawUI(void)
 
 	const char* yesText = "はい";
 
-	int yesTextW = GetDrawStringWidthToHandle(yesText, strlen(yesText), explanationFontHandle_);
+	int yesTextW = GetDrawStringWidthToHandle(yesText, static_cast<int>(strlen(yesText)), explanationFontHandle_);
 
 	DrawStringToHandle(yesX + buttonW / 2 - yesTextW / 2, buttonY + 12, yesText, yesColor, explanationFontHandle_);
 
@@ -924,7 +924,7 @@ void GameScene::ExplanationReversiDrawUI(void)
 
 	const char* noText = "いいえ";
 
-	int noTextW = GetDrawStringWidthToHandle(noText, strlen(noText), explanationFontHandle_);
+	int noTextW = GetDrawStringWidthToHandle(noText, static_cast<int>(strlen(noText)), explanationFontHandle_);
 
 	DrawStringToHandle(noX + buttonW / 2 - noTextW / 2, buttonY + 12, noText, noColor, explanationFontHandle_);
 }
@@ -1066,7 +1066,7 @@ void GameScene::ExplanationButtonMashDrawUI(void)
 	// タイトル文字を中央配置
 	const char* startText = "ゲームを開始しますか？";
 
-	int startTextW = GetDrawStringWidthToHandle(startText, strlen(startText), explanationFontHandle_);
+	int startTextW = GetDrawStringWidthToHandle(startText, static_cast<int>(strlen(startText)), explanationFontHandle_);
 
 	DrawStringToHandle(centerX - startTextW / 2, panelY + 560, startText, GetColor(255, 255, 255), explanationFontHandle_);
 
@@ -1100,7 +1100,7 @@ void GameScene::ExplanationButtonMashDrawUI(void)
 
 	const char* yesText = "はい";
 
-	int yesTextW = GetDrawStringWidthToHandle(yesText, strlen(yesText), explanationFontHandle_);
+	int yesTextW = GetDrawStringWidthToHandle(yesText, static_cast<int>(strlen(yesText)), explanationFontHandle_);
 
 	DrawStringToHandle(yesX + buttonW / 2 - yesTextW / 2, buttonY + 12, yesText, yesColor, explanationFontHandle_);
 
@@ -1117,7 +1117,7 @@ void GameScene::ExplanationButtonMashDrawUI(void)
 
 	const char* noText = "いいえ";
 
-	int noTextW = GetDrawStringWidthToHandle(noText, strlen(noText), explanationFontHandle_);
+	int noTextW = GetDrawStringWidthToHandle(noText, static_cast<int>(strlen(noText)), explanationFontHandle_);
 
 	DrawStringToHandle(noX + buttonW / 2 - noTextW / 2, buttonY + 12, noText, noColor, explanationFontHandle_);
 
@@ -1440,7 +1440,7 @@ void GameScene::DrawRunTimeLoading(void)
 		int titleWidth =
 			GetDrawStringWidth(
 				title,
-				strlen(title)
+				static_cast<int>(strlen(title))
 			);
 
 		DrawString(
@@ -1462,7 +1462,7 @@ void GameScene::DrawRunTimeLoading(void)
 		int subTitleWidth =
 			GetDrawStringWidth(
 				subTitle,
-				strlen(subTitle)
+				static_cast<int>(strlen(subTitle))
 			);
 
 		DrawString(
@@ -1630,7 +1630,7 @@ void GameScene::DrawRunTimeLoading(void)
 		int waitWidth =
 			GetDrawStringWidth(
 				waitText,
-				strlen(waitText)
+				static_cast<int>(strlen(waitText))
 			);
 
 		DrawString(

@@ -74,7 +74,7 @@ void TitleScene::Draw(void)
 
         int textWidth = GetDrawStringWidthToHandle(
             text,
-            strlen(text),
+            static_cast<int>(strlen(text)),
             uiFont_);
 
         DrawStringToHandle(

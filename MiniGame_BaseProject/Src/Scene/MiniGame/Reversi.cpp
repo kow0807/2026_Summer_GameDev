@@ -448,7 +448,7 @@ void Reversi::DrawUI(void)
 		const char* title = "SKIP";
 		int titleWidth = GetDrawStringWidthToHandle(
 			title,
-			strlen(title),
+			static_cast<int>(strlen(title)),
 			yuMinchoFontHandle_);
 
 		DrawStringToHandle(
@@ -483,7 +483,7 @@ void Reversi::DrawUI(void)
 
 		int textWidth = GetDrawStringWidthToHandle(
 			skipText,
-			strlen(skipText),
+			static_cast<int>(strlen(skipText)),
 			yuMinchoFontHandle_);
 
 		DrawStringToHandle(
@@ -523,7 +523,7 @@ void Reversi::DrawUI(void)
 		const char* titleText = "RESULT";
 		int titleWidth = GetDrawStringWidthToHandle(
 			titleText,
-			strlen(titleText),
+			static_cast<int>(strlen(titleText)),
 			yuMinchoFontHandle_);
 
 		DrawStringToHandle(
@@ -599,7 +599,7 @@ void Reversi::DrawUI(void)
 		// èüîsï\é¶ÅiíÜâõëµÇ¶Åj
 		int resultWidth = GetDrawStringWidthToHandle(
 			resultText,
-			strlen(resultText),
+			static_cast<int>(strlen(resultText)),
 			yuMinchoFontHandle_);
 
 		DrawStringToHandle(
