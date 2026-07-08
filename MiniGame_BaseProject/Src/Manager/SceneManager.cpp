@@ -60,7 +60,7 @@ void SceneManager::Init(void)
 	//Effekseer_InitDistortion();
 
 	// ‰ŠúƒV[ƒ“‚Ìİ’è
-	DoChangeScene(SCENE_ID::GAME);
+	DoChangeScene(SCENE_ID::TITLE);
 }
 
 void SceneManager::Init3D(void)

@@ -31,6 +31,7 @@ void Reversi::Init(void)
 	overSe_ = resMng_.Load(ResourceManager::SRC::REVERSI_OVER_SE).handleId_;
 	isSkip_ = true;
 	skipSe_ = resMng_.Load(ResourceManager::SRC::REVERSI_SKIP_SE).handleId_;
+	moveSe_ = resMng_.Load(ResourceManager::SRC::REVERSI_MOVE_SE).handleId_;
 	ChangeVolumeSoundMem(255, skipSe_);
 
 	gameState_ = GameState::GO;
@@ -136,26 +137,47 @@ void Reversi::Update(void)
 
 		if (ins.IsTrgDown(KEY_INPUT_LEFT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT))
 		{
+			PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
 			cursorX_--;
+
+			if (cursorX_ < 0)
+			{
+				cursorX_ = 7;
+			}
 		}
 
 		if (ins.IsTrgDown(KEY_INPUT_RIGHT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT))
 		{
+			PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
 			cursorX_++;
+
+			if (cursorX_ > 7)
+			{
+				cursorX_ = 0;
+			}
 		}
 
 		if (ins.IsTrgDown(KEY_INPUT_UP) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP))
 		{
+			PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
 			cursorY_--;
+
+			if (cursorY_ < 0)
+			{
+				cursorY_ = 7;
+			}
 		}
 
 		if (ins.IsTrgDown(KEY_INPUT_DOWN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))
 		{
+			PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
 			cursorY_++;
-		}
 
-		cursorX_ = max(0, min(7, cursorX_));
-		cursorY_ = max(0, min(7, cursorY_));
+			if (cursorY_ > 7)
+			{
+				cursorY_ = 0;
+			}
+		}
 
 		if (ins.IsTrgDown(KEY_INPUT_RETURN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
 		{

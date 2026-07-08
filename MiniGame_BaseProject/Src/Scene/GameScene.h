@@ -17,9 +17,7 @@ public:
 		QUIZ,
 		REVERSI,
 		BUTTON_MASH,
-		FLASH_CALC,
 		QUORIDOR,
-		HARE_AND_HOUNDS,
 		MINI_SHOGI,
 		MAX
 	};

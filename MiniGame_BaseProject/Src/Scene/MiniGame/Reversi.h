@@ -46,6 +46,7 @@ private:
 	int overSe_;
 	bool isSkip_;
 	int skipSe_;
+	int moveSe_;
 
 	int cursorX_;
 	int cursorY_;

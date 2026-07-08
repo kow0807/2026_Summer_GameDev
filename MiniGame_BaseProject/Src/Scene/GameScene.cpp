@@ -284,9 +284,7 @@ void GameScene::SelectGameDrawUI(void)
 		"四択クイズ",
 		"オセロ",
 		"連打対決",
-		"フラッシュ暗算(開発中のため\n選択しないでください)",
 		"コリドール",
-		"ウサギと猟犬(開発中のため\n選択しないでください)",
 		"5五将棋(開発中のため\n選択しないでください)"
 	};
 
@@ -358,13 +356,9 @@ void GameScene::ExplanationDrawUI()
 	case MINI_STATE::BUTTON_MASH:
 		ExplanationButtonMashDrawUI();
 		break;
-	case MINI_STATE::FLASH_CALC:
-		break;
 	case MINI_STATE::QUORIDOR:
 		ExplanationQuoridorDrawUI();
 		return;
-		break;
-	case MINI_STATE::HARE_AND_HOUNDS:
 		break;
 	case MINI_STATE::MINI_SHOGI:
 		ExplanationMiniShogiUI();
@@ -1676,12 +1670,8 @@ void GameScene::CreateMiniGame(void)
 	case MINI_STATE::BUTTON_MASH:
 		gameBase_ = std::make_unique<ButtonMashGame>();
 		break;
-	case MINI_STATE::FLASH_CALC:
-		break;
 	case MINI_STATE::QUORIDOR:
 		gameBase_ = std::make_unique<Quoridor>();
-		break;
-	case MINI_STATE::HARE_AND_HOUNDS:
 		break;
 	case MINI_STATE::MINI_SHOGI:
 		gameBase_ = std::make_unique<MiniShogi>();

@@ -35,4 +35,11 @@ public:
 
 private:
 
+	int backImg_;
+	int logoImg_;
+	bool isBgm_;
+	int bgm_;
+	int startSe_;
+
+	int uiFont_;
 };

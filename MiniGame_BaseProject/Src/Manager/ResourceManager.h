@@ -12,6 +12,12 @@ public:
 	// リソース名
 	enum class SRC
 	{
+		TITLE_BACK,							// 背景
+		TITLE_LOGO,							// ロゴ
+		TITLE_BGM,							// BGM
+		TITLE_START_SE,						// 開始音
+
+
 		FIRST_PRESS_GAME_BACK,				// 背景
 		FIRST_PRESS_GAME_BACK_UI,			// 背景UI
 		FIRST_PRESS_GAME_READY_UI,			// 準備UI
@@ -77,6 +83,7 @@ public:
 		REVERSI_CLEAR_SE,					// クリアSE
 		REVERSI_OVER_SE,					// 敗北SE
 		REVERSI_SKIP_SE,					// スキップSE
+		REVERSI_MOVE_SE,					// 移動SE
 
 		BOARD,								// ボード
 		QUORIDOR_BASE,

@@ -30,9 +30,22 @@ void ResourceManager::Init(void)
 
 	std::shared_ptr<Resource> res;
 
-	// タイトル画像
-	//res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Title.png");
-	//resourcesMap_.emplace(SRC::TITLE, res);
+	// 背景
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Title/Back.png");
+	resourcesMap_.emplace(SRC::TITLE_BACK, res);
+
+	// ロゴ
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Title/TitleLogo.png");
+	resourcesMap_.emplace(SRC::TITLE_LOGO, res);
+
+	// BGM
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Title/Bgm.mp3");
+	resourcesMap_.emplace(SRC::TITLE_BGM, res);
+
+	// 開始音
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Title/Start.mp3");
+	resourcesMap_.emplace(SRC::TITLE_START_SE, res);
+
 
 	// 背景
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "FirstPressGame/Back.png");
@@ -279,6 +292,10 @@ void ResourceManager::Init(void)
 	// スキップSE
 	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Reversi/Skip.mp3");
 	resourcesMap_.emplace(SRC::REVERSI_SKIP_SE, res);
+
+	// 移動SE
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Reversi/Move.mp3");
+	resourcesMap_.emplace(SRC::REVERSI_MOVE_SE, res);
 
 
 	// 板
