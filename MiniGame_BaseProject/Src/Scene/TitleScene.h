@@ -40,6 +40,9 @@ private:
 	bool isBgm_;
 	int bgm_;
 	int startSe_;
+	int moveSe_;
 
 	int uiFont_;
+
+	int selectNo_;
 };

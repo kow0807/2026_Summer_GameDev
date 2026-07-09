@@ -56,18 +56,35 @@ private:
 	SELECT_STATE selectState_;
 
 	int explanationFontHandle_;
+	int gameTitleFont_;
 
+	int backImg_;
+	int gameThumbnail_[static_cast<int>(MINI_STATE::MAX)];
 	int firstPressExplanationImg_;
 	int quizExplanationImg_;
 	int reversiExplanationImg_;
 	int buttonMashExplanationImg_;
 	bool isKeyboard_;
 
+	bool isBgm_;
+	int bgm_;
+	int moveSe_;
+	int cancelSe_;
+	int selectSe_;
+	int menuSe_;
+
+	int leftArrowAnim_;
+	int rightArrowAnim_;
+
 	int decideSEH_;
 
 	bool isYes_;
 
 	int fadeAlpha_;
+
+	bool isPause_;
+	float pauseX_;
+	int pauseSelect_;
 
 	// ミニゲームの基底クラス
 	std::unique_ptr<GameBase> gameBase_;
@@ -76,6 +93,10 @@ private:
 	void SelectGameUpdate(void);
 	void ExplanationUpdate(void);
 	void GameUpdate(void);
+
+	bool PauseUpdate(void);
+	void PauseDraw(void);
+
 
 	void DrawGame(void);
 

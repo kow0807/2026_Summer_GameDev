@@ -12,11 +12,20 @@ public:
 	// リソース名
 	enum class SRC
 	{
+		KARI,								// 仮画像
+
 		TITLE_BACK,							// 背景
 		TITLE_LOGO,							// ロゴ
 		TITLE_BGM,							// BGM
 		TITLE_START_SE,						// 開始音
+		TITLE_MOVE_SE,						// 移動音
 
+		SELECT_BACK,						// 選択画面背景
+		SELECT_BGM,							// BGM
+		SELECT_MOVE_SE,						// 移動音
+		SELECT_CANCEL_SE,					// キャンセル音
+		SELECT_SELECT_SE,					// 選択音
+		SELECT_MENU_SE,						// メニュー音
 
 		FIRST_PRESS_GAME_BACK,				// 背景
 		FIRST_PRESS_GAME_BACK_UI,			// 背景UI

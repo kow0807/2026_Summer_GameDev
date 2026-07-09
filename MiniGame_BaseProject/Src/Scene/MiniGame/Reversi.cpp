@@ -25,6 +25,7 @@ void Reversi::Init(void)
 
 	isBgm_ = true;
 	bgm_ = resMng_.Load(ResourceManager::SRC::REVERSI_BGM).handleId_;
+	ChangeVolumeSoundMem(190, bgm_);
 	pieceSe_ = resMng_.Load(ResourceManager::SRC::REVERSI_PIECE_SE).handleId_;
 	isResult_ = true;
 	clearSe_ = resMng_.Load(ResourceManager::SRC::REVERSI_CLEAR_SE).handleId_;
