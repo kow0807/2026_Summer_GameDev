@@ -736,7 +736,7 @@ void Camera::SetBeforeDrawMiniShogi(void)
 	switch (shogiType_)
 	{
 	case SHOGI_TYPE::NONE:
-		pos_ = VGet(0.0f, 650.0f, 550.0f);
+		pos_ = VGet(0.0f, 650.0f, -550.0f);
 		targetPos_ = VGet(0.0f, 0.0f, 0.0f);
 		cameraUp_ = VGet(0, 1, 0);
 		break;

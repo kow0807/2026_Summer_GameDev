@@ -6,10 +6,10 @@ Cursor::Cursor(void)
 	myArea_(CursorArea::BOARD),
 	mX_(2),
 	mY_(4),
-	player1HandIndex_(0),
-	player2HandIndex_(0),
-	player1HandPieceCount_(0),
-	player2HandPieceCount_(0),
+	playerHandIndex_(0),
+	enemyHandIndex_(0),
+	playerHandPieceCount_(0),
+	enemyHandPieceCount_(0),
 	isPlayerTurn_(false)
 {
 }
@@ -36,26 +36,26 @@ void Cursor::MoveUp(void)
 		BoardMoveUp();
 		break;
 
-	case CursorArea::PLAYER1_HAND:
-	case CursorArea::PLAYER2_HAND:
+	case CursorArea::PLAYER_HAND:
+	case CursorArea::ENEMY_HAND:
 		HandMoveUp();
 		break;
 	}
 }
 
 void Cursor::MoveDown(void)
-{
-	switch (myArea_)
+{	switch (myArea_)
 	{
 	case CursorArea::BOARD:
 		BoardMoveDown();
 		break;
 
-	case CursorArea::PLAYER1_HAND:
-	case CursorArea::PLAYER2_HAND:
+	case CursorArea::PLAYER_HAND:
+	case CursorArea::ENEMY_HAND:
 		HandMoveDown();
 		break;
 	}
+
 }
 
 void Cursor::MoveLeft(void)
@@ -63,12 +63,12 @@ void Cursor::MoveLeft(void)
 	switch (myArea_)
 	{
 	case CursorArea::BOARD:
-		BoardMoveLeft(isPlayerTurn_);
+		BoardMoveHorizontal(-1);
 		break;
 
-	case CursorArea::PLAYER1_HAND:
-	case CursorArea::PLAYER2_HAND:
-		HandMoveLeft();
+	case CursorArea::PLAYER_HAND:
+	case CursorArea::ENEMY_HAND:
+		HandMoveHorizontal(-1);
 		break;
 	}
 }
@@ -78,12 +78,12 @@ void Cursor::MoveRight(void)
 	switch (myArea_)
 	{
 	case CursorArea::BOARD:
-		BoardMoveRight(isPlayerTurn_);
+		BoardMoveHorizontal(1);
 		break;
 
-	case CursorArea::PLAYER1_HAND:
-	case CursorArea::PLAYER2_HAND:
-		HandMoveRight();
+	case CursorArea::PLAYER_HAND:
+	case CursorArea::ENEMY_HAND:
+		HandMoveHorizontal(1);
 		break;
 	}
 }
@@ -112,12 +112,12 @@ int Cursor::GetHandIndex(void) const
 {
 	switch (myArea_)
 	{
-	case CursorArea::PLAYER1_HAND:
-		return player1HandIndex_;
+	case CursorArea::PLAYER_HAND:
+		return playerHandIndex_;
 		break;
 
-	case CursorArea::PLAYER2_HAND:
-		return player2HandIndex_;
+	case CursorArea::ENEMY_HAND:
+		return enemyHandIndex_;
 		break;
 
 	default:
@@ -130,25 +130,25 @@ void Cursor::SetHandPieceCount(CursorArea area, int count)
 {
 	switch (area)
 	{
-	case CursorArea::PLAYER1_HAND:
+	case CursorArea::PLAYER_HAND:
 
-		player1HandPieceCount_ = count;
+		playerHandPieceCount_ = count;
 
-		if (player1HandIndex_ >= count)
+		if (playerHandIndex_ >= count)
 		{
-			player1HandIndex_ =
+			playerHandIndex_ =
 				count > 0 ? count - 1 : 0;
 		}
 
 		break;
 
-	case CursorArea::PLAYER2_HAND:
+	case CursorArea::ENEMY_HAND:
 
-		player2HandPieceCount_ = count;
+		enemyHandPieceCount_ = count;
 
-		if (player2HandIndex_ >= count)
+		if (enemyHandIndex_ >= count)
 		{
-			player2HandIndex_ =
+			enemyHandIndex_ =
 				count > 0 ? count - 1 : 0;
 		}
 
@@ -162,7 +162,7 @@ void Cursor::SetBoardPosition(int x, int y)
 	mY_ = y;
 }
 
-void Cursor::SetPlayerTurn(bool& isPlayerTurn)
+void Cursor::SetPlayerTurn(bool isPlayerTurn)
 {
 	isPlayerTurn_ = isPlayerTurn;
 }
@@ -185,43 +185,79 @@ void Cursor::BoardMoveDown(void)
 
 void Cursor::BoardMoveLeft(bool isPlayerTurn)
 {
-	if (mX_ < BOARD_WIDTH - 1)
-	{
-		mX_++;
-		return;
-	}
-
-	if (isPlayerTurn)
-	{
-		ChangeArea(CursorArea::PLAYER2_HAND);
-	}
-	else
-	{
-		ChangeArea(CursorArea::PLAYER1_HAND);
-	}
-}
-
-void Cursor::BoardMoveRight(bool isPlayerTurn)
-{
 	if (mX_ > 0)
 	{
 		mX_--;
 		return;
 	}
 
+	// ç∂í[Ç≈é©ï™ÇÃéùÇøãÓÇ÷
 	if (isPlayerTurn)
 	{
-		ChangeArea(CursorArea::PLAYER1_HAND);
+		ChangeArea(CursorArea::PLAYER_HAND);
 	}
 	else
 	{
-		ChangeArea(CursorArea::PLAYER2_HAND);
+		ChangeArea(CursorArea::ENEMY_HAND);
+	}
+}
+
+void Cursor::BoardMoveRight(bool isPlayerTurn)
+{
+	if (mX_ < BOARD_WIDTH - 1)
+	{
+		mX_++;
+		return;
+	}
+
+	// âEí[Ç≈é©ï™ÇÃéùÇøãÓÇ÷
+	if (isPlayerTurn)
+	{
+		ChangeArea(CursorArea::PLAYER_HAND);
+	}
+	else
+	{
+		ChangeArea(CursorArea::ENEMY_HAND);
+	}
+}
+
+void Cursor::BoardMoveHorizontal(int dir)
+{
+	if (isPlayerTurn_)
+	{
+		dir = -dir;
+	}
+
+	int nextX = mX_ + dir;
+
+	if(nextX >= 0 && nextX < BOARD_WIDTH)
+	{
+		mX_ = nextX;
+		return;
+	}
+
+	if (dir < 0)
+	{
+		if (isPlayerTurn_)
+		{
+			ChangeArea(CursorArea::PLAYER_HAND);
+		}
+	}
+	else
+	{
+		if (!isPlayerTurn_)
+		{
+			ChangeArea(CursorArea::ENEMY_HAND);
+		}
 	}
 }
 
 void Cursor::HandMoveUp(void)
 {
 	int* index = GetCurrentHandIndex();
+
+	if (index == nullptr)
+		return;
 
 	if (*index >= HAND_COL)
 	{
@@ -233,40 +269,56 @@ void Cursor::HandMoveDown(void)
 {
 	int* index = GetCurrentHandIndex();
 
-	if (*index + HAND_COL < HAND_COL * HAND_ROW)
-	{
-		*index += HAND_COL;
-	}
-}
-
-void Cursor::HandMoveLeft(void)
-{
-	int* index = GetCurrentHandIndex();
-
-	if (myArea_ == CursorArea::PLAYER1_HAND)
-	{
-		if (*index > 0)
-		{
-			(*index)--;
-			return;
-		}
-
-		ChangeArea(CursorArea::BOARD);
-	}
-}
-
-void Cursor::HandMoveRight(void)
-{
-	int* index = GetCurrentHandIndex();
-
-	if (myArea_ == CursorArea::PLAYER1_HAND)
-	{
-		if (*index + 1 < GetCurrentHandPieceCount())
-		{
-			(*index)++;
-		}
-
+	if (index == nullptr)
 		return;
+
+	int next = *index + HAND_COL;
+
+	if (next < GetCurrentHandPieceCount())
+	{
+		*index = next;
+	}
+}
+
+
+void Cursor::HandMoveHorizontal(int dir)
+{
+	int* index = GetCurrentHandIndex();
+	if (index == nullptr)
+	{
+		return;
+	}
+
+	int count = GetCurrentHandPieceCount();
+
+	if (count == 0)
+	{
+		ChangeArea(CursorArea::BOARD);
+		return;
+	}
+
+	int row = *index / HAND_COL;
+	int col = *index % HAND_COL;
+
+	if (myArea_ == CursorArea::PLAYER_HAND)
+	{
+		dir = -dir;
+	}
+	
+	int nextCol = col + dir;
+
+	// î’ñ Ç÷ñﬂÇÈ
+	if(nextCol < 0 || nextCol >= HAND_COL)
+	{
+		ChangeArea(CursorArea::BOARD);
+		return;
+	}
+
+	int nextIndex = row * HAND_COL + nextCol;
+
+	if(nextIndex < count)
+	{
+		*index = nextIndex;
 	}
 }
 
@@ -274,11 +326,11 @@ int* Cursor::GetCurrentHandIndex(void)
 {
 	switch (myArea_)
 	{
-	case CursorArea::PLAYER1_HAND:
-		return &player1HandIndex_;
+	case CursorArea::PLAYER_HAND:
+		return &playerHandIndex_;
 
-	case CursorArea::PLAYER2_HAND:
-		return &player2HandIndex_;
+	case CursorArea::ENEMY_HAND:
+		return &enemyHandIndex_;
 
 	default:
 		return nullptr;
@@ -289,11 +341,11 @@ int Cursor::GetCurrentHandPieceCount(void) const
 {
 	switch (myArea_)
 	{
-	case CursorArea::PLAYER1_HAND:
-		return player1HandPieceCount_;
+	case CursorArea::PLAYER_HAND:
+		return playerHandPieceCount_;
 
-	case CursorArea::PLAYER2_HAND:
-		return player2HandPieceCount_;
+	case CursorArea::ENEMY_HAND:
+		return enemyHandPieceCount_;
 
 	default:
 		return 0;

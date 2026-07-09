@@ -29,7 +29,7 @@ MiniShogiActor::MiniShogiActor(
 	resMng_(ResourceManager::GetInstance()),
 	board_(board),
 	player0Hand_(player0Hand),
-	player1Hand_(player1Hand),
+	enemyHand_(player1Hand),
 	cursor_(cursor),
 	selector_(selector),
 	isPlayerTurn_(isPlayerTurn),
@@ -73,13 +73,13 @@ void MiniShogiActor::Init(void)
 		piece->SetVisible(false);
 	}
 
-	player0HandActor_ = std::make_unique<HandActor>(player0Hand_, true);
-	player0HandActor_->SetOrigin(VGet(-420.0f, 0.0f, 100.0f));
-	player0HandActor_->Init();
+	playerHandActor_ = std::make_unique<HandActor>(player0Hand_, true);
+	playerHandActor_->SetOrigin(VGet(-420.0f, 0.0f, 100.0f));
+	playerHandActor_->Init();
 
-	player1HandActor_ = std::make_unique<HandActor>(player1Hand_, false);
-	player1HandActor_->SetOrigin(VGet(420.0f, 0.0f, -200.0f));
-	player1HandActor_->Init();
+	enemyHandActor_ = std::make_unique<HandActor>(enemyHand_, false);
+	enemyHandActor_->SetOrigin(VGet(420.0f, 0.0f, -200.0f));
+	enemyHandActor_->Init();
 
 	for (int i = 6; i < 12; i++)
 	{
@@ -100,8 +100,8 @@ void MiniShogiActor::Update(void)
 		piece->Update();
 	}
 
-	player0HandActor_->Update();
-	player1HandActor_->Update();
+	playerHandActor_->Update();
+	enemyHandActor_->Update();
 }
 
 void MiniShogiActor::Draw(void)
@@ -113,28 +113,22 @@ void MiniShogiActor::Draw(void)
 		piece->Draw();
 	}
 
-	player0HandActor_->Draw();
-	player1HandActor_->Draw();
+	playerHandActor_->Draw();
+	enemyHandActor_->Draw();
 
 	DrawBoardCursor();
 
 	DrawHandCursor();
+}
 
-	DrawSphere3D(
-		VGet(-420, 20, 100),
-		20,
-		16,
-		GetColor(255, 0, 0),
-		GetColor(255, 0, 0),
-		TRUE);
+const HandActor* MiniShogiActor::GetPlayerHandActor(void) const
+{
+	return playerHandActor_.get();
+}
 
-	DrawSphere3D(
-		VGet(420, 20, -200),
-		20,
-		16,
-		GetColor(0, 0, 255),
-		GetColor(0, 0, 255),
-		TRUE);
+const HandActor* MiniShogiActor::GetEnemyHandActor(void) const
+{
+	return enemyHandActor_.get();
 }
 
 void MiniShogiActor::SyncPieceActor(void)
@@ -152,7 +146,7 @@ void MiniShogiActor::SyncPieceActor(void)
 
 			if (actorIndex >= PIECE_COUNT)
 			{
-				return;
+				break;
 			}
 
 			const Piece& piece =
@@ -371,11 +365,11 @@ void MiniShogiActor::DrawHandCursor(void)
 
 	switch (cursor_->GetArea())
 	{
-	case CursorArea::PLAYER1_HAND:
-		handActor = player1HandActor_.get();
+	case CursorArea::PLAYER_HAND:
+		handActor = playerHandActor_.get();
 		break;
-	case CursorArea::PLAYER2_HAND:
-		handActor = player0HandActor_.get();
+	case CursorArea::ENEMY_HAND:
+		handActor = enemyHandActor_.get();
 		break;
 	default:
 		
@@ -418,23 +412,23 @@ unsigned int MiniShogiActor::GetHandCursorColor(void) const
 {
 	switch (cursor_->GetArea())
 	{
-	case CursorArea::PLAYER2_HAND:
+	case CursorArea::ENEMY_HAND:
 
 		if (isPlayerTurn_)
 		{
-			return GetColor(0, 255, 0);
+			return GetColor(255, 0, 0);
 		}
 
-		return GetColor(255, 0, 0);
+		return GetColor(0, 255, 0);
 
-	case CursorArea::PLAYER1_HAND:
+	case CursorArea::PLAYER_HAND:
 
 		if (!isPlayerTurn_)
 		{
-			return GetColor(0, 255, 0);
+			return GetColor(255, 0, 0);
 		}
 
-		return GetColor(255, 0, 0);
+		return GetColor(0, 255, 0);
 
 	default:
 		return GetColor(255, 255, 255);

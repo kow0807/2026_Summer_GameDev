@@ -3,8 +3,8 @@
 enum class CursorArea
 {
 	BOARD,
-	PLAYER1_HAND,
-	PLAYER2_HAND
+	PLAYER_HAND,
+	ENEMY_HAND
 };
 
 class Cursor
@@ -42,7 +42,7 @@ public:
 
 	void SetBoardPosition(int x, int y);
 
-	void SetPlayerTurn(bool& isPlayerTurn);
+	void SetPlayerTurn(bool isPlayerTurn);
 
 private:
 
@@ -50,9 +50,9 @@ private:
 
 	int mX_, mY_;
 
-	int player1HandIndex_, player2HandIndex_;
+	int playerHandIndex_, enemyHandIndex_;
 
-	int player1HandPieceCount_, player2HandPieceCount_;
+	int playerHandPieceCount_, enemyHandPieceCount_;
 
 	bool isPlayerTurn_;
 
@@ -60,11 +60,11 @@ private:
 	void BoardMoveDown(void);
 	void BoardMoveLeft(bool isPlayerTurn);
 	void BoardMoveRight(bool isPlayerTurn);
+	void BoardMoveHorizontal(int dir);
 
 	void HandMoveUp(void);
 	void HandMoveDown(void);
-	void HandMoveLeft(void);
-	void HandMoveRight(void);
+	void HandMoveHorizontal(int dir);
 
 	int* GetCurrentHandIndex(void);
 	int GetCurrentHandPieceCount(void) const;

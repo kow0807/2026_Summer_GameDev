@@ -6,7 +6,6 @@
 struct HandPiece
 {
 	PieceType type_;
-	int count_;
 };
 
 class Hand
@@ -20,13 +19,16 @@ public:
 
 	void RemovePiece(PieceType type);
 
-	bool HasPiece(PieceType type);
+	bool HasPiece(PieceType type) const;
+	bool HasPiece(int index) const;
 
 	bool IsEmpty(void) const;
 
 	int GetPieceCount(void) const;
 
 	const HandPiece& GetPiece(int index) const;
+
+	const std::vector<HandPiece>& GetPieceList(void) const;
 
 private:
 

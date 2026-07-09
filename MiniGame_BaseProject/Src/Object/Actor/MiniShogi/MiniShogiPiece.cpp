@@ -118,6 +118,19 @@ void MiniShogiPiece::SetPiece(const Piece& piece)
 		transform_.quaRotLocal =
 			Quaternion();
 	}
+
+	if (piece_.isPromote_)
+	{
+		transform_.quaRotLocal =
+			Quaternion::Mult(
+				transform_.quaRotLocal,
+				Quaternion::Euler({
+					0.0f,
+					0.0f,
+					DX_PI_F
+					})
+			);
+	}
 }
 
 void MiniShogiPiece::SetModelHandle(int modelHandle)
@@ -157,6 +170,12 @@ void MiniShogiPiece::SetRotationY(float y)
 {
 	transform_.quaRotLocal = Quaternion::Euler({ AsoUtility::Deg2RadF(static_cast<float>(transform_.quaRot.x)),
 		AsoUtility::Deg2RadF(static_cast<float>(y)),AsoUtility::Deg2RadF(static_cast<float>(transform_.quaRot.z)) });
+}
+
+void MiniShogiPiece::SetRotationZ(float z)
+{
+	transform_.quaRotLocal = Quaternion::Euler({ AsoUtility::Deg2RadF(static_cast<float>(transform_.quaRot.x)),
+		AsoUtility::Deg2RadF(static_cast<float>(transform_.quaRot.y)),AsoUtility::Deg2RadF(static_cast<float>(z)) });
 }
 
 void MiniShogiPiece::SetWorldPosition(VECTOR position)

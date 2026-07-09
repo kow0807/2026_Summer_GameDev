@@ -2,6 +2,8 @@
 #include <memory>
 #include "GameBase.h"
 
+#include "../../Object/Actor/MiniShogi/Piece.h"
+
 class Shogiban;
 class Komadai;
 
@@ -11,6 +13,12 @@ class MiniShogiBoard;
 class MiniShogiRule;
 class Hand;
 class MiniShogiActor;
+
+enum class PromotionState
+{
+    NONE,
+    WAIT_SELECT
+};
 
 class MiniShogi :
     public GameBase
@@ -44,10 +52,23 @@ private:
 
     bool isPlayerTurn_;
 
+    PromotionState promotionState_;
+
+    bool promoteSelect_;
+
+    Piece pendingMovePiece_;
+
+    int pendingFromX_;
+    int pendingFromY_;
+    int pendingToX_;
+    int pendingToY_;
+
     void InputUpdate(void);
 	void UpdateCameraState(void);
 
     void SelectUpdate(void);
+
+    void UpdatePromotion(void);
 
     void SelectBoardPiece(void);
     void MoveBoardPiece(void);

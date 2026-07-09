@@ -29,6 +29,7 @@ HandActor::~HandActor(void)
 void HandActor::Init(void)
 {
 	ouH_ = resMng_.LoadModelDuplicate(ResourceManager::SRC::MINISHOGI_OU);
+	gyokuH_ = resMng_.LoadModelDuplicate(ResourceManager::SRC::MINISHOGI_GYOKU);
 	kinH_ = resMng_.LoadModelDuplicate(ResourceManager::SRC::MINISHOGI_KIN);
 	ginH_ = resMng_.LoadModelDuplicate(ResourceManager::SRC::MINISHOGI_GIN);
 	kakuH_ = resMng_.LoadModelDuplicate(ResourceManager::SRC::MINISHOGI_KAKU);
@@ -74,7 +75,17 @@ void HandActor::SetCellSize(float size)
 
 VECTOR HandActor::GetPieceWorldPosition(int index) const
 {
-	return CalcWorldPosition(index);
+	if (index < 0 || index >= MAX_HAND_PIECE)
+	{
+		return VGet(0, 0, 0);
+	}
+
+	if (!pieces_[index])
+	{
+		return VGet(0, 0, 0);
+	}
+
+	return pieces_[index]->GetTransform().pos;
 }
 
 VECTOR HandActor::GetCellWorldPosition(int index) const
@@ -84,7 +95,7 @@ VECTOR HandActor::GetCellWorldPosition(int index) const
 
 int HandActor::GetPieceCount(void) const
 {
-	if (hand_ == nullptr)
+	if(hand_==nullptr)
 	{
 		return 0;
 	}
@@ -92,14 +103,28 @@ int HandActor::GetPieceCount(void) const
 	return hand_->GetPieceCount();
 }
 
+PieceType HandActor::GetPieceType(int index) const
+{
+	if (index < 0 || index >= hand_->GetPieceCount())
+	{
+		return PieceType::NONE;
+	}
+
+	return hand_->GetPiece(index).type_;
+}
+
 void HandActor::SyncPieceActor(void)
 {
+	if(hand_==nullptr)
+	{
+		return;
+	}
+
 	int pieceCount = hand_->GetPieceCount();
 
-	for (int i = 0; i < pieceCount; i++)
+	for (int i = 0; i < pieceCount && i < MAX_HAND_PIECE; i++)
 	{
-		const HandPiece& handPiece =
-			hand_->GetPiece(i);
+		const HandPiece& handPiece = hand_->GetPiece(i);
 
 		auto& actor = pieces_[i];
 
@@ -114,12 +139,12 @@ void HandActor::SyncPieceActor(void)
 
 		actor->SetPiece(piece);
 
-		actor->SetWorldPosition(
-			CalcWorldPosition(i)
-		);
-
 		actor->SetModelHandle(
 			GetModelHandle(handPiece.type_)
+		);
+
+		actor->SetWorldPosition(
+			CalcWorldPosition(i)
 		);
 	}
 
@@ -153,14 +178,14 @@ VECTOR HandActor::CalcWorldPosition(int index) const
 
 	if (isPlayerSide_)
 	{
-		x = origin_.x + col * cellSize_;
+		x = origin_.x + (col - 1) * cellSize_;
 	}
 	else
 	{
-		x = origin_.x - col * cellSize_;
+		x = origin_.x - (col - 1) * cellSize_;
 	}
 
-	z = origin_.z + row * cellSize_;
+	z = origin_.z + (row - 1) * cellSize_;
 
 	return VGet(
 		x,

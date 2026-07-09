@@ -31,6 +31,18 @@ public:
 		bool isPlayerTurn
 	);
 
+	// ‹î‚ğ¬‚ê‚é‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
+	bool CanPromote(const Piece& piece, int fromY, int toY) const;
+
+	// ‹î‚ğ¬‚ç‚È‚¯‚ê‚Î‚È‚ç‚È‚¢‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
+	bool MustPromote(const Piece& piece, int toY) const;
+
+	// ¬‚ê‚é‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
+	bool IsPromoteZone(bool isPlayer, int y) const;
+
+	// ‹î‚ğ¬‚ç‚¹‚é
+	void Promote(Piece& piece) const;
+
 private:
 
 	void AddMove(std::vector<MoveData>& moveList,
@@ -51,5 +63,12 @@ private:
 	);
 
 	bool IsInsideBoard(int x, int y);
+
+	void AddKinMove(
+		std::vector<MoveData>& moveList,
+		const MiniShogiBoard& board,
+		int x,
+		int y,
+		bool isPlayer);
 };
 

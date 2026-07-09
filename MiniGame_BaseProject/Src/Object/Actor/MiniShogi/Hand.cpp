@@ -10,19 +10,9 @@ Hand::~Hand(void)
 
 void Hand::AddPiece(PieceType type)
 {
-    int index = FindIndex(type);
-
-    if (index >= 0)
-    {
-        handPieceList_[index].count_++;
-
-        return;
-    }
-
     handPieceList_.push_back(
         {
-            type,
-            1
+            type
         }
     );
 }
@@ -36,19 +26,21 @@ void Hand::RemovePiece(PieceType type)
         return;
     }
 
-    handPieceList_[index].count_--;
-
-    if (handPieceList_[index].count_ <= 0)
+    if (index >= 0)
     {
-        handPieceList_.erase(
-            handPieceList_.begin() + index
-        );
+		handPieceList_.erase(handPieceList_.begin() + index);
     }
 }
 
-bool Hand::HasPiece(PieceType type)
+bool Hand::HasPiece(PieceType type) const
 {
     return FindIndex(type) >= 0;
+}
+
+bool Hand::HasPiece(int index) const
+{
+    return index >= 0 && 
+           index < static_cast<int>(handPieceList_.size());
 }
 
 bool Hand::IsEmpty(void) const
@@ -64,6 +56,11 @@ int Hand::GetPieceCount(void) const
 const HandPiece& Hand::GetPiece(int index) const
 {
     return handPieceList_[index];
+}
+
+const std::vector<HandPiece>& Hand::GetPieceList(void) const
+{
+	return handPieceList_;
 }
 
 int Hand::FindIndex(PieceType type) const

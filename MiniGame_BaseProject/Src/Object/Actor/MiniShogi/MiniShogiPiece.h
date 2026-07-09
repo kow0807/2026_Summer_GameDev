@@ -32,6 +32,8 @@ public:
 
     void SetRotationY(float y);
 
+    void SetRotationZ(float z);
+
     void SetWorldPosition(VECTOR position);
 
 private:

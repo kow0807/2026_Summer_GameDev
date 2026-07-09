@@ -71,6 +71,14 @@ std::vector<MoveData> MiniShogiRule::GetMoveList(const MiniShogiBoard& board, in
         AddLineMove(moveList, board, x, y, 0, 1, piece.isPlayer_);
         AddLineMove(moveList, board, x, y, -1, 0, piece.isPlayer_);
         AddLineMove(moveList, board, x, y, 1, 0, piece.isPlayer_);
+
+        if (piece.isPromote_)
+        {
+            AddMove(moveList, board, x - 1, y - 1, piece.isPlayer_);
+            AddMove(moveList, board, x + 1, y - 1, piece.isPlayer_);
+            AddMove(moveList, board, x - 1, y + 1, piece.isPlayer_);
+            AddMove(moveList, board, x + 1, y + 1, piece.isPlayer_);
+        }
     }
         break;
     case PieceType::KAKUGYO:
@@ -79,42 +87,76 @@ std::vector<MoveData> MiniShogiRule::GetMoveList(const MiniShogiBoard& board, in
         AddLineMove(moveList, board, x, y, 1, -1, piece.isPlayer_);
         AddLineMove(moveList, board, x, y, -1, 1, piece.isPlayer_);
         AddLineMove(moveList, board, x, y, 1, 1, piece.isPlayer_);
+
+        if (piece.isPromote_)
+        {
+            AddMove(moveList, board, x, y - 1, piece.isPlayer_);
+            AddMove(moveList, board, x, y + 1, piece.isPlayer_);
+            AddMove(moveList, board, x - 1, y, piece.isPlayer_);
+            AddMove(moveList, board, x + 1, y, piece.isPlayer_);
+        }
     }
         break;
 
     case PieceType::KIN:
     {
-        int direction = piece.isPlayer_ ? -1 : 1;
-
-        AddMove(moveList, board, x, y + direction, piece.isPlayer_);
-
-        AddMove(moveList, board, x - 1, y + direction, piece.isPlayer_);
-        AddMove(moveList, board, x + 1, y + direction, piece.isPlayer_);
-
-        AddMove(moveList, board, x - 1, y, piece.isPlayer_);
-        AddMove(moveList, board, x + 1, y, piece.isPlayer_);
-
-        AddMove(moveList, board, x, y - direction, piece.isPlayer_);
+        AddKinMove(
+            moveList,
+            board,
+            x,
+            y,
+            piece.isPlayer_
+        );
     }
         break;
     case PieceType::GIN:
     {
-        int direction = piece.isPlayer_ ? -1 : 1;
+        if (piece.isPromote_)
+        {
+            AddKinMove(
+                moveList,
+                board,
+                x,
+                y,
+                piece.isPlayer_
+            );
+        }
+        else
+        {
+            int direction = piece.isPlayer_ ? -1 : 1;
 
-        AddMove(moveList, board, x, y + direction, piece.isPlayer_);
+            AddMove(moveList, board, x, y + direction, piece.isPlayer_);
 
-        AddMove(moveList, board, x - 1, y + direction, piece.isPlayer_);
-        AddMove(moveList, board, x + 1, y + direction, piece.isPlayer_);
+            AddMove(moveList, board, x - 1, y + direction, piece.isPlayer_);
+            AddMove(moveList, board, x + 1, y + direction, piece.isPlayer_);
 
-        AddMove(moveList, board, x - 1, y - direction, piece.isPlayer_);
-        AddMove(moveList, board, x + 1, y - direction, piece.isPlayer_);
+            AddMove(moveList, board, x - 1, y - direction, piece.isPlayer_);
+            AddMove(moveList, board, x + 1, y - direction, piece.isPlayer_);
+        }
     }
         break;
     case PieceType::FU:
     {
-        int direction = piece.isPlayer_ ? -1 : 1;
+        if (piece.isPromote_)
+        {
+            AddKinMove(
+                moveList,
+                board,
+                x,
+                y,
+                piece.isPlayer_);
+        }
+        else
+        {
+            int direction = piece.isPlayer_ ? -1 : 1;
 
-        AddMove(moveList, board, x, y + direction, piece.isPlayer_);
+            AddMove(
+                moveList,
+                board,
+                x,
+                y + direction,
+                piece.isPlayer_);
+        }
     }
         break;
     default:
@@ -142,6 +184,72 @@ std::vector<MoveData> MiniShogiRule::GetDropList(
     }
 
 	return dropList;
+}
+
+bool MiniShogiRule::CanPromote(const Piece& piece, int fromY, int toY) const
+{
+    if (piece.isPromote_)
+    {
+        return false;
+    }
+
+    switch (piece.type_)
+    {
+    case PieceType::GIN:
+    case PieceType::KAKUGYO:
+	case PieceType::HISHA:
+    case PieceType::FU:
+        break;
+
+    default:
+        return false;
+    }
+
+    return IsPromoteZone(piece.isPlayer_, fromY) ||
+           IsPromoteZone(piece.isPlayer_, toY);
+}
+
+bool MiniShogiRule::MustPromote(const Piece& piece, int toY) const
+{
+    if (piece.isPromote_)
+    {
+        return false;
+    }
+
+	// ï‡ÇÕç≈èIíiÇ…çsÇ¡ÇΩÇÁã≠êßê¨ÇË
+    switch (piece.type_)
+    {
+    case PieceType::FU:
+
+        if (piece.isPlayer_)
+        {
+            return toY == 0;
+        }
+        else
+        {
+			return toY == 4;
+        }
+
+    default:
+        break;
+    }
+
+	return false;
+}
+
+bool MiniShogiRule::IsPromoteZone(bool isPlayer, int y) const
+{
+    if (isPlayer)
+    {
+        return y == 0;
+    }
+
+	return y == 4;
+}
+
+void MiniShogiRule::Promote(Piece& piece) const
+{
+	piece.isPromote_ = true;
 }
 
 void MiniShogiRule::AddMove(std::vector<MoveData>& moveList, const MiniShogiBoard& board, int x, int y, bool isPlayer)
@@ -191,4 +299,19 @@ bool MiniShogiRule::IsInsideBoard(int x, int y)
 {
     return x >= 0 && x < 5
         && y >= 0 && y < 5;
+}
+
+void MiniShogiRule::AddKinMove(std::vector<MoveData>& moveList, const MiniShogiBoard& board, int x, int y, bool isPlayer)
+{
+	int direction = isPlayer ? -1 : 1;
+
+	AddMove(moveList, board, x, y + direction, isPlayer);
+
+    AddMove(moveList, board, x - 1, y + direction, isPlayer);
+    AddMove(moveList, board, x + 1, y + direction, isPlayer);
+
+    AddMove(moveList, board, x - 1, y, isPlayer);
+    AddMove(moveList, board, x + 1, y, isPlayer);
+
+    AddMove(moveList, board, x, y - direction, isPlayer);
 }

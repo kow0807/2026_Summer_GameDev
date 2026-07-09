@@ -1,4 +1,4 @@
-#include  <DxLib.h>
+ï»¿#include  <DxLib.h>
 #include "../../Manager/ResourceManager.h"
 #include "../../Manager/InputManager.h"
 #include "../../Manager/SceneManager.h"
@@ -13,6 +13,7 @@
 #include "../../Object/Actor/MiniShogi/MiniShogiBoard.h"
 #include "../../Object/Actor/MiniShogi/MiniShogiRule.h"
 #include "../../Object/Actor/MiniShogi/Hand.h"
+#include "../../Object/Actor/MiniShogi/HandActor.h"
 #include "../../Object/Actor/MiniShogi/MiniShogiActor.h"
 
 #include "MiniShogi.h"
@@ -30,6 +31,9 @@ MiniShogi::~MiniShogi(void)
 void MiniShogi::Init(void)
 {
 	//SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FREE);
+
+	promotionState_ = PromotionState::NONE;
+	promoteSelect_ = true;
 
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::MINI_GAME);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
@@ -74,16 +78,30 @@ void MiniShogi::Update(void)
 	shogiban_->Update();
 	komadai_->Update();
 
-	cursor_->SetHandPieceCount(CursorArea::PLAYER1_HAND, player0Hand_->GetPieceCount());
-	cursor_->SetHandPieceCount(CursorArea::PLAYER2_HAND, player1Hand_->GetPieceCount());
+	cursor_->SetHandPieceCount(CursorArea::PLAYER_HAND, actor_->GetPlayerHandActor()->GetPieceCount());
+	cursor_->SetHandPieceCount(CursorArea::ENEMY_HAND, actor_->GetEnemyHandActor()->GetPieceCount());
+
+	cursor_->SetPlayerTurn(isPlayerTurn_);
 
 	InputUpdate();
-	UpdateCameraState();
-	SelectUpdate();
-	actor_->Update();
 
 	cursor_->Update();
+
+	if (promotionState_ == PromotionState::WAIT_SELECT)
+	{
+		UpdatePromotion();
+	}
+	else
+	{
+		SelectUpdate();
+	}
+
+	UpdateCameraState();
+
 	board_->Update();
+
+	actor_->Update();
+
 
 }
 
@@ -98,6 +116,87 @@ void MiniShogi::Draw(void)
 
 void MiniShogi::DrawUI(void)
 {
+	if (promotionState_ != PromotionState::WAIT_SELECT)
+	{
+		return;
+	}
+
+	constexpr int WINDOW_W = 340;
+	constexpr int WINDOW_H = 160;
+
+	constexpr int SCREEN_W = 1024;
+	constexpr int SCREEN_H = 640;
+
+	const int left = (SCREEN_W - WINDOW_W) / 2;
+	const int top = (SCREEN_H - WINDOW_H) / 2;
+	const int right = left + WINDOW_W;
+	const int bottom = top + WINDOW_H;
+
+	// èƒŒæ™¯
+	DrawBox(
+		left,
+		top,
+		right,
+		bottom,
+		GetColor(40, 40, 40),
+		TRUE);
+
+	// æž 
+	DrawBox(
+		left,
+		top,
+		right,
+		bottom,
+		GetColor(255, 255, 255),
+		FALSE);
+
+	DrawString(
+		left + 95,
+		top + 25,
+		"æˆã‚Šã¾ã™ã‹ï¼Ÿ",
+		GetColor(255, 255, 255));
+
+	//------------------------------------
+	// ã¯ã„
+	//------------------------------------
+
+	if (promoteSelect_)
+	{
+		DrawString(
+			left + 70,
+			top + 90,
+			"ã¯ã„",
+			GetColor(255, 255, 0));
+	}
+	else
+	{
+		DrawString(
+			left + 70,
+			top + 90,
+			"ã¯ã„",
+			GetColor(255, 255, 255));
+	}
+
+	//------------------------------------
+	// ã„ã„ãˆ
+	//------------------------------------
+
+	if (!promoteSelect_)
+	{
+		DrawString(
+			left + 190,
+			top + 90,
+			"ã„ã„ãˆ",
+			GetColor(255, 255, 0));
+	}
+	else
+	{
+		DrawString(
+			left + 190,
+			top + 90,
+			"ã„ã„ãˆ",
+			GetColor(255, 255, 255));
+	}
 }
 
 void MiniShogi::Reset(void)
@@ -108,6 +207,11 @@ void MiniShogi::Reset(void)
 void MiniShogi::InputUpdate(void)
 {
 	auto& ins = InputManager::GetInstance();
+
+	if (promotionState_ == PromotionState::WAIT_SELECT)
+	{
+		return;
+	}
 
 	if (ins.IsTrgUp(KEY_INPUT_UP)) cursor_->MoveUp();
 	if (ins.IsTrgUp(KEY_INPUT_DOWN)) cursor_->MoveDown();
@@ -127,8 +231,8 @@ void MiniShogi::UpdateCameraState(void)
 		nextType = Camera::SHOGI_TYPE::NORMAL;
 		break;
 
-	case CursorArea::PLAYER1_HAND:
-	case CursorArea::PLAYER2_HAND:
+	case CursorArea::PLAYER_HAND:
+	case CursorArea::ENEMY_HAND:
 		nextType = Camera::SHOGI_TYPE::HAND_SELECT;
 		break;
 	default:
@@ -148,7 +252,7 @@ void MiniShogi::SelectUpdate(void)
 
 	if (!ins.IsTrgUp(KEY_INPUT_RETURN)) return;
 
-	// –¢‘I‘ðŽž
+	// æœªé¸æŠžæ™‚
 	if (!selector_->IsSelecting())
 	{
 		switch (cursor_->GetArea())
@@ -157,8 +261,8 @@ void MiniShogi::SelectUpdate(void)
 			SelectBoardPiece();
 			break;
 
-		case CursorArea::PLAYER1_HAND:
-		case CursorArea::PLAYER2_HAND:
+		case CursorArea::PLAYER_HAND:
+		case CursorArea::ENEMY_HAND:
 			SelectHandPiece();
 			break;
 		}
@@ -166,18 +270,54 @@ void MiniShogi::SelectUpdate(void)
 		return;
 	}
 
-	// ‘I‘ðÏ‚Ý
+	// é¸æŠžæ¸ˆã¿
 	switch (selector_->GetSelectArea())
 	{
 	case CursorArea::BOARD:
 		MoveBoardPiece();
 		break;
 
-	case CursorArea::PLAYER1_HAND:
-	case CursorArea::PLAYER2_HAND:
+	case CursorArea::PLAYER_HAND:
+	case CursorArea::ENEMY_HAND:
 		DropHandPiece();
 		break;
 	}
+}
+
+void MiniShogi::UpdatePromotion(void)
+{
+	auto& ins = InputManager::GetInstance();
+
+	if (ins.IsTrgUp(KEY_INPUT_LEFT) ||
+		ins.IsTrgUp(KEY_INPUT_RIGHT))
+	{
+		promoteSelect_ = !promoteSelect_;
+	}
+
+	if (!ins.IsTrgUp(KEY_INPUT_RETURN))
+	{
+		return;
+	}
+
+	if (promoteSelect_)
+	{
+		rule_->Promote(pendingMovePiece_);
+	}
+
+	board_->SetPiece(
+		pendingToX_,
+		pendingToY_,
+		pendingMovePiece_);
+
+	board_->RemovePiece(
+		pendingFromX_,
+		pendingFromY_);
+
+	selector_->Select(false);
+
+	promotionState_ = PromotionState::NONE;
+
+	isPlayerTurn_ = !isPlayerTurn_;
 }
 
 void MiniShogi::SelectBoardPiece(void)
@@ -221,24 +361,6 @@ void MiniShogi::MoveBoardPiece(void)
 
 void MiniShogi::SelectHandPiece(void)
 {
-	//Hand& hand = GetCurrentHand();
-
-	//if (!rule_->CanSelectHandPiece(hand, cursor_->GetHandIndex())) return;
-
-	//selector_->Select(true);
-
-	//selector_->SetSelectPositon(cursor_->GetArea(), 0, 0, cursor_->GetHandIndex());
-
-	//PieceType pieceType = hand.GetPiece(cursor_->GetHandIndex()).type_;
-
-	//// ‘Å‚Ä‚éêŠ‚ÌƒŠƒXƒg‚ðŽæ“¾
-	//selector_->SetMoveList(rule_->GetDropList(*board_, pieceType, isPlayerTurn_));
-
-	//// ”Õ–Ê‚ÖƒJ[ƒ\ƒ‹‚ð–ß‚·
-	//cursor_->ChangeArea(CursorArea::BOARD);
-
-	//cursor_->SetBoardPosition(2, 2);
-
 	Hand& hand = GetCurrentHand();
 
 	if (!rule_->CanSelectHandPiece(hand, cursor_->GetHandIndex()))
@@ -259,12 +381,10 @@ void MiniShogi::SelectHandPiece(void)
 
 	PieceType pieceType = hand.GetPiece(cursor_->GetHandIndex()).type_;
 
-	cursor_->ChangeArea(CursorArea::BOARD);
-
-	// ‘Å‚Ä‚éêŠ‚ÌƒŠƒXƒg‚ðŽæ“¾
+	// æ‰“ã¦ã‚‹å ´æ‰€ã®ãƒªã‚¹ãƒˆã‚’å–å¾—
 	selector_->SetMoveList(rule_->GetDropList(*board_, pieceType, isPlayerTurn_));
 
-	// ”Õ–Ê‚ÖƒJ[ƒ\ƒ‹‚ð–ß‚·
+	// ç›¤é¢ã¸ã‚«ãƒ¼ã‚½ãƒ«ã‚’æˆ»ã™
 	cursor_->ChangeArea(CursorArea::BOARD);
 
 	cursor_->SetBoardPosition(2, 2);
@@ -272,32 +392,6 @@ void MiniShogi::SelectHandPiece(void)
 
 void MiniShogi::DropHandPiece(void)
 {
-	/*int x = cursor_->GetX();
-	int y = cursor_->GetY();
-
-	if(!selector_->IsMovePosition( x, y))
-	{
-		selector_->Select(false);
-		return;
-	}
-	
-	Hand& hand = GetCurrentHand();
-
-	Piece dropPiece
-	{
-		selector_->GetSelectPieceType(),
-		isPlayerTurn_,
-		false
-	};
-
-	board_->SetPiece(x, y, dropPiece);
-
-	hand.RemovePiece(dropPiece.type_);
-
-	selector_->Select(false);
-
-	isPlayerTurn_ = !isPlayerTurn_;*/
-
 	int x = cursor_->GetX();
 	int y = cursor_->GetY();
 
@@ -329,7 +423,29 @@ void MiniShogi::MovePiece(int fromX, int fromY, int toX, int toY)
 {
 	Piece movePiece = board_->GetPiece(fromX, fromY);
 
-	// ‹îŽæ“¾
+	if (rule_->MustPromote(movePiece, toY))
+	{
+		rule_->Promote(movePiece);
+	}
+	else if (rule_->CanPromote(movePiece, fromY, toY))
+	{
+		pendingMovePiece_ = movePiece;
+
+		pendingFromX_ = fromX;
+		pendingFromY_ = fromY;
+
+		pendingToX_ = toX;
+		pendingToY_ = toY;
+
+		promotionState_ =
+			PromotionState::WAIT_SELECT;
+
+		promoteSelect_ = true;
+
+		return;
+	}
+
+	// é§’å–å¾—
 	if (board_->IsExistPiece(toX, toY))
 	{
 		Piece capturePiece = board_->GetPiece(toX, toY);

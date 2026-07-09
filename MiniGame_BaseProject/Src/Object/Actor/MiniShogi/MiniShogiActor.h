@@ -28,6 +28,9 @@ public:
 	void Update(void);
 	void Draw(void);
 
+	const HandActor* GetPlayerHandActor(void) const;
+	const HandActor* GetEnemyHandActor(void) const;
+
 private:
 
 	MiniShogiBoard* board_;
@@ -38,10 +41,10 @@ private:
 	std::array<std::unique_ptr<MiniShogiPiece>, PIECE_COUNT> pieces_;
 
 	Hand* player0Hand_;
-	Hand* player1Hand_;
+	Hand* enemyHand_;
 
-	std::unique_ptr<HandActor> player0HandActor_;
-	std::unique_ptr<HandActor> player1HandActor_;
+	std::unique_ptr<HandActor> playerHandActor_;
+	std::unique_ptr<HandActor> enemyHandActor_;
 
 	ResourceManager& resMng_;
 	

@@ -2,6 +2,7 @@
 
 #include "HandActor.h"
 #include <array>
+#include <vector>
 #include <memory>
 
 #include <DxLib.h>
@@ -33,6 +34,7 @@ public:
 	VECTOR GetPieceWorldPosition(int index) const;
 	VECTOR GetCellWorldPosition(int index) const;
 	int GetPieceCount(void) const;
+	PieceType GetPieceType(int index) const;
 
 private:
 
@@ -45,6 +47,7 @@ private:
 	std::array<std::unique_ptr<MiniShogiPiece>, MAX_HAND_PIECE> pieces_;
 
 	int ouH_;
+	int gyokuH_;
 	int kinH_;
 	int ginH_;
 	int kakuH_;
