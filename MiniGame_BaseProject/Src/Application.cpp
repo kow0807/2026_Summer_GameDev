@@ -96,7 +96,7 @@ void Application::Run(void)
 	auto& pythonRuntimeManager = PythonRuntimeManager::GetInstance();
 
 	// ÉQÅ[ÉÄÉãÅ[Év
-	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0 && !SceneManager::GetInstance().IsGameEnd())
+	while (ProcessMessage() == 0 && !SceneManager::GetInstance().IsGameEnd())
 	{
 		auto frameStart = std::chrono::high_resolution_clock::now();
 

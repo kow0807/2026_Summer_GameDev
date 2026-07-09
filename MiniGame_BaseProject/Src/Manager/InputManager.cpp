@@ -26,6 +26,7 @@ void InputManager::Init(void)
 
 	// ゲームで使用したいキーを、
 	// 事前にここで登録しておいてください
+	InputManager::GetInstance().Add(KEY_INPUT_ESCAPE);
 	InputManager::GetInstance().Add(KEY_INPUT_RETURN);
 	InputManager::GetInstance().Add(KEY_INPUT_SPACE);
 	InputManager::GetInstance().Add(KEY_INPUT_TAB);
@@ -337,6 +338,9 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 		idx = static_cast<int>(JOYPAD_BTN::SEVEN);
 		ret.ButtonsNew[idx] = d.Buttons[7];
 
+		idx = static_cast<int>(JOYPAD_BTN::START);
+		ret.ButtonsNew[idx] = d.Buttons[6];
+
 		// 左スティック
 		ret.AKeyLX = d.X;
 		ret.AKeyLY = d.Y;
@@ -394,6 +398,9 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 
 		idx = static_cast<int>(JOYPAD_BTN::SEVEN);
 		ret.ButtonsNew[idx] = d.Buttons[7];
+
+		idx = static_cast<int>(JOYPAD_BTN::START);
+		ret.ButtonsNew[idx] = d.Buttons[9];
 
 	}
 	break;

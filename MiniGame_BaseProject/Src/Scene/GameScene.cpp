@@ -50,23 +50,68 @@ void GameScene::Init(void)
 		"游明朝",
 		18,
 		3);
+	gameTitleFont_ = CreateFontToHandle(
+		"游明朝",
+		40,
+		5,
+		DX_FONTTYPE_ANTIALIASING_EDGE
+	);
+
+	backImg_ = resMng_.Load(ResourceManager::SRC::SELECT_BACK).handleId_;
+
+	gameThumbnail_[0] = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_EXPLANATION).handleId_;
+	gameThumbnail_[1] = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_EXPLANATION).handleId_;
+	gameThumbnail_[2] = resMng_.Load(ResourceManager::SRC::REVERSI_EXPLANATION).handleId_;
+	gameThumbnail_[3] = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_EXPLANATION).handleId_;
+	gameThumbnail_[4] = resMng_.Load(ResourceManager::SRC::KARI).handleId_;
+	gameThumbnail_[5] = resMng_.Load(ResourceManager::SRC::KARI).handleId_;
 
 	firstPressExplanationImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_EXPLANATION).handleId_;
 	quizExplanationImg_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_EXPLANATION).handleId_;
 	reversiExplanationImg_ = resMng_.Load(ResourceManager::SRC::REVERSI_EXPLANATION).handleId_;
 	buttonMashExplanationImg_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_EXPLANATION).handleId_;
 	decideSEH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_DICIDE_SE).handleId_;
+
+	isBgm_ = true;
+	bgm_ = resMng_.Load(ResourceManager::SRC::SELECT_BGM).handleId_;
+	ChangeVolumeSoundMem(190, bgm_);
+
+	moveSe_ = resMng_.Load(ResourceManager::SRC::SELECT_MOVE_SE).handleId_;
+	cancelSe_ = resMng_.Load(ResourceManager::SRC::SELECT_CANCEL_SE).handleId_;
+	selectSe_ = resMng_.Load(ResourceManager::SRC::SELECT_SELECT_SE).handleId_;
+	menuSe_ = resMng_.Load(ResourceManager::SRC::SELECT_MENU_SE).handleId_;
+
+	leftArrowAnim_ = 0;
+	rightArrowAnim_ = 0;
+
+	isPause_ = false;
+	pauseX_ = -320.0f;
+	pauseSelect_ = 0;
 }
 
 void GameScene::Update(void)
 {
+	if (isBgm_)
+	{
+		PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP);
+		isBgm_ = false;
+	}
+
 	switch (selectState_)
 	{
 	case SELECT_STATE::GAME_SELECT:
+		if (PauseUpdate())
+		{
+			return;
+		}
 		SelectGameUpdate();
 		break;
 
 	case SELECT_STATE::EXPLANATION:
+		if (PauseUpdate())
+		{
+			return;
+		}
 		ExplanationUpdate();
 		break;
 
@@ -127,7 +172,6 @@ void GameScene::Draw(void)
 		DrawGame();
 		break;
 	}
-
 	DrawFade();
 }
 
@@ -150,11 +194,17 @@ void GameScene::DrawUI(void)
 		break;
 
 	case SELECT_STATE::PLAYING:
-		if(gameBase_)
+		if (gameBase_)
 		{
 			gameBase_->DrawUI();
 		}
 		break;
+	}
+
+	// パネルが見えている間だけ描画
+	if (isPause_ || pauseX_ > -320.0f)
+	{
+		PauseDraw();
 	}
 }
 
@@ -167,25 +217,42 @@ void GameScene::SelectGameUpdate(void)
 	int index = static_cast<int>(miniState_);
 	const int max = static_cast<int>(MINI_STATE::MAX);
 
-	if (ins.IsTrgDown(KEY_INPUT_RIGHT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT))
+	// アニメーションタイマー更新
+	if (leftArrowAnim_ > 0) leftArrowAnim_--;
+	if (rightArrowAnim_ > 0) rightArrowAnim_--;
+
+	if (ins.IsTrgDown(KEY_INPUT_RIGHT) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT))
 	{
+		PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
+
 		index++;
 		if (index >= max) index = 0;
+
+		rightArrowAnim_ = 7;
 	}
 
-	if (ins.IsTrgDown(KEY_INPUT_LEFT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT))
+	if (ins.IsTrgDown(KEY_INPUT_LEFT) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT))
 	{
+		PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
+
 		index--;
 		if (index < 0) index = max - 1;
+
+		leftArrowAnim_ = 7;
 	}
 
 	miniState_ = static_cast<MINI_STATE>(index);
 
 	// 決定 → 説明画面へ
-	if (ins.IsTrgDown(KEY_INPUT_RETURN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
+	if (ins.IsTrgDown(KEY_INPUT_RETURN) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
 	{
+		PlaySoundMem(selectSe_, DX_PLAYTYPE_BACK);
+
 		selectState_ = SELECT_STATE::EXPLANATION;
-		isYes_ = true; // 初期は「はい」
+		isYes_ = true;
 	}
 }
 
@@ -198,6 +265,7 @@ void GameScene::ExplanationUpdate()
 		|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT)
 		|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT))
 	{
+		PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
 		isYes_ = !isYes_;
 	}
 
@@ -206,6 +274,7 @@ void GameScene::ExplanationUpdate()
 		|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP)
 		|| ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))
 	{
+		PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
 		isKeyboard_ = !isKeyboard_;
 	}
 
@@ -216,6 +285,7 @@ void GameScene::ExplanationUpdate()
 		{
 			if (!PythonRuntimeManager::GetInstance().IsFinished() && (miniState_ == MINI_STATE::QUORIDOR))
 			{
+				StopSoundMem(bgm_);
 				PythonRuntimeManager::GetInstance().StartExtractAsync();
 				selectState_ = SELECT_STATE::RUNTIME_LOADING;
 
@@ -223,6 +293,7 @@ void GameScene::ExplanationUpdate()
 			}
 			else
 			{
+				StopSoundMem(bgm_);
 				PlaySoundMem(decideSEH_, DX_PLAYTYPE_BACK);
 				fadeAlpha_ = 0;
 				selectState_ = SELECT_STATE::TRANSITION_OUT;
@@ -230,6 +301,7 @@ void GameScene::ExplanationUpdate()
 		}
 		else
 		{
+			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
 			selectState_ = SELECT_STATE::GAME_SELECT;
 		}
 	}
@@ -243,6 +315,7 @@ void GameScene::GameUpdate()
 
 	if (gameBase_->GetIsReturn())
 	{
+		isBgm_ = true;
 		//ミニゲームのリセット
 		gameBase_->Reset();
 		gameBase_->SetIsReturn(false);
@@ -259,6 +332,234 @@ void GameScene::GameUpdate()
 	gameBase_->Update();
 }
 
+bool GameScene::PauseUpdate(void)
+{
+	InputManager& ins = InputManager::GetInstance();
+
+	//--------------------------------------
+	// Escapeで開閉
+	//--------------------------------------
+	if (ins.IsTrgDown(KEY_INPUT_ESCAPE) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::SEVEN))
+	{
+		isPause_ = !isPause_;
+
+		if (isPause_)
+		{
+			PlaySoundMem(menuSe_, DX_PLAYTYPE_BACK);
+			StopSoundMem(bgm_);
+		}
+		else
+		{
+			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
+			PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+		}
+
+		// 開いた・閉じた瞬間は入力を消費
+		return true;
+	}
+
+	//--------------------------------------
+	// スライドアニメーション
+	//--------------------------------------
+	float targetX = isPause_ ? 0.0f : -320.0f;
+	pauseX_ += (targetX - pauseX_) * 0.2f;
+
+	//--------------------------------------
+	// ポーズ中でなければゲームへ入力を渡す
+	//--------------------------------------
+	if (!isPause_)
+		return false;
+
+	//--------------------------------------
+	// カーソル移動
+	//--------------------------------------
+	if (ins.IsTrgDown(KEY_INPUT_UP) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP))
+	{
+		PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
+
+		pauseSelect_--;
+
+		if (pauseSelect_ < 0)
+			pauseSelect_ = 2;
+	}
+
+	if (ins.IsTrgDown(KEY_INPUT_DOWN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))
+	{
+		PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
+		
+		pauseSelect_++;
+
+		if (pauseSelect_ > 2)
+			pauseSelect_ = 0;
+	}
+
+	//--------------------------------------
+	// 決定
+	//--------------------------------------
+	if (ins.IsTrgDown(KEY_INPUT_RETURN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
+	{
+		switch (pauseSelect_)
+		{
+		case 0:
+			isPause_ = false;
+			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
+			PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+			return true;    // このフレームはゲームへ入力を渡さない
+
+		case 1:
+			PlaySoundMem(decideSEH_, DX_PLAYTYPE_BACK);
+			SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+			return true;
+
+		case 2:
+			SceneManager::GetInstance().SetGameEnd(true);
+			return true;
+		}
+	}
+
+	// ポーズ中は常に入力を消費
+	return true;
+}
+
+void GameScene::PauseDraw(void)
+{
+	//--------------------------------------
+	// 背景（ポーズ中だけ）
+	//--------------------------------------
+	if (isPause_)
+	{
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
+
+		DrawBox(
+			0,
+			0,
+			Application::SCREEN_SIZE_X,
+			Application::SCREEN_SIZE_Y,
+			GetColor(0, 0, 0),
+			TRUE);
+
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	}
+
+	//--------------------------------------
+	// パネルが画面外なら描画しない
+	//--------------------------------------
+	if (pauseX_ <= -320.0f)
+		return;
+
+	//--------------------------------------
+	// パネル影
+	//--------------------------------------
+	DrawBox(
+		(int)pauseX_ + 8,
+		8,
+		(int)pauseX_ + 308,
+		Application::SCREEN_SIZE_Y,
+		GetColor(20, 20, 20),
+		TRUE);
+
+	//--------------------------------------
+	// パネル本体
+	//--------------------------------------
+	DrawBox(
+		(int)pauseX_,
+		0,
+		(int)pauseX_ + 300,
+		Application::SCREEN_SIZE_Y,
+		GetColor(35, 35, 45),
+		TRUE);
+
+	//--------------------------------------
+	// 枠
+	//--------------------------------------
+	DrawBox(
+		(int)pauseX_ - 100,
+		0,
+		(int)pauseX_ + 300,
+		Application::SCREEN_SIZE_Y,
+		GetColor(0, 220, 255),
+		FALSE);
+
+	//--------------------------------------
+	// タイトル
+	//--------------------------------------
+	DrawStringToHandle(
+		(int)pauseX_ + 30,
+		40,
+		"PAUSE",
+		GetColor(255, 255, 255),
+		explanationFontHandle_);
+
+	DrawLine(
+		(int)pauseX_ + 30,
+		75,
+		(int)pauseX_ + 270,
+		75,
+		GetColor(0, 220, 255));
+
+	//--------------------------------------
+	// メニュー
+	//--------------------------------------
+	const char* menu[3] =
+	{
+		"ゲームに戻る",
+		"タイトルに戻る",
+		"ゲーム終了"
+	};
+
+	for (int i = 0; i < 3; i++)
+	{
+		int y = 150 + i * 80;
+
+		if (i == pauseSelect_)
+		{
+			DrawBox(
+				(int)pauseX_ + 20,
+				y - 8,
+				(int)pauseX_ + 280,
+				y + 30,
+				GetColor(0, 180, 220),
+				TRUE);
+
+			DrawBox(
+				(int)pauseX_ + 20,
+				y - 8,
+				(int)pauseX_ + 28,
+				y + 30,
+				GetColor(255, 255, 255),
+				TRUE);
+
+			DrawStringToHandle(
+				(int)pauseX_ + 45,
+				y,
+				menu[i],
+				GetColor(255, 255, 255),
+				explanationFontHandle_);
+		}
+		else
+		{
+			DrawStringToHandle(
+				(int)pauseX_ + 45,
+				y,
+				menu[i],
+				GetColor(180, 180, 180),
+				explanationFontHandle_);
+		}
+	}
+
+	//--------------------------------------
+	// 操作説明
+	//--------------------------------------
+	DrawLine(
+		(int)pauseX_ + 20,
+		500,
+		(int)pauseX_ + 280,
+		500,
+		GetColor(80, 80, 80));
+
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+}
+
 void GameScene::DrawGame()
 {
 	if (!gameBase_)
@@ -269,14 +570,17 @@ void GameScene::DrawGame()
 	gameBase_->Draw();
 }
 
-void GameScene::SelectGameDrawUI(void)
+void GameScene::SelectGameDrawUI()
 {
 	const int centerX = Application::SCREEN_SIZE_X / 2;
 	const int centerY = Application::SCREEN_SIZE_Y / 2;
 
-	const int cardW = 200;
-	const int cardH = 120;
-	const int spacing = 260;
+	const int offsetY = -20;
+
+	//--------------------------------
+	// 背景
+	//--------------------------------
+	DrawRotaGraph(centerX, centerY, 0.7, 0.0, backImg_, TRUE);
 
 	const char* names[] =
 	{
@@ -285,59 +589,173 @@ void GameScene::SelectGameDrawUI(void)
 		"オセロ",
 		"連打対決",
 		"コリドール",
-		"5五将棋(開発中のため\n選択しないでください)"
+		"5五将棋"
 	};
 
-	const int current = static_cast<int>(miniState_);
+	int index = static_cast<int>(miniState_);
 
-	for (int i = 0; i < static_cast<int>(MINI_STATE::MAX); i++)
+	const int width = 800;
+	const int height = 500;
+
+	int left = centerX - width / 2;
+	int right = centerX + width / 2;
+	int top = centerY - height / 2 + offsetY;
+	int bottom = centerY + height / 2 + offsetY;
+
+	//--------------------------------
+	// サムネイル
+	//--------------------------------
+	DrawExtendGraph(
+		left,
+		top,
+		right,
+		bottom,
+		gameThumbnail_[index],
+		TRUE);
+
+	//--------------------------------
+	// 外側の発光枠
+	//--------------------------------
+	DrawBox(left - 4, top - 4, right + 4, bottom + 4, GetColor(0, 180, 255), FALSE);
+	DrawBox(left - 2, top - 2, right + 2, bottom + 2, GetColor(100, 220, 255), FALSE);
+	DrawBox(left, top, right, bottom, GetColor(255, 255, 255), FALSE);
+
+	//--------------------------------
+	// 四隅装飾
+	//--------------------------------
+	const int c = 30;
+
+	DrawLine(left, top, left + c, top, GetColor(0, 220, 255));
+	DrawLine(left, top, left, top + c, GetColor(0, 220, 255));
+
+	DrawLine(right, top, right - c, top, GetColor(0, 220, 255));
+	DrawLine(right, top, right, top + c, GetColor(0, 220, 255));
+
+	DrawLine(left, bottom, left + c, bottom, GetColor(0, 220, 255));
+	DrawLine(left, bottom, left, bottom - c, GetColor(0, 220, 255));
+
+	DrawLine(right, bottom, right - c, bottom, GetColor(0, 220, 255));
+	DrawLine(right, bottom, right, bottom - c, GetColor(0, 220, 255));
+
+	//--------------------------------
+	// タイトル
+	//--------------------------------
+	int textW = GetDrawStringWidthToHandle(
+		names[index],
+		strlen(names[index]),
+		gameTitleFont_);
+
+	int textX = centerX - textW / 2;
+	int textY = bottom + 30;
+
+	DrawStringToHandle(textX - 2, textY, names[index], GetColor(0, 180, 255), gameTitleFont_);
+	DrawStringToHandle(textX + 2, textY, names[index], GetColor(0, 180, 255), gameTitleFont_);
+	DrawStringToHandle(textX, textY - 2, names[index], GetColor(0, 180, 255), gameTitleFont_);
+	DrawStringToHandle(textX, textY + 2, names[index], GetColor(0, 180, 255), gameTitleFont_);
+
+	DrawStringToHandle(textX + 3, textY + 3, names[index], GetColor(0, 0, 0), gameTitleFont_);
+	DrawStringToHandle(textX, textY, names[index], GetColor(255, 255, 255), gameTitleFont_);
+
+	//--------------------------------
+	// 点滅する矢印（押したら拡大＋色変更）
+	//--------------------------------
+	const int arrowOffset = width / 2 + 60;
+
+	int alpha = 120 + static_cast<int>(135 * (sin(GetNowCount() * 0.005) + 1.0) * 0.5);
+
+	//==========================
+	// 左矢印
+	//==========================
 	{
-		int diff = i - current;
+		int lx = centerX - arrowOffset;
+		int ly = centerY + offsetY;
 
-		// ループ補正
-		if (diff > static_cast<int>(MINI_STATE::MAX) / 2)
-			diff -= static_cast<int>(MINI_STATE::MAX);
-		if (diff < -static_cast<int>(MINI_STATE::MAX) / 2)
-			diff += static_cast<int>(MINI_STATE::MAX);
+		int w = (leftArrowAnim_ > 0) ? 30 : 24;
+		int h = (leftArrowAnim_ > 0) ? 36 : 30;
 
-		int x = centerX + diff * spacing;
-		int y = centerY;
+		int fillColor = (leftArrowAnim_ > 0)
+			? GetColor(255, 230, 0)		// 黄色
+			: GetColor(255, 255, 255);	// 白
 
-		bool isSelect = (i == current);
+		int frameColor = (leftArrowAnim_ > 0)
+			? GetColor(255, 120, 0)		// オレンジ
+			: GetColor(0, 220, 255);	// シアン
 
-		int color = isSelect ?
-			GetColor(255, 255, 0) :
-			GetColor(200, 200, 200);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA,
+			(leftArrowAnim_ > 0) ? 255 : alpha);
 
-		// 枠
-		DrawBox(
-			x - cardW / 2, y - cardH / 2,
-			x + cardW / 2, y + cardH / 2,
-			color,
-			FALSE
-		);
+		// 中身
+		DrawTriangle(
+			lx - w, ly,
+			lx + w, ly - h,
+			lx + w, ly + h,
+			fillColor,
+			TRUE);
 
-		// 選択強調
-		if (isSelect)
-		{
-			DrawBox(
-				x - cardW / 2, y - cardH / 2,
-				x + cardW / 2, y + cardH / 2,
-				GetColor(255, 255, 0),
-				TRUE
-			);
-		}
+		// 白枠
+		DrawTriangle(
+			lx - w, ly,
+			lx + w, ly - h,
+			lx + w, ly + h,
+			GetColor(255, 255, 255),
+			FALSE);
 
-		// 文字
-		int textW = GetDrawStringWidth(names[i], static_cast<int>(strlen(names[i])));
-
-		DrawString(
-			x - textW / 2,
-			y + cardH / 2 + 10,
-			names[i],
-			GetColor(255, 255, 255)
-		);
+		// 外枠
+		DrawTriangle(
+			lx - w - 4, ly,
+			lx + w + 4, ly - h - 5,
+			lx + w + 4, ly + h + 5,
+			frameColor,
+			FALSE);
 	}
+
+	//==========================
+	// 右矢印
+	//==========================
+	{
+		int rx = centerX + arrowOffset;
+		int ry = centerY + offsetY;
+
+		int w = (rightArrowAnim_ > 0) ? 30 : 24;
+		int h = (rightArrowAnim_ > 0) ? 36 : 30;
+
+		int fillColor = (rightArrowAnim_ > 0)
+			? GetColor(255, 230, 0)
+			: GetColor(255, 255, 255);
+
+		int frameColor = (rightArrowAnim_ > 0)
+			? GetColor(255, 120, 0)
+			: GetColor(0, 220, 255);
+
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA,
+			(rightArrowAnim_ > 0) ? 255 : alpha);
+
+		// 中身
+		DrawTriangle(
+			rx + w, ry,
+			rx - w, ry - h,
+			rx - w, ry + h,
+			fillColor,
+			TRUE);
+
+		// 白枠
+		DrawTriangle(
+			rx + w, ry,
+			rx - w, ry - h,
+			rx - w, ry + h,
+			GetColor(255, 255, 255),
+			FALSE);
+
+		// 外枠
+		DrawTriangle(
+			rx + w + 4, ry,
+			rx - w - 4, ry - h - 5,
+			rx - w - 4, ry + h + 5,
+			frameColor,
+			FALSE);
+	}
+
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
 void GameScene::ExplanationDrawUI()

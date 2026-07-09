@@ -29,11 +29,14 @@ void TitleScene::Init(void)
     isBgm_ = true;
     bgm_ = resMng_.Load(ResourceManager::SRC::TITLE_BGM).handleId_;
     startSe_ = resMng_.Load(ResourceManager::SRC::TITLE_START_SE).handleId_;
+    moveSe_ = resMng_.Load(ResourceManager::SRC::TITLE_MOVE_SE).handleId_;
 
     uiFont_ = CreateFontToHandle(
         "游明朝",
-        28,
-        6);
+        40,
+        16);
+
+    selectNo_ = 0;
 }
 
 void TitleScene::Update(void)
@@ -43,14 +46,52 @@ void TitleScene::Update(void)
         PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP);
         isBgm_ = false;
     }
-	InputManager& ins = InputManager::GetInstance();
 
-	if(ins.IsNew(KEY_INPUT_SPACE) || ins.IsPadBtnNew(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
-	{
+    InputManager& ins = InputManager::GetInstance();
+
+    //--------------------------------------
+    // カーソル移動
+    //--------------------------------------
+    if (ins.IsTrgDown(KEY_INPUT_UP) ||
+        ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP))
+    {
+        PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
+        selectNo_--;
+
+        if (selectNo_ < 0)
+            selectNo_ = 1;
+    }
+
+    if (ins.IsTrgDown(KEY_INPUT_DOWN) ||
+        ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))
+    {
+        PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
+        selectNo_++;
+
+        if (selectNo_ > 1)
+            selectNo_ = 0;
+    }
+
+    //--------------------------------------
+    // 決定
+    //--------------------------------------
+    if (ins.IsTrgDown(KEY_INPUT_RETURN) ||
+        ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
+    {
         PlaySoundMem(startSe_, DX_PLAYTYPE_BACK);
-        StopSoundMem(bgm_);
-		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
-	}
+
+        switch (selectNo_)
+        {
+        case 0: // Game Start
+            StopSoundMem(bgm_);
+            SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
+            break;
+
+        case 1: // Exit
+            SceneManager::GetInstance().SetGameEnd(true);
+            break;
+        }
+    }
 }
 
 void TitleScene::Draw(void)
@@ -61,30 +102,86 @@ void TitleScene::Draw(void)
     int centerX = screenX / 2;
     int centerY = screenY / 2;
 
+    //--------------------------------------
     // 背景
+    //--------------------------------------
     DrawRotaGraph(centerX, centerY, 0.7, 0.0, backImg_, true);
 
+    //--------------------------------------
     // ロゴ
-    DrawRotaGraph(centerX, centerY, 0.4, 0.0, logoImg_, true);
+    //--------------------------------------
+    DrawRotaGraph(centerX, centerY - 120, 0.4, 0.0, logoImg_, true);
 
-    // PUSH SPACE
-    if ((GetNowCount() / 500) % 2 == 0)
+    //--------------------------------------
+    // メニュー
+    //--------------------------------------
+    const char* menu[2] =
     {
-        const char* text = "PUSH SPACE";
+        "Game Start",
+        "Exit"
+    };
 
-        int textWidth = GetDrawStringWidthToHandle(
-            text,
-            static_cast<int>(strlen(text)),
+    int menuStartY = centerY + 80;
+    int time = GetNowCount();
+
+    for (int i = 0; i < 2; i++)
+    {
+        bool isSelect = (i == selectNo_);
+
+        int offsetY = 0;
+        double scale = 1.0;
+        int arrowOffsetX = 0;
+
+        if (isSelect)
+        {
+            // ゆっくり1px上下
+            offsetY = static_cast<int>(sin(time * 0.005) * 1);
+
+            // 少しだけ大きく
+            scale = 1.03;
+
+            // 矢印だけ少し左右に動く
+            arrowOffsetX = static_cast<int>(sin(time * 0.008) * 2);
+        }
+
+        int width = GetDrawStringWidthToHandle(
+            menu[i],
+            static_cast<int>(strlen(menu[i])),
             uiFont_);
 
-        DrawStringToHandle(
-            centerX - textWidth / 2,
-            screenY - 160,
-            text,
-            GetColor(0, 0, 0),
-            uiFont_);
+        int x = centerX - width / 2;
+        int y = menuStartY + i * 70 + offsetY;
+
+        if (isSelect)
+        {
+            DrawExtendStringToHandle(
+                x,
+                y,
+                scale,
+                scale,
+                menu[i],
+                GetColor(0, 0, 0),
+                uiFont_);
+
+            DrawStringToHandle(
+                x - 45 + arrowOffsetX,
+                y,
+                ">",
+                GetColor(0, 0, 0),
+                uiFont_);
+        }
+        else
+        {
+            DrawStringToHandle(
+                x,
+                y,
+                menu[i],
+                GetColor(140, 140, 140),
+                uiFont_);
+        }
     }
 }
+
 void TitleScene::DrawUI(void)
 {
 

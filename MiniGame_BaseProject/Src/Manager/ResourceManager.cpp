@@ -30,6 +30,11 @@ void ResourceManager::Init(void)
 
 	std::shared_ptr<Resource> res;
 
+	// âºâÊëú
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Kari.png");
+	resourcesMap_.emplace(SRC::KARI, res);
+
+
 	// îwåi
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Title/Back.png");
 	resourcesMap_.emplace(SRC::TITLE_BACK, res);
@@ -45,6 +50,36 @@ void ResourceManager::Init(void)
 	// äJénâπ
 	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Title/Start.mp3");
 	resourcesMap_.emplace(SRC::TITLE_START_SE, res);
+
+	// à⁄ìÆâπ
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Title/Move.mp3");
+	resourcesMap_.emplace(SRC::TITLE_MOVE_SE, res);
+
+
+
+	// îwåi
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Select/Back.png");
+	resourcesMap_.emplace(SRC::SELECT_BACK, res);
+
+	// BGM
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Select/Bgm.mp3");
+	resourcesMap_.emplace(SRC::SELECT_BGM, res);
+
+	// à⁄ìÆâπ
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Select/Move.mp3");
+	resourcesMap_.emplace(SRC::SELECT_MOVE_SE, res);
+
+	// ÉLÉÉÉìÉZÉãâπ
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Select/Cancel.mp3");
+	resourcesMap_.emplace(SRC::SELECT_CANCEL_SE, res);
+
+	// ëIëâπ
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Select/Select.mp3");
+	resourcesMap_.emplace(SRC::SELECT_SELECT_SE, res);
+
+	// ÉÅÉjÉÖÅ[âπ
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Select/Menu.mp3");
+	resourcesMap_.emplace(SRC::SELECT_MENU_SE, res);
 
 
 	// îwåi
