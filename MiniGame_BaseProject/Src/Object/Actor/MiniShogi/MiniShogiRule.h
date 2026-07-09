@@ -23,7 +23,7 @@ public:
 		const MiniShogiBoard& board,
 		int x,
 		int y
-	);
+	) const;
 
 	std::vector<MoveData> GetDropList(
 		const MiniShogiBoard& board,
@@ -43,6 +43,18 @@ public:
 	// ãÓÇê¨ÇÁÇπÇÈ
 	void Promote(Piece& piece) const;
 
+	bool IsCheck(const MiniShogiBoard& board, bool playerSide) const;
+
+	bool IsCheck(const MiniShogiBoard& board, bool isPlayerTurn);
+
+	bool IsLegalMove(
+		const MiniShogiBoard& board,
+		int fromX,
+		int fromY,
+		int toX,
+		int toY
+	) const;
+
 private:
 
 	void AddMove(std::vector<MoveData>& moveList,
@@ -50,7 +62,7 @@ private:
 		int x,
 		int y,
 		bool isPlayer
-	);
+	) const;
 
 	void AddLineMove(
 		std::vector<MoveData>& moveList,
@@ -60,15 +72,20 @@ private:
 		int offsetX,
 		int offsetY,
 		bool isPlayer
-	);
+	) const;
 
-	bool IsInsideBoard(int x, int y);
+	bool IsInsideBoard(int x, int y) const;
 
 	void AddKinMove(
 		std::vector<MoveData>& moveList,
 		const MiniShogiBoard& board,
 		int x,
 		int y,
-		bool isPlayer);
+		bool isPlayer) const;
+
+	bool FindKing(const MiniShogiBoard& board,
+		bool playerSide,
+		int& kingX,
+		int& kingY) const;
 };
 

@@ -197,6 +197,8 @@ void MiniShogi::DrawUI(void)
 			"いいえ",
 			GetColor(255, 255, 255));
 	}
+
+
 }
 
 void MiniShogi::Reset(void)
@@ -325,6 +327,11 @@ void MiniShogi::SelectBoardPiece(void)
 	int x = cursor_->GetX();
 	int y = cursor_->GetY();
 
+	if (!board_->IsExistPiece(x, y))
+	{
+		return;
+	}
+
 	if (!rule_->CanSelectPiece(*board_, x, y, isPlayerTurn_)) return;
 
 	selector_->Select(true);
@@ -341,18 +348,34 @@ void MiniShogi::MoveBoardPiece(void)
 	int x = cursor_->GetX();
 	int y = cursor_->GetY();
 
-	if(!selector_->IsMovePosition(x, y))
+	if (!selector_->IsMovePosition(x, y))
 	{
 		selector_->Select(false);
 		return;
 	}
 
-	MovePiece(
-		selector_->GetSelectX(),
-		selector_->GetSelectY(),
-		x,
-		y
-	);
+	int fromX = selector_->GetSelectX();
+	int fromY = selector_->GetSelectY();
+
+	MiniShogiBoard testBoard = *board_;
+
+	Piece movePiece =
+		testBoard.GetBoardPiece(fromX, fromY);
+
+	testBoard.SetPiece(x, y, movePiece);
+	testBoard.RemovePiece(fromX, fromY);
+
+	if (rule_->IsCheck(testBoard, isPlayerTurn_))
+	{
+		selector_->Select(false);
+		return;
+	}
+
+	if (!MovePiece(fromX, fromY, x, y))
+	{
+		return;
+	}
+
 
 	selector_->Select(false);
 
@@ -419,37 +442,15 @@ void MiniShogi::DropHandPiece(void)
 	isPlayerTurn_ = !isPlayerTurn_;
 }
 
-void MiniShogi::MovePiece(int fromX, int fromY, int toX, int toY)
+bool MiniShogi::MovePiece(int fromX, int fromY, int toX, int toY)
 {
 	Piece movePiece = board_->GetPiece(fromX, fromY);
-
-	if (rule_->MustPromote(movePiece, toY))
-	{
-		rule_->Promote(movePiece);
-	}
-	else if (rule_->CanPromote(movePiece, fromY, toY))
-	{
-		pendingMovePiece_ = movePiece;
-
-		pendingFromX_ = fromX;
-		pendingFromY_ = fromY;
-
-		pendingToX_ = toX;
-		pendingToY_ = toY;
-
-		promotionState_ =
-			PromotionState::WAIT_SELECT;
-
-		promoteSelect_ = true;
-
-		return;
-	}
 
 	// 駒取得
 	if (board_->IsExistPiece(toX, toY))
 	{
 		Piece capturePiece = board_->GetPiece(toX, toY);
-		
+
 		capturePiece.isPlayer_ = isPlayerTurn_;
 		capturePiece.isPromote_ = false;
 
@@ -463,10 +464,34 @@ void MiniShogi::MovePiece(int fromX, int fromY, int toX, int toY)
 		}
 	}
 
+	// 強制成り
+	if (rule_->MustPromote(movePiece, toY))
+	{
+		rule_->Promote(movePiece);
+	}
+	// 任意成り
+	else if (rule_->CanPromote(movePiece, fromY, toY))
+	{
+		pendingMovePiece_ = movePiece;
+
+		pendingFromX_ = fromX;
+		pendingFromY_ = fromY;
+
+		pendingToX_ = toX;
+		pendingToY_ = toY;
+
+		promotionState_ = PromotionState::WAIT_SELECT;
+
+		promoteSelect_ = true;
+
+		return false;
+	}
+
 	board_->SetPiece(toX, toY, movePiece);
 
 	board_->RemovePiece(fromX, fromY);
 
+	return true;
 }
 
 Hand& MiniShogi::GetCurrentHand(void)

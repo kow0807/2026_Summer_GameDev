@@ -75,7 +75,7 @@ private:
     void SelectHandPiece(void);
     void DropHandPiece(void);
 
-    void MovePiece(int fromX, int fromY, int toX, int toY);
+    bool MovePiece(int fromX, int fromY, int toX, int toY);
 
     Hand& GetCurrentHand(void);
     const Hand& GetCurrentHand(void) const;
