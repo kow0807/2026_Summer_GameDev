@@ -167,6 +167,15 @@ void Cursor::SetPlayerTurn(bool isPlayerTurn)
 	isPlayerTurn_ = isPlayerTurn;
 }
 
+void Cursor::SetHandIndex(int index)
+{
+	if (!isPlayerTurn_)
+	{
+		enemyHandIndex_ = index;
+	}
+	playerHandIndex_ = index;
+}
+
 void Cursor::BoardMoveUp(void)
 {
 	if (mY_ > 0)

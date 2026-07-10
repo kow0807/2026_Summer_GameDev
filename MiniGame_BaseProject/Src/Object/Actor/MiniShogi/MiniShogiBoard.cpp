@@ -75,3 +75,13 @@ void MiniShogiBoard::RemovePiece(int x, int y)
 		false
 	};
 }
+
+Piece& MiniShogiBoard::GetBoardPiece(int x, int y)
+{
+	return board[y][x];
+}
+
+const Piece& MiniShogiBoard::GetBoardPiece(int x, int y) const
+{
+	return board[y][x];
+}

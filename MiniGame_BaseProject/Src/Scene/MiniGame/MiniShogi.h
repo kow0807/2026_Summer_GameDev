@@ -13,11 +13,20 @@ class MiniShogiBoard;
 class MiniShogiRule;
 class Hand;
 class MiniShogiActor;
+class MiniShogiCpu;
 
 enum class PromotionState
 {
     NONE,
     WAIT_SELECT
+};
+
+enum class GameOverReason
+{
+    NONE,
+    CHECKMATE,
+    NO_LEGAL_MOVE,
+    KING_MISSING
 };
 
 class MiniShogi :
@@ -50,9 +59,13 @@ private:
 
     std::unique_ptr<MiniShogiActor> actor_;
 
+	std::unique_ptr<MiniShogiCpu> cpu_;
+
     bool isPlayerTurn_;
 
     PromotionState promotionState_;
+
+    GameOverReason gameOverReason_;
 
     bool promoteSelect_;
 
@@ -62,6 +75,20 @@ private:
     int pendingFromY_;
     int pendingToX_;
     int pendingToY_;
+
+	int cpuWaitFrame_;
+
+    const char* ruleMessage_;
+    int ruleMessageFrame_;
+
+    bool isGameOver_;
+
+    int gameOverFrame_;
+
+    int fontTitle_;
+    int fontMain_;
+
+    bool isPlayerWin_;
 
     void InputUpdate(void);
 	void UpdateCameraState(void);
@@ -75,9 +102,26 @@ private:
     void SelectHandPiece(void);
     void DropHandPiece(void);
 
-    void MovePiece(int fromX, int fromY, int toX, int toY);
+    bool MovePiece(int fromX, int fromY, int toX, int toY);
 
     Hand& GetCurrentHand(void);
     const Hand& GetCurrentHand(void) const;
+
+	bool ExecuteMove(int fromX, int fromY, int toX, int toY);
+	bool ExecuteDrop(PieceType pieceType, int toX, int toY);
+
+	void CpuUpdate(void);
+
+    bool ExecuteCpuMove(
+        int fromX,
+        int fromY,
+        int toX,
+        int toY,
+        bool isPromote
+    );
+
+    void CheckGameOver(void);
+    void UpdateGameOver(void);
+    void CancelSelect(void);
 };
 

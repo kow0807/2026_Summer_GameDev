@@ -44,6 +44,8 @@ public:
 
 	void SetPlayerTurn(bool isPlayerTurn);
 
+	void SetHandIndex(int index);
+
 private:
 
 	CursorArea myArea_;

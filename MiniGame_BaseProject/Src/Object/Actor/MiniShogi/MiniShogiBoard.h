@@ -21,6 +21,10 @@ public:
 
 	void RemovePiece(int x, int y);
 
+	Piece& GetBoardPiece(int x, int y);
+
+	const Piece& GetBoardPiece(int x, int y) const;
+
 private:
 
 	Piece board[5][5];
