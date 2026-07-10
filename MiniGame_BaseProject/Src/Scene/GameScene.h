@@ -83,6 +83,7 @@ private:
 	int fadeAlpha_;
 
 	bool isPause_;
+	int pauseScreenHandle_;
 	float pauseX_;
 	int pauseSelect_;
 

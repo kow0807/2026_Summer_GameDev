@@ -85,6 +85,10 @@ void GameScene::Init(void)
 	rightArrowAnim_ = 0;
 
 	isPause_ = false;
+	pauseScreenHandle_ = MakeScreen(
+		Application::SCREEN_SIZE_X,
+		Application::SCREEN_SIZE_Y,
+		TRUE);
 	pauseX_ = -320.0f;
 	pauseSelect_ = 0;
 }
@@ -345,6 +349,14 @@ bool GameScene::PauseUpdate(void)
 
 		if (isPause_)
 		{
+			// ポーズ直前の画面を保存
+			GetDrawScreenGraph(
+				0,
+				0,
+				Application::SCREEN_SIZE_X,
+				Application::SCREEN_SIZE_Y,
+				pauseScreenHandle_);
+
 			PlaySoundMem(menuSe_, DX_PLAYTYPE_BACK);
 			StopSoundMem(bgm_);
 		}
@@ -426,20 +438,34 @@ void GameScene::PauseDraw(void)
 	//--------------------------------------
 	// 背景（ポーズ中だけ）
 	//--------------------------------------
-	if (isPause_)
-	{
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
+	if (!isPause_)
+		return;
 
-		DrawBox(
-			0,
-			0,
-			Application::SCREEN_SIZE_X,
-			Application::SCREEN_SIZE_Y,
-			GetColor(0, 0, 0),
-			TRUE);
 
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-	}
+	//--------------------------------------
+	// ポーズ直前の画面
+	//--------------------------------------
+	DrawGraph(
+		0,
+		0,
+		pauseScreenHandle_,
+		TRUE);
+
+
+	//--------------------------------------
+	// 暗いフィルター
+	//--------------------------------------
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 120);
+
+	DrawBox(
+		0,
+		0,
+		Application::SCREEN_SIZE_X,
+		Application::SCREEN_SIZE_Y,
+		GetColor(0, 0, 0),
+		TRUE);
+
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
 	//--------------------------------------
 	// パネルが画面外なら描画しない

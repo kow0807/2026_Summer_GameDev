@@ -54,6 +54,18 @@ private:
 	int errorSe_;
 	int triviaSe_;
 
+	int menuSe_;
+	int cancelSe_;
+	int moveSe_;
+	int decideSEH_;
+
+	bool isPause_;
+	int pauseScreenHandle_;
+	float pauseX_;
+	int pauseSelect_;
+
+	int explanationFontHandle_;
+
 	// フレームカウント
 	int timer_;
 
@@ -97,5 +109,9 @@ private:
 	void FakeWaveBackground(void);
 	void FakeSystemError(void);
 	void FakeTrivia(void);
+
+	bool PauseUpdate(void);
+	void PauseDraw(void);
+
 };
 

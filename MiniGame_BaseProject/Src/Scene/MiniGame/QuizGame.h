@@ -45,6 +45,18 @@ private:
     int cursorSe_;
     int resultSe_;
 
+    int menuSe_;
+    int cancelSe_;
+    int moveSe_;
+    int decideSEH_;
+
+    bool isPause_;
+    int pauseScreenHandle_;
+    float pauseX_;
+    int pauseSelect_;
+
+    int explanationFontHandle_;
+
     int currentQuizIndex_;
     int score_;
 
@@ -72,4 +84,7 @@ private:
     void UpdateResult(void);
 
     void DrawQuiz(void);
+
+    bool PauseUpdate(void);
+    void PauseDraw(void);
 };

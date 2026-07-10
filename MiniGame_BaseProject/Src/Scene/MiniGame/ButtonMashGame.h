@@ -43,6 +43,18 @@ private:
     int pointSe_;
     int lostSe_;
 
+    int menuSe_;
+    int cancelSe_;
+    int moveSe_;
+    int decideSEH_;
+
+    bool isPause_;
+    int pauseScreenHandle_;
+    float pauseX_;
+    int pauseSelect_;
+
+    int explanationFontHandle_;
+
     float battleRate_;
 
     int playerWinCount_;
@@ -66,4 +78,7 @@ private:
     void DrawBattleArea(int borderX);
     int GetBattleOffset(int y);
     void DrawCountUI(void);
+
+    bool PauseUpdate(void);
+    void PauseDraw(void);
 };

@@ -46,7 +46,20 @@ private:
 	int overSe_;
 	bool isSkip_;
 	int skipSe_;
+	int cursorSe_;
+
+	int menuSe_;
+	int cancelSe_;
 	int moveSe_;
+	int decideSEH_;
+
+	bool isPause_;
+	int pauseScreenHandle_;
+	float pauseX_;
+	int pauseSelect_;
+
+	int explanationFontHandle_;
+
 
 	int cursorX_;
 	int cursorY_;
@@ -78,4 +91,7 @@ private:
 	void CPUAction();
 
 	void UpdateStoneCount();
+
+	bool PauseUpdate(void);
+	void PauseDraw(void);
 };

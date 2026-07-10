@@ -1,5 +1,6 @@
 #include "../../Manager/ResourceManager.h"
 #include "../../Manager/InputManager.h"
+#include "../../Manager/SceneManager.h"
 #include "../../Manager/Setting.h"
 #include "../../Application.h"
 #include "FirstPressGame.h"
@@ -72,11 +73,35 @@ void FirstPressGame::Init(void)
     ChangeVolumeSoundMem(160, errorSe_);
     triviaSe_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_TRIVIA_SE).handleId_;
     ChangeVolumeSoundMem(210, triviaSe_);
+
+    menuSe_ = resMng_.Load(ResourceManager::SRC::SELECT_MENU_SE).handleId_;
+    cancelSe_ = resMng_.Load(ResourceManager::SRC::SELECT_CANCEL_SE).handleId_;
+    moveSe_ = resMng_.Load(ResourceManager::SRC::SELECT_MOVE_SE).handleId_;
+    decideSEH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_DICIDE_SE).handleId_;
+
+    isPause_ = false;
+    pauseScreenHandle_ = MakeScreen(
+        Application::SCREEN_SIZE_X,
+        Application::SCREEN_SIZE_Y,
+        TRUE);
+    pauseX_ = -320.0f;
+    pauseSelect_ = 0;
+
+    explanationFontHandle_ = CreateFontToHandle(
+        "游明朝",
+        18,
+        3);
+
     ResetRound();
 }
 
 void FirstPressGame::Update(void)
 {
+    if (PauseUpdate())
+    {
+        return;
+    }
+
     InputManager& ins = InputManager::GetInstance();
 
     timer_++;
@@ -347,6 +372,11 @@ void FirstPressGame::Draw(void)
 
 void FirstPressGame::DrawUI(void)
 {
+    // パネルが見えている間だけ描画
+    if (isPause_ || pauseX_ > -320.0f)
+    {
+        PauseDraw();
+    }
 }
 
 void FirstPressGame::Reset(void)
@@ -1323,4 +1353,275 @@ void FirstPressGame::FakeTrivia(void)
         DX_BLENDMODE_NOBLEND,
         0
     );
+}
+
+
+bool FirstPressGame::PauseUpdate(void)
+{
+    InputManager& ins = InputManager::GetInstance();
+
+    //--------------------------------------
+    // Escapeで開閉
+    //--------------------------------------
+    if (ins.IsTrgDown(KEY_INPUT_ESCAPE) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::SEVEN))
+    {
+        isPause_ = !isPause_;
+
+        if (isPause_)
+        {
+            // ポーズ直前の画面を保存
+            GetDrawScreenGraph(
+                0,
+                0,
+                Application::SCREEN_SIZE_X,
+                Application::SCREEN_SIZE_Y,
+                pauseScreenHandle_);
+
+            PlaySoundMem(menuSe_, DX_PLAYTYPE_BACK);
+            StopSoundMem(bgm_);
+            StopSoundMem(pressSe_);
+            StopSoundMem(pointSe_);
+            StopSoundMem(lostSe_);
+            StopSoundMem(clearSe_);
+            StopSoundMem(overSe_);
+            StopSoundMem(fallingSe_);
+            StopSoundMem(noiseSe_);
+            StopSoundMem(countSe_);
+            StopSoundMem(errorSe_);
+            StopSoundMem(triviaSe_);
+        }
+        else
+        {
+            PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
+            PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+            PlaySoundMem(pressSe_, DX_PLAYTYPE_BACK, false);
+            PlaySoundMem(pointSe_, DX_PLAYTYPE_BACK, false);
+            PlaySoundMem(lostSe_, DX_PLAYTYPE_BACK, false);
+            PlaySoundMem(clearSe_, DX_PLAYTYPE_BACK, false);
+            PlaySoundMem(overSe_, DX_PLAYTYPE_BACK, false);
+            PlaySoundMem(fallingSe_, DX_PLAYTYPE_BACK, false);
+            PlaySoundMem(noiseSe_, DX_PLAYTYPE_BACK, false);
+            PlaySoundMem(countSe_, DX_PLAYTYPE_BACK, false);
+            PlaySoundMem(errorSe_, DX_PLAYTYPE_BACK, false);
+            PlaySoundMem(triviaSe_, DX_PLAYTYPE_BACK, false);
+        }
+
+        // 開いた・閉じた瞬間は入力を消費
+        return true;
+    }
+
+    //--------------------------------------
+    // スライドアニメーション
+    //--------------------------------------
+    float targetX = isPause_ ? 0.0f : -320.0f;
+    pauseX_ += (targetX - pauseX_) * 0.2f;
+
+    //--------------------------------------
+    // ポーズ中でなければゲームへ入力を渡す
+    //--------------------------------------
+    if (!isPause_)
+        return false;
+
+    //--------------------------------------
+    // カーソル移動
+    //--------------------------------------
+    if (ins.IsTrgDown(KEY_INPUT_UP) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP))
+    {
+        PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
+
+        pauseSelect_--;
+
+        if (pauseSelect_ < 0)
+            pauseSelect_ = 2;
+    }
+
+    if (ins.IsTrgDown(KEY_INPUT_DOWN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN))
+    {
+        PlaySoundMem(moveSe_, DX_PLAYTYPE_BACK);
+
+        pauseSelect_++;
+
+        if (pauseSelect_ > 2)
+            pauseSelect_ = 0;
+    }
+
+    //--------------------------------------
+    // 決定
+    //--------------------------------------
+    if (ins.IsTrgDown(KEY_INPUT_RETURN) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
+    {
+        switch (pauseSelect_)
+        {
+        case 0:
+            isPause_ = false;
+            PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
+            PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+            return true;    // このフレームはゲームへ入力を渡さない
+
+        case 1:
+            PlaySoundMem(decideSEH_, DX_PLAYTYPE_BACK);
+            SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+            return true;
+
+        case 2:
+            SceneManager::GetInstance().SetGameEnd(true);
+            return true;
+        }
+    }
+
+    // ポーズ中は常に入力を消費
+    return true;
+}
+
+void FirstPressGame::PauseDraw(void)
+{
+    //--------------------------------------
+    // 背景（ポーズ中だけ）
+    //--------------------------------------
+    if (!isPause_)
+        return;
+
+
+    //--------------------------------------
+    // ポーズ直前の画面
+    //--------------------------------------
+    DrawGraph(
+        0,
+        0,
+        pauseScreenHandle_,
+        TRUE);
+
+
+    //--------------------------------------
+    // 暗いフィルター
+    //--------------------------------------
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 120);
+
+    DrawBox(
+        0,
+        0,
+        Application::SCREEN_SIZE_X,
+        Application::SCREEN_SIZE_Y,
+        GetColor(0, 0, 0),
+        TRUE);
+
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+    //--------------------------------------
+    // パネルが画面外なら描画しない
+    //--------------------------------------
+    if (pauseX_ <= -320.0f)
+        return;
+
+    //--------------------------------------
+    // パネル影
+    //--------------------------------------
+    DrawBox(
+        (int)pauseX_ + 8,
+        8,
+        (int)pauseX_ + 308,
+        Application::SCREEN_SIZE_Y,
+        GetColor(20, 20, 20),
+        TRUE);
+
+    //--------------------------------------
+    // パネル本体
+    //--------------------------------------
+    DrawBox(
+        (int)pauseX_,
+        0,
+        (int)pauseX_ + 300,
+        Application::SCREEN_SIZE_Y,
+        GetColor(35, 35, 45),
+        TRUE);
+
+    //--------------------------------------
+    // 枠
+    //--------------------------------------
+    DrawBox(
+        (int)pauseX_ - 100,
+        0,
+        (int)pauseX_ + 300,
+        Application::SCREEN_SIZE_Y,
+        GetColor(0, 220, 255),
+        FALSE);
+
+    //--------------------------------------
+    // タイトル
+    //--------------------------------------
+    DrawStringToHandle(
+        (int)pauseX_ + 30,
+        40,
+        "PAUSE",
+        GetColor(255, 255, 255),
+        explanationFontHandle_);
+
+    DrawLine(
+        (int)pauseX_ + 30,
+        75,
+        (int)pauseX_ + 270,
+        75,
+        GetColor(0, 220, 255));
+
+    //--------------------------------------
+    // メニュー
+    //--------------------------------------
+    const char* menu[3] =
+    {
+        "ゲームに戻る",
+        "タイトルに戻る",
+        "ゲーム終了"
+    };
+
+    for (int i = 0; i < 3; i++)
+    {
+        int y = 150 + i * 80;
+
+        if (i == pauseSelect_)
+        {
+            DrawBox(
+                (int)pauseX_ + 20,
+                y - 8,
+                (int)pauseX_ + 280,
+                y + 30,
+                GetColor(0, 180, 220),
+                TRUE);
+
+            DrawBox(
+                (int)pauseX_ + 20,
+                y - 8,
+                (int)pauseX_ + 28,
+                y + 30,
+                GetColor(255, 255, 255),
+                TRUE);
+
+            DrawStringToHandle(
+                (int)pauseX_ + 45,
+                y,
+                menu[i],
+                GetColor(255, 255, 255),
+                explanationFontHandle_);
+        }
+        else
+        {
+            DrawStringToHandle(
+                (int)pauseX_ + 45,
+                y,
+                menu[i],
+                GetColor(180, 180, 180),
+                explanationFontHandle_);
+        }
+    }
+
+    //--------------------------------------
+    // 操作説明
+    //--------------------------------------
+    DrawLine(
+        (int)pauseX_ + 20,
+        500,
+        (int)pauseX_ + 280,
+        500,
+        GetColor(80, 80, 80));
+
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
