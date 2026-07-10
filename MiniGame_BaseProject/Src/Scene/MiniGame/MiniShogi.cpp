@@ -15,12 +15,20 @@
 #include "../../Object/Actor/MiniShogi/Hand.h"
 #include "../../Object/Actor/MiniShogi/HandActor.h"
 #include "../../Object/Actor/MiniShogi/MiniShogiActor.h"
+#include "../../Object/Actor/MiniShogi/MiniShogiCpu.h"
 
 #include "MiniShogi.h"
 
 MiniShogi::MiniShogi(void)
 	:
-	isPlayerTurn_(true)
+	isPlayerTurn_(true),
+	cpuWaitFrame_(30),
+	ruleMessage_(""),
+	ruleMessageFrame_(0),
+	isGameOver_(false),
+	isReturn_(false),
+	gameOverFrame_(0),
+	isPlayerWin_(false)
 {
 }
 
@@ -34,6 +42,7 @@ void MiniShogi::Init(void)
 
 	promotionState_ = PromotionState::NONE;
 	promoteSelect_ = true;
+	gameOverReason_ = GameOverReason::NONE;
 
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::MINI_GAME);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
@@ -70,6 +79,8 @@ void MiniShogi::Init(void)
 		isPlayerTurn_);
 	
 	actor_->Init();
+
+	cpu_ = std::make_unique<MiniShogiCpu>();
 }
 
 void MiniShogi::Update(void)
@@ -78,22 +89,40 @@ void MiniShogi::Update(void)
 	shogiban_->Update();
 	komadai_->Update();
 
+	if (isGameOver_)
+	{
+		UpdateGameOver();
+		actor_->Update();
+		return;
+	}
+
 	cursor_->SetHandPieceCount(CursorArea::PLAYER_HAND, actor_->GetPlayerHandActor()->GetPieceCount());
 	cursor_->SetHandPieceCount(CursorArea::ENEMY_HAND, actor_->GetEnemyHandActor()->GetPieceCount());
 
 	cursor_->SetPlayerTurn(isPlayerTurn_);
 
-	InputUpdate();
-
-	cursor_->Update();
-
-	if (promotionState_ == PromotionState::WAIT_SELECT)
+	if (isPlayerTurn_)
 	{
-		UpdatePromotion();
+		InputUpdate();
+
+		cursor_->Update();
+
+		if (promotionState_ == PromotionState::WAIT_SELECT)
+		{
+			UpdatePromotion();
+		}
+		else
+		{
+			SelectUpdate();
+		}
 	}
 	else
 	{
-		SelectUpdate();
+		if (--cpuWaitFrame_ <= 0)
+		{
+			CpuUpdate();
+			cpuWaitFrame_ = 30;
+		}
 	}
 
 	UpdateCameraState();
@@ -102,7 +131,12 @@ void MiniShogi::Update(void)
 
 	actor_->Update();
 
+	CheckGameOver();
 
+	if (ruleMessageFrame_ > 0)
+	{
+		ruleMessageFrame_--;
+	}
 }
 
 void MiniShogi::Draw(void)
@@ -116,6 +150,96 @@ void MiniShogi::Draw(void)
 
 void MiniShogi::DrawUI(void)
 {
+	//----------------------------------
+	// ルールエラー表示
+	//----------------------------------
+	if (ruleMessageFrame_ > 0)
+	{
+		DrawString(
+			350,
+			560,
+			ruleMessage_,
+			GetColor(255, 80, 80));
+	}
+
+	//----------------------------------
+	// 勝敗表示
+	//----------------------------------
+	if (isGameOver_)
+	{
+		const char* resultText =
+			isPlayerWin_
+			? "あなたの勝ちです"
+			: "CPUの勝ちです";
+
+		const char* reasonText = "";
+
+		switch (gameOverReason_)
+		{
+		case GameOverReason::CHECKMATE:
+			reasonText = "詰み";
+			break;
+
+		case GameOverReason::KING_MISSING:
+			reasonText = "王が取られました";
+			break;
+
+		default:
+			reasonText = "";
+			break;
+		}
+
+		constexpr int WINDOW_W = 400;
+		constexpr int WINDOW_H = 160;
+		constexpr int SCREEN_W = 1024;
+		constexpr int SCREEN_H = 640;
+
+		const int left =
+			(SCREEN_W - WINDOW_W) / 2;
+
+		const int top =
+			(SCREEN_H - WINDOW_H) / 2;
+
+		const int right =
+			left + WINDOW_W;
+
+		const int bottom =
+			top + WINDOW_H;
+
+		DrawBox(
+			left,
+			top,
+			right,
+			bottom,
+			GetColor(40, 40, 40),
+			TRUE);
+
+		DrawBox(
+			left,
+			top,
+			right,
+			bottom,
+			GetColor(255, 255, 255),
+			FALSE);
+
+		DrawString(
+			left + 120,
+			top + 45,
+			resultText,
+			GetColor(255, 255, 0));
+
+		DrawString(
+			left + 145,
+			top + 95,
+			reasonText,
+			GetColor(255, 255, 255));
+
+		return;
+	}
+
+	//----------------------------------
+	// 成り選択中でなければ終了
+	//----------------------------------
 	if (promotionState_ != PromotionState::WAIT_SELECT)
 	{
 		return;
@@ -127,12 +251,18 @@ void MiniShogi::DrawUI(void)
 	constexpr int SCREEN_W = 1024;
 	constexpr int SCREEN_H = 640;
 
-	const int left = (SCREEN_W - WINDOW_W) / 2;
-	const int top = (SCREEN_H - WINDOW_H) / 2;
-	const int right = left + WINDOW_W;
-	const int bottom = top + WINDOW_H;
+	const int left =
+		(SCREEN_W - WINDOW_W) / 2;
 
-	// 背景
+	const int top =
+		(SCREEN_H - WINDOW_H) / 2;
+
+	const int right =
+		left + WINDOW_W;
+
+	const int bottom =
+		top + WINDOW_H;
+
 	DrawBox(
 		left,
 		top,
@@ -141,7 +271,6 @@ void MiniShogi::DrawUI(void)
 		GetColor(40, 40, 40),
 		TRUE);
 
-	// 枠
 	DrawBox(
 		left,
 		top,
@@ -156,49 +285,21 @@ void MiniShogi::DrawUI(void)
 		"成りますか？",
 		GetColor(255, 255, 255));
 
-	//------------------------------------
-	// はい
-	//------------------------------------
+	DrawString(
+		left + 70,
+		top + 90,
+		"はい",
+		promoteSelect_
+		? GetColor(255, 255, 0)
+		: GetColor(255, 255, 255));
 
-	if (promoteSelect_)
-	{
-		DrawString(
-			left + 70,
-			top + 90,
-			"はい",
-			GetColor(255, 255, 0));
-	}
-	else
-	{
-		DrawString(
-			left + 70,
-			top + 90,
-			"はい",
-			GetColor(255, 255, 255));
-	}
-
-	//------------------------------------
-	// いいえ
-	//------------------------------------
-
-	if (!promoteSelect_)
-	{
-		DrawString(
-			left + 190,
-			top + 90,
-			"いいえ",
-			GetColor(255, 255, 0));
-	}
-	else
-	{
-		DrawString(
-			left + 190,
-			top + 90,
-			"いいえ",
-			GetColor(255, 255, 255));
-	}
-
-
+	DrawString(
+		left + 190,
+		top + 90,
+		"いいえ",
+		!promoteSelect_
+		? GetColor(255, 255, 0)
+		: GetColor(255, 255, 255));
 }
 
 void MiniShogi::Reset(void)
@@ -320,6 +421,8 @@ void MiniShogi::UpdatePromotion(void)
 	promotionState_ = PromotionState::NONE;
 
 	isPlayerTurn_ = !isPlayerTurn_;
+
+	CheckGameOver();
 }
 
 void MiniShogi::SelectBoardPiece(void)
@@ -340,7 +443,7 @@ void MiniShogi::SelectBoardPiece(void)
 
 	selector_->SetSelectPieceType(board_->GetPiece(x, y).type_);
 
-	selector_->SetMoveList(rule_->GetMoveList(*board_, x, y));
+	selector_->SetMoveList(rule_->GetLegalMoveList(*board_, x, y));
 }
 
 void MiniShogi::MoveBoardPiece(void)
@@ -353,33 +456,14 @@ void MiniShogi::MoveBoardPiece(void)
 		selector_->Select(false);
 		return;
 	}
-
-	int fromX = selector_->GetSelectX();
-	int fromY = selector_->GetSelectY();
-
-	MiniShogiBoard testBoard = *board_;
-
-	Piece movePiece =
-		testBoard.GetBoardPiece(fromX, fromY);
-
-	testBoard.SetPiece(x, y, movePiece);
-	testBoard.RemovePiece(fromX, fromY);
-
-	if (rule_->IsCheck(testBoard, isPlayerTurn_))
-	{
-		selector_->Select(false);
-		return;
-	}
-
-	if (!MovePiece(fromX, fromY, x, y))
-	{
-		return;
-	}
-
+	
+	ExecuteMove(
+		selector_->GetSelectX(),
+		selector_->GetSelectY(),
+		x,
+		y);
 
 	selector_->Select(false);
-
-	isPlayerTurn_ = !isPlayerTurn_;
 }
 
 void MiniShogi::SelectHandPiece(void)
@@ -418,28 +502,32 @@ void MiniShogi::DropHandPiece(void)
 	int x = cursor_->GetX();
 	int y = cursor_->GetY();
 
-	if (!rule_->CanDropPiece(*board_, x, y))
+	if (!selector_->IsMovePosition(x, y))
 	{
+		DropError error;
+
+		rule_->CanDrop(
+			*board_,
+			selector_->GetSelectPieceType(),
+			x,
+			y,
+			isPlayerTurn_,
+			error);
+
+		ruleMessage_ = rule_->GetDropErrorMessage(error);
+		ruleMessageFrame_ = 90;
+
 		selector_->Select(false);
 		return;
 	}
 
-	Hand& hand = GetCurrentHand();
 
-	Piece piece
-	{
+	ExecuteDrop(
 		selector_->GetSelectPieceType(),
-		isPlayerTurn_,
-		false
-	};
-
-	board_->SetPiece(x, y, piece);
-
-	hand.RemovePiece(piece.type_);
+		x,
+		y);
 
 	selector_->Select(false);
-
-	isPlayerTurn_ = !isPlayerTurn_;
 }
 
 bool MiniShogi::MovePiece(int fromX, int fromY, int toX, int toY)
@@ -449,7 +537,14 @@ bool MiniShogi::MovePiece(int fromX, int fromY, int toX, int toY)
 	// 駒取得
 	if (board_->IsExistPiece(toX, toY))
 	{
-		Piece capturePiece = board_->GetPiece(toX, toY);
+		Piece capturePiece =
+			board_->GetPiece(toX, toY);
+
+		// 王は取らない
+		if (capturePiece.type_ == PieceType::OU)
+		{
+			return false;
+		}
 
 		capturePiece.isPlayer_ = isPlayerTurn_;
 		capturePiece.isPromote_ = false;
@@ -512,4 +607,263 @@ const Hand& MiniShogi::GetCurrentHand(void) const
 	}
 
 	return *player1Hand_;
+}
+
+bool MiniShogi::ExecuteMove(int fromX, int fromY, int toX, int toY)
+{
+	if (!rule_->IsLegalMove(
+		*board_,
+		fromX,
+		fromY,
+		toX,
+		toY))
+	{
+		ruleMessage_ =
+			"王手を放置する手は指せません";
+
+		ruleMessageFrame_ = 90;
+
+		return false;
+	}
+
+	if (!MovePiece(
+		fromX,
+		fromY,
+		toX,
+		toY))
+	{
+		return false;
+	}
+
+	isPlayerTurn_ = !isPlayerTurn_;
+
+	CheckGameOver();
+
+	return true;
+}
+
+bool MiniShogi::ExecuteDrop(PieceType pieceType, int toX, int toY)
+{
+	DropError error;
+
+	if (!rule_->CanDrop(
+		*board_,
+		pieceType,
+		toX,
+		toY,
+		isPlayerTurn_,
+		error))
+	{
+		ruleMessage_ =
+			rule_->GetDropErrorMessage(error);
+
+		ruleMessageFrame_ = 90;
+
+		return false;
+	}
+
+	Hand& hand = GetCurrentHand();
+
+	if (!hand.HasPiece(pieceType))
+	{
+		return false;
+	}
+
+	//----------------------------------
+	// 配置後も自玉が王手か確認
+	//----------------------------------
+	MiniShogiBoard testBoard = *board_;
+
+	Piece testPiece
+	{
+		pieceType,
+		isPlayerTurn_,
+		false
+	};
+
+	testBoard.SetPiece(
+		toX,
+		toY,
+		testPiece);
+
+	if (rule_->IsCheck(
+		testBoard,
+		isPlayerTurn_))
+	{
+		ruleMessage_ =
+			"王手を解除できない場所には打てません";
+
+		ruleMessageFrame_ = 90;
+
+		return false;
+	}
+
+	board_->SetPiece(
+		toX,
+		toY,
+		testPiece);
+
+	hand.RemovePiece(pieceType);
+
+	isPlayerTurn_ = !isPlayerTurn_;
+
+	CheckGameOver();
+
+	return true;
+}
+
+void MiniShogi::CheckGameOver(void)
+{
+	if (isGameOver_)
+	{
+		return;
+	}
+
+	//----------------------------------
+	// 王の消失は異常時の保険
+	//----------------------------------
+	if (!rule_->IsKingExist(
+		*board_,
+		true))
+	{
+		isGameOver_ = true;
+		isPlayerWin_ = false;
+		gameOverReason_ =
+			GameOverReason::KING_MISSING;
+		gameOverFrame_ = 180;
+		return;
+	}
+
+	if (!rule_->IsKingExist(
+		*board_,
+		false))
+	{
+		isGameOver_ = true;
+		isPlayerWin_ = true;
+		gameOverReason_ =
+			GameOverReason::KING_MISSING;
+		gameOverFrame_ = 180;
+		return;
+	}
+
+	//----------------------------------
+	// 現在手番側が詰んでいるか
+	//----------------------------------
+	const Hand& currentHand =
+		isPlayerTurn_
+		? *player0Hand_
+		: *player1Hand_;
+
+	if (!rule_->IsCheckmate(
+		*board_,
+		currentHand,
+		isPlayerTurn_))
+	{
+		return;
+	}
+
+	isGameOver_ = true;
+
+	// 詰んだ側の相手が勝者
+	isPlayerWin_ = !isPlayerTurn_;
+
+	gameOverReason_ =
+		GameOverReason::CHECKMATE;
+
+	gameOverFrame_ = 180;
+
+}
+
+void MiniShogi::UpdateGameOver(void)
+{
+	if (gameOverFrame_ > 0)
+	{
+		gameOverFrame_--;
+		return;
+	}
+
+	isReturn_ = true;
+}
+
+void MiniShogi::CpuUpdate(void)
+{
+	CpuMove move =
+		cpu_->Think(
+			*board_,
+			*player1Hand_,
+			*rule_);
+
+	if (move.pieceType == PieceType::NONE)
+	{
+		// 詰みまたは合法手なしを共通処理で判定
+		CheckGameOver();
+		return;
+	}
+
+	if (move.isDrop)
+	{
+		ExecuteDrop(
+			move.pieceType,
+			move.toX,
+			move.toY);
+	}
+	else
+	{
+		ExecuteCpuMove(
+			move.fromX,
+			move.fromY,
+			move.toX,
+			move.toY,
+			move.isPromote);
+	}
+}
+
+bool MiniShogi::ExecuteCpuMove(int fromX, int fromY, int toX, int toY, bool isPromote)
+{
+
+	MiniShogiBoard testBoard = *board_;
+
+	Piece movePiece =
+		testBoard.GetPiece(fromX, fromY);
+
+	if (isPromote || rule_->MustPromote(movePiece, toY))
+	{
+		rule_->Promote(movePiece);
+	}
+
+	testBoard.SetPiece(toX, toY, movePiece);
+	testBoard.RemovePiece(fromX, fromY);
+
+	if (rule_->IsCheck(testBoard, isPlayerTurn_))
+	{
+		return false;
+	}
+
+	Piece realMovePiece =
+		board_->GetPiece(fromX, fromY);
+
+	if (board_->IsExistPiece(toX, toY))
+	{
+		Piece capturePiece =
+			board_->GetPiece(toX, toY);
+
+		capturePiece.isPlayer_ = isPlayerTurn_;
+		capturePiece.isPromote_ = false;
+
+		player1Hand_->AddPiece(capturePiece.type_);
+	}
+
+	if (isPromote || rule_->MustPromote(realMovePiece, toY))
+	{
+		rule_->Promote(realMovePiece);
+	}
+
+	board_->SetPiece(toX, toY, realMovePiece);
+	board_->RemovePiece(fromX, fromY);
+
+	isPlayerTurn_ = !isPlayerTurn_;
+
+	CheckGameOver();
+
+	return true;
 }

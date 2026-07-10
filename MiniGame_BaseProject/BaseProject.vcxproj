@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Object\Actor\MiniShogi\MiniShogiCpu.cpp" />
     <ClCompile Include="Src\Object\Actor\MiniShogi\HandActor.cpp" />
     <ClCompile Include="Src\Object\Actor\MiniShogi\MiniShogiActor.cpp" />
     <ClCompile Include="Src\Object\Actor\MiniShogi\MiniShogiGrid.cpp" />
@@ -78,6 +79,7 @@
     <ClCompile Include="Src\Object\Actor\Quoridor\Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\MiniShogiCpu.h" />
     <ClInclude Include="Src\Object\Actor\MiniShogi\HandActor.h" />
     <ClInclude Include="Src\Object\Actor\MiniShogi\MiniShogiActor.h" />
     <ClInclude Include="Src\Object\Actor\MiniShogi\MiniShogiGrid.h" />
