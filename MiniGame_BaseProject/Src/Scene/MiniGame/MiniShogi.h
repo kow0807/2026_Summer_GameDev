@@ -90,6 +90,19 @@ private:
 
     bool isPlayerWin_;
 
+    // Pause—p
+    int menuSe_;
+    int cancelSe_;
+    int moveSe_;
+    int decideSEH_;
+
+    bool isPause_;
+    int pauseScreenHandle_;
+    float pauseX_;
+    int pauseSelect_;
+
+    int explanationFontHandle_;
+
     void InputUpdate(void);
 	void UpdateCameraState(void);
 
@@ -123,5 +136,9 @@ private:
     void CheckGameOver(void);
     void UpdateGameOver(void);
     void CancelSelect(void);
+
+    // Pause—p
+    bool PauseUpdate(void);
+    void PauseDraw(void);
 };
 

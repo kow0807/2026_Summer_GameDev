@@ -88,6 +88,17 @@ private:
 	int vicH_;//勝利した時
 	int defH_;//敗北した時
 
+	// Pause用	
+	int menuSe_;
+	int cancelSe_;
+	int moveSe_;
+	int decideSEH_;
+	bool isPause_;
+	int pauseScreenHandle_;
+	float pauseX_;
+	int pauseSelect_;
+	int explanationFontHandle_;
+
 	// 斜め移動中のフラグ
 	bool isDiagonalSelect_;
 	
@@ -154,4 +165,8 @@ private:
 	std::pair<int, int> diagTarget_ = { 0, 0 };
 
 	static std::string debugLogPath_;
+
+	// Pause用
+	bool PauseUpdate(void);
+	void PauseDraw(void);
 };
