@@ -41,10 +41,6 @@ void MiniShogiCpu::CreateMoveList(
 {
     moveList.clear();
 
-    //-------------------------
-    // î’è„ÇÃãÓ
-    //-------------------------
-
     for (int y = 0; y < 5; y++)
     {
         for (int x = 0; x < 5; x++)
@@ -57,7 +53,8 @@ void MiniShogiCpu::CreateMoveList(
             const Piece& piece =
                 board.GetPiece(x, y);
 
-            if (!IsCpuPiece(piece))
+            // CPUë§ÇÕfalse
+            if (piece.isPlayer_ != CPU_SIDE)
             {
                 continue;
             }
@@ -71,16 +68,13 @@ void MiniShogiCpu::CreateMoveList(
         }
     }
 
-    //-------------------------
-    // éùÇøãÓ
-    //-------------------------
-
     AddDropMove(
         board,
         hand,
         rule,
         moveList);
 }
+
 void MiniShogiCpu::AddBoardMove(
     const MiniShogiBoard& board,
     const MiniShogiRule& rule,
@@ -88,48 +82,90 @@ void MiniShogiCpu::AddBoardMove(
     int fromY,
     std::vector<CpuMove>& moveList)
 {
-    auto list =
-        rule.GetMoveList(
+    if (!board.IsExistPiece(fromX, fromY))
+    {
+        return;
+    }
+
+    const Piece& piece =
+        board.GetPiece(fromX, fromY);
+
+    if (!IsCpuPiece(piece))
+    {
+        return;
+    }
+
+    const std::vector<MoveData> list =
+        rule.GetLegalMoveList(
             board,
             fromX,
             fromY);
 
-    const Piece& piece =
-        board.GetPiece(
-            fromX,
-            fromY);
-
-    for (const auto& move : list)
+    for (const MoveData& move : list)
     {
-        CpuMove cpuMove;
+        //----------------------------------
+        // ã≠êßê¨ÇË
+        //----------------------------------
+        if (rule.MustPromote(
+            piece,
+            move.y_))
+        {
+            CpuMove cpuMove{};
 
-        cpuMove.isDrop = false;
-        cpuMove.isPromote = false;
+            cpuMove.isDrop = false;
+            cpuMove.isPromote = true;
 
-        cpuMove.fromX = fromX;
-        cpuMove.fromY = fromY;
+            cpuMove.fromX = fromX;
+            cpuMove.fromY = fromY;
 
-        cpuMove.toX = move.x_;
-        cpuMove.toY = move.y_;
+            cpuMove.toX = move.x_;
+            cpuMove.toY = move.y_;
 
-        cpuMove.pieceType = piece.type_;
+            cpuMove.pieceType =
+                piece.type_;
 
-        cpuMove.score = 0;
+            cpuMove.score = 0;
 
-        moveList.push_back(cpuMove);
+            moveList.push_back(cpuMove);
+            continue;
+        }
 
-        //-------------------------
-        // ê¨ÇËâ¬î\Ç»ÇÁê¨ÇÈéËÇ‡í«â¡
-        //-------------------------
+        //----------------------------------
+        // ê¨ÇÁÇ»Ç¢éË
+        //----------------------------------
+        CpuMove normalMove{};
 
+        normalMove.isDrop = false;
+        normalMove.isPromote = false;
+
+        normalMove.fromX = fromX;
+        normalMove.fromY = fromY;
+
+        normalMove.toX = move.x_;
+        normalMove.toY = move.y_;
+
+        normalMove.pieceType =
+            piece.type_;
+
+        normalMove.score = 0;
+
+        moveList.push_back(normalMove);
+
+        //----------------------------------
+        // îCà”ê¨ÇË
+        //----------------------------------
         if (rule.CanPromote(
             piece,
             fromY,
             move.y_))
         {
-            cpuMove.isPromote = true;
+            CpuMove promoteMove =
+                normalMove;
 
-            moveList.push_back(cpuMove);
+            promoteMove.isPromote = true;
+
+            moveList.push_back(
+                promoteMove);
         }
     }
 }
@@ -148,7 +184,7 @@ void MiniShogiCpu::AddDropMove(
             hand.GetPiece(i).type_;
 
         auto list =
-            rule.GetDropList(
+            rule.GetLegalDropList(
                 board,
                 type,
                 false);
@@ -324,7 +360,8 @@ int MiniShogiCpu::EvaluatePosition(
 bool MiniShogiCpu::IsCpuPiece(
     const Piece& piece) const
 {
-    return piece.type_ != PieceType::NONE &&
+    return
+        piece.type_ != PieceType::NONE &&
         piece.isPlayer_ == CPU_SIDE;
 }
 

@@ -330,6 +330,17 @@ bool MiniShogiRule::IsLegalMove(const MiniShogiBoard& board, int fromX, int from
     const Piece& movePiece =
         board.GetPiece(fromX, fromY);
 
+    if (board.IsExistPiece(toX, toY))
+    {
+        const Piece& targetPiece =
+            board.GetPiece(toX, toY);
+
+        if (targetPiece.type_ == PieceType::OU)
+        {
+            return false;
+        }
+    }
+
     //----------------------------------
     // ãÓñ{óàÇÃà⁄ìÆêÊÇ…ä‹Ç‹ÇÍÇÈÇ©
     //----------------------------------
@@ -602,6 +613,44 @@ std::vector<MoveData> MiniShogiRule::GetLegalMoveList(const MiniShogiBoard& boar
     return legalMoveList;
 }
 
+std::vector<MoveData> MiniShogiRule::GetLegalDropList(const MiniShogiBoard& board, PieceType pieceType, bool playerSide) const
+{
+    std::vector<MoveData> legalDropList;
+
+    const std::vector<MoveData> dropList =
+        GetDropList(
+            board,
+            pieceType,
+            playerSide);
+
+    for (const MoveData& move : dropList)
+    {
+        MiniShogiBoard testBoard = board;
+
+        const Piece dropPiece
+        {
+            pieceType,
+            playerSide,
+            false
+        };
+
+        testBoard.SetPiece(
+            move.x_,
+            move.y_,
+            dropPiece);
+
+        // ë≈Ç¡ÇΩÇ†Ç∆Ç…é©ã Ç™â§éËÇ»ÇÁà·ñ@
+        if (IsCheck(testBoard, playerSide))
+        {
+            continue;
+        }
+
+        legalDropList.push_back(move);
+    }
+
+    return legalDropList;
+}
+
 void MiniShogiRule::AddMove(std::vector<MoveData>& moveList, const MiniShogiBoard& board, int x, int y, bool isPlayer) const
 {
     if (!IsInsideBoard(x, y))
@@ -614,14 +663,7 @@ void MiniShogiRule::AddMove(std::vector<MoveData>& moveList, const MiniShogiBoar
         const Piece& piece =
             board.GetPiece(x, y);
 
-        // é©ï™ÇÃãÓÇ™Ç†ÇÈ
         if (piece.isPlayer_ == isPlayer)
-        {
-            return;
-        }
-
-        // â§ÇÕé¿ç€Ç…ÇÕéÊÇÁÇ»Ç¢
-        if (piece.type_ == PieceType::OU)
         {
             return;
         }

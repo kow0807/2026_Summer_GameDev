@@ -101,6 +101,12 @@ public:
 		int y
 	) const;
 
+	std::vector<MoveData> GetLegalDropList(
+		const MiniShogiBoard& board,
+		PieceType pieceType,
+		bool playerSide
+	) const;
+
 private:
 
 	void AddMove(std::vector<MoveData>& moveList,

@@ -25,6 +25,7 @@ enum class GameOverReason
 {
     NONE,
     CHECKMATE,
+    NO_LEGAL_MOVE,
     KING_MISSING
 };
 
@@ -81,9 +82,11 @@ private:
     int ruleMessageFrame_;
 
     bool isGameOver_;
-    bool isReturn_;
 
     int gameOverFrame_;
+
+    int fontTitle_;
+    int fontMain_;
 
     bool isPlayerWin_;
 
@@ -119,5 +122,6 @@ private:
 
     void CheckGameOver(void);
     void UpdateGameOver(void);
+    void CancelSelect(void);
 };
 

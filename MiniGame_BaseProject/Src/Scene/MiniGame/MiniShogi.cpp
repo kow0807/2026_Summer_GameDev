@@ -1,4 +1,6 @@
-﻿#include  <DxLib.h>
+﻿#include <DxLib.h>
+#include <string>
+#include <cstring>
 #include "../../Manager/ResourceManager.h"
 #include "../../Manager/InputManager.h"
 #include "../../Manager/SceneManager.h"
@@ -26,8 +28,9 @@ MiniShogi::MiniShogi(void)
 	ruleMessage_(""),
 	ruleMessageFrame_(0),
 	isGameOver_(false),
-	isReturn_(false),
 	gameOverFrame_(0),
+	fontTitle_(-1),
+	fontMain_(-1),
 	isPlayerWin_(false)
 {
 }
@@ -38,11 +41,50 @@ MiniShogi::~MiniShogi(void)
 
 void MiniShogi::Init(void)
 {
-	//SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FREE);
-
 	promotionState_ = PromotionState::NONE;
 	promoteSelect_ = true;
 	gameOverReason_ = GameOverReason::NONE;
+
+	int screenW;
+	int screenH;
+
+	GetWindowSize(
+		&screenW,
+		&screenH);
+
+	int titleFontSize =
+		static_cast<int>(
+			32.0f *
+			(static_cast<float>(screenH) / 720.0f));
+
+	int mainFontSize =
+		static_cast<int>(
+			14.0f *
+			(static_cast<float>(screenH) / 720.0f));
+
+	if (titleFontSize < 16)
+	{
+		titleFontSize = 16;
+	}
+
+	if (mainFontSize < 10)
+	{
+		mainFontSize = 10;
+	}
+
+	fontTitle_ =
+		CreateFontToHandle(
+			"游明朝",
+			titleFontSize,
+			3,
+			DX_FONTTYPE_ANTIALIASING);
+
+	fontMain_ =
+		CreateFontToHandle(
+			"游明朝",
+			mainFontSize,
+			2,
+			DX_FONTTYPE_ANTIALIASING);
 
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::MINI_GAME);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
@@ -150,27 +192,458 @@ void MiniShogi::Draw(void)
 
 void MiniShogi::DrawUI(void)
 {
+
 	//----------------------------------
-	// ルールエラー表示
+	// 現在の画面サイズを取得
 	//----------------------------------
-	if (ruleMessageFrame_ > 0)
+	int screenW;
+	int screenH;
+
+	GetWindowSize(
+		&screenW,
+		&screenH);
+
+	//----------------------------------
+	// 解像度変更時にフォントを再作成
+	//----------------------------------
+	static int lastScreenH = screenH;
+
+	if (screenH != lastScreenH)
 	{
-		DrawString(
-			350,
-			560,
-			ruleMessage_,
-			GetColor(255, 80, 80));
+		if (fontTitle_ != -1)
+		{
+			DeleteFontToHandle(fontTitle_);
+		}
+
+		if (fontMain_ != -1)
+		{
+			DeleteFontToHandle(fontMain_);
+		}
+
+		int titleFontSize =
+			static_cast<int>(
+				32.0f *
+				(static_cast<float>(screenH) / 720.0f));
+
+		int mainFontSize =
+			static_cast<int>(
+				14.0f *
+				(static_cast<float>(screenH) / 720.0f));
+
+		if (titleFontSize < 16)
+		{
+			titleFontSize = 16;
+		}
+
+		if (mainFontSize < 10)
+		{
+			mainFontSize = 10;
+		}
+
+		fontTitle_ =
+			CreateFontToHandle(
+				"游明朝",
+				titleFontSize,
+				3,
+				DX_FONTTYPE_ANTIALIASING);
+
+		fontMain_ =
+			CreateFontToHandle(
+				"游明朝",
+				mainFontSize,
+				2,
+				DX_FONTTYPE_ANTIALIASING);
+
+		lastScreenH = screenH;
 	}
 
 	//----------------------------------
-	// 勝敗表示
+	// 色
+	//----------------------------------
+	const unsigned int colorWhite =
+	GetColor(240, 230, 220);
+
+	const unsigned int colorGray =
+	GetColor(150, 140, 130);
+
+	const unsigned int colorPlayer =
+	GetColor(200, 80, 80);
+
+	const unsigned int colorCpu =
+	GetColor(80, 130, 230);
+
+	const unsigned int colorYellow =
+	GetColor(240, 200, 80);
+
+	const unsigned int colorWarning =
+	GetColor(255, 120, 100);
+
+	//----------------------------------
+	// 左側UIの座標
+	//----------------------------------
+	const int panelLeft =
+	static_cast<int>(screenW * 0.015f);
+
+	const int panelTop =
+	static_cast<int>(screenH * 0.025f);
+
+	const int panelRight =
+	static_cast<int>(screenW * 0.245f);
+
+	const int panelBottom =
+	static_cast<int>(screenH * 0.7f);
+
+	const int leftX =
+	static_cast<int>(screenW * 0.04f);
+
+	const int leftX1 =
+		static_cast<int>(screenW * 0.45f);
+
+
+	const int lineGap =
+	static_cast<int>(screenH * 0.04f);
+
+	const int itemGap =
+	static_cast<int>(screenH * 0.042f);
+
+	//----------------------------------
+	// 左側背景
+	//----------------------------------
+	SetDrawBlendMode(
+		DX_BLENDMODE_ALPHA,
+		170);
+
+	DrawBox(
+		panelLeft,
+		panelTop,
+		panelRight,
+		panelBottom,
+		GetColor(25, 20, 15),
+		TRUE);
+
+	SetDrawBlendMode(
+		DX_BLENDMODE_NOBLEND,
+		0);
+
+	//----------------------------------
+	// タイトル
+	//----------------------------------
+	DrawStringToHandle(
+		leftX - static_cast<int>(screenW * 0.015f),
+		static_cast<int>(screenH * 0.05f),
+		"MINI SHOGI",
+		colorWhite,
+		fontTitle_);
+
+	//----------------------------------
+	// 現在の手番
+	//----------------------------------
+	const int turnY =
+	static_cast<int>(screenH * 0.17f);
+
+	DrawStringToHandle(
+		leftX,
+		turnY,
+		"TURN",
+		colorGray,
+		fontMain_);
+
+	if (isPlayerTurn_)
+	{
+		DrawStringToHandle(
+			leftX,
+			turnY + lineGap,
+			"あなたの手番",
+			colorPlayer,
+			fontMain_);
+	}
+	else
+	{
+		DrawStringToHandle(
+			leftX,
+			turnY + lineGap,
+			"CPUの手番",
+			colorCpu,
+			fontMain_);
+	}
+
+	//----------------------------------
+	// 現在の選択場所
+	//----------------------------------
+	const int selectY =
+	static_cast<int>(screenH * 0.29f);
+
+	DrawStringToHandle(
+		leftX,
+		selectY,
+		"SELECT",
+		colorGray,
+		fontMain_);
+
+	const char* selectText = "盤面";
+
+	switch (cursor_->GetArea())
+	{
+	case CursorArea::BOARD:
+		selectText = "盤面";
+		break;
+
+	case CursorArea::PLAYER_HAND:
+		selectText = "あなたの持ち駒";
+		break;
+
+	case CursorArea::ENEMY_HAND:
+		selectText = "CPUの持ち駒";
+		break;
+
+	default:
+		selectText = "";
+		break;
+	}
+
+	DrawStringToHandle(
+		leftX,
+		selectY + lineGap,
+		selectText,
+		colorWhite,
+		fontMain_);
+
+	//----------------------------------
+	// 状態表示
+	//----------------------------------
+	const int stateY =
+	static_cast<int>(screenH * 0.40f);
+
+	DrawStringToHandle(
+		leftX,
+		stateY,
+		"STATUS",
+		colorGray,
+		fontMain_);
+
+	if (isGameOver_)
+	{
+		DrawStringToHandle(
+			leftX,
+			stateY + lineGap,
+			"対局終了",
+			colorYellow,
+			fontMain_);
+	}
+	else if (promotionState_ ==
+		PromotionState::WAIT_SELECT)
+	{
+		DrawStringToHandle(
+			leftX,
+			stateY + lineGap,
+			"成りを選択中",
+			colorYellow,
+			fontMain_);
+	}
+	else if (rule_->IsCheck(
+		*board_,
+		isPlayerTurn_))
+	{
+		DrawStringToHandle(
+			leftX,
+			stateY + lineGap,
+			"王手されています",
+			colorWarning,
+			fontMain_);
+	}
+	else
+	{
+		DrawStringToHandle(
+			leftX,
+			stateY + lineGap,
+			"対局中",
+			colorWhite,
+			fontMain_);
+	}
+
+	//----------------------------------
+	// CPU思考中
+	//----------------------------------
+	if (!isPlayerTurn_ &&
+		!isGameOver_)
+	{
+		const int dotCount =
+			(GetNowCount() / 300) % 4;
+
+		std::string thinkingText =
+			"CPU思考中";
+
+		for (int i = 0;
+			i < dotCount;
+			i++)
+		{
+			thinkingText += ".";
+		}
+
+		DrawFormatStringToHandle(
+			leftX,
+			stateY + lineGap * 2,
+			colorYellow,
+			fontMain_,
+			"%s",
+			thinkingText.c_str());
+	}
+
+	//----------------------------------
+	// 操作説明
+	//----------------------------------
+	const int menuY =
+	static_cast<int>(screenH * 0.56f);
+
+	DrawStringToHandle(
+		leftX,
+		menuY - itemGap,
+		"CONTROL",
+		colorGray,
+		fontMain_);
+
+	const bool isPadConnected =
+	GetJoypadNum() > 0;
+
+	if (isPadConnected)
+	{
+		DrawStringToHandle(
+			leftX,
+			menuY,
+			"移動      ：十字ボタン",
+			colorGray,
+			fontMain_);
+
+		DrawStringToHandle(
+			leftX,
+			menuY + itemGap,
+			"決定      ：A",
+			colorGray,
+			fontMain_);
+
+		DrawStringToHandle(
+			leftX,
+			menuY + itemGap * 2,
+			"選択解除  ：B",
+			colorGray,
+			fontMain_);
+
+		if (promotionState_ ==
+			PromotionState::WAIT_SELECT)
+		{
+			DrawStringToHandle(
+				leftX,
+				menuY + itemGap * 3,
+				"成り選択  ：左右",
+				colorGray,
+				fontMain_);
+		}
+	}
+	else
+	{
+		DrawStringToHandle(
+			leftX,
+			menuY,
+			"移動      ：方向キー",
+			colorGray,
+			fontMain_);
+
+		DrawStringToHandle(
+			leftX,
+			menuY + itemGap,
+			"決定      ：ENTER",
+			colorGray,
+			fontMain_);
+
+		DrawStringToHandle(
+			leftX,
+			menuY + itemGap * 2,
+			"選択解除  ：BackSpace",
+			colorGray,
+			fontMain_);
+
+		if (promotionState_ ==
+			PromotionState::WAIT_SELECT)
+		{
+			DrawStringToHandle(
+				leftX,
+				menuY + itemGap * 3,
+				"成り選択  ：左右キー",
+				colorGray,
+				fontMain_);
+		}
+	}
+
+	//----------------------------------
+	// ルール違反メッセージ
+	//----------------------------------
+	if (ruleMessageFrame_ > 0 &&
+		ruleMessage_ != nullptr &&
+		ruleMessage_[0] != '\0')
+	{
+		const int boxW =
+			static_cast<int>(screenW * 0.48f);
+
+		const int boxH =
+			static_cast<int>(screenH * 0.07f);
+
+		const int boxX =
+			(screenW - boxW) / 2;
+
+		const int boxY =
+			static_cast<int>(screenH * 0.88f);
+
+		SetDrawBlendMode(
+			DX_BLENDMODE_ALPHA,
+			190);
+
+		DrawBox(
+			boxX,
+			boxY,
+			boxX + boxW,
+			boxY + boxH,
+			GetColor(80, 20, 20),
+			TRUE);
+
+		SetDrawBlendMode(
+			DX_BLENDMODE_NOBLEND,
+			0);
+
+		const int textWidth =
+			GetDrawStringWidthToHandle(
+				ruleMessage_,
+				static_cast<int>(
+					std::strlen(ruleMessage_)),
+				fontMain_);
+
+		const int textX =
+			boxX +
+			(boxW - textWidth) / 2;
+
+		const int textY =
+			boxY +
+			static_cast<int>(boxH * 0.28f);
+
+		DrawStringToHandle(
+			textX,
+			textY,
+			ruleMessage_,
+			colorWarning,
+			fontMain_);
+	}
+
+	//----------------------------------
+	// ゲームオーバー表示
 	//----------------------------------
 	if (isGameOver_)
 	{
+		const int resultTop =
+			static_cast<int>(screenH * 0.47f);
+
 		const char* resultText =
 			isPlayerWin_
-			? "あなたの勝ちです"
-			: "CPUの勝ちです";
+			? "あなたの勝ち"
+			: "CPUの勝ち";
 
 		const char* reasonText = "";
 
@@ -180,126 +653,123 @@ void MiniShogi::DrawUI(void)
 			reasonText = "詰み";
 			break;
 
+		case GameOverReason::NO_LEGAL_MOVE:
+			reasonText = "指せる手がありません";
+			break;
+
 		case GameOverReason::KING_MISSING:
-			reasonText = "王が取られました";
+			reasonText = "王が盤上に存在しません";
 			break;
 
 		default:
-			reasonText = "";
 			break;
 		}
 
-		constexpr int WINDOW_W = 400;
-		constexpr int WINDOW_H = 160;
-		constexpr int SCREEN_W = 1024;
-		constexpr int SCREEN_H = 640;
-
-		const int left =
-			(SCREEN_W - WINDOW_W) / 2;
-
-		const int top =
-			(SCREEN_H - WINDOW_H) / 2;
-
-		const int right =
-			left + WINDOW_W;
-
-		const int bottom =
-			top + WINDOW_H;
-
-		DrawBox(
-			left,
-			top,
-			right,
-			bottom,
-			GetColor(40, 40, 40),
-			TRUE);
-
-		DrawBox(
-			left,
-			top,
-			right,
-			bottom,
-			GetColor(255, 255, 255),
-			FALSE);
-
-		DrawString(
-			left + 120,
-			top + 45,
+		DrawStringToHandle(
+			leftX1,
+			resultTop,
 			resultText,
-			GetColor(255, 255, 0));
+			colorYellow,
+			fontTitle_);
 
-		DrawString(
-			left + 145,
-			top + 95,
+		DrawStringToHandle(
+			leftX1,
+			resultTop +
+			static_cast<int>(screenH * 0.065f),
 			reasonText,
-			GetColor(255, 255, 255));
+			colorWhite,
+			fontMain_);
 
 		return;
 	}
 
 	//----------------------------------
-	// 成り選択中でなければ終了
+	// 成り選択ウィンドウ
 	//----------------------------------
-	if (promotionState_ != PromotionState::WAIT_SELECT)
+	if (promotionState_ !=
+		PromotionState::WAIT_SELECT)
 	{
 		return;
 	}
 
-	constexpr int WINDOW_W = 340;
-	constexpr int WINDOW_H = 160;
+	const int promoteWindowW =
+	static_cast<int>(screenW * 0.32f);
 
-	constexpr int SCREEN_W = 1024;
-	constexpr int SCREEN_H = 640;
+	const int promoteWindowH =
+	static_cast<int>(screenH * 0.22f);
 
-	const int left =
-		(SCREEN_W - WINDOW_W) / 2;
+	const int promoteLeft =
+	(screenW - promoteWindowW) / 2;
 
-	const int top =
-		(SCREEN_H - WINDOW_H) / 2;
+	const int promoteTop =
+	(screenH - promoteWindowH) / 2;
 
-	const int right =
-		left + WINDOW_W;
+	const int promoteRight =
+	promoteLeft + promoteWindowW;
 
-	const int bottom =
-		top + WINDOW_H;
+	const int promoteBottom =
+	promoteTop + promoteWindowH;
+
+	SetDrawBlendMode(
+		DX_BLENDMODE_ALPHA,
+		220);
 
 	DrawBox(
-		left,
-		top,
-		right,
-		bottom,
+		promoteLeft,
+		promoteTop,
+		promoteRight,
+		promoteBottom,
 		GetColor(40, 40, 40),
 		TRUE);
 
+	SetDrawBlendMode(
+		DX_BLENDMODE_NOBLEND,
+		0);
+
 	DrawBox(
-		left,
-		top,
-		right,
-		bottom,
-		GetColor(255, 255, 255),
+		promoteLeft,
+		promoteTop,
+		promoteRight,
+		promoteBottom,
+		colorWhite,
 		FALSE);
 
-	DrawString(
-		left + 95,
-		top + 25,
+	DrawStringToHandle(
+		promoteLeft +
+		static_cast<int>(promoteWindowW * 0.29f),
+		promoteTop +
+		static_cast<int>(promoteWindowH * 0.16f),
 		"成りますか？",
-		GetColor(255, 255, 255));
+		colorWhite,
+		fontMain_);
 
-	DrawString(
-		left + 70,
-		top + 90,
+	const unsigned int yesColor =
+	promoteSelect_
+	? colorYellow
+		: colorWhite;
+
+	const unsigned int noColor =
+	!promoteSelect_
+	? colorYellow
+		: colorWhite;
+
+	DrawStringToHandle(
+		promoteLeft +
+		static_cast<int>(promoteWindowW * 0.22f),
+		promoteTop +
+		static_cast<int>(promoteWindowH * 0.62f),
 		"はい",
-		promoteSelect_
-		? GetColor(255, 255, 0)
-		: GetColor(255, 255, 255));
+		yesColor,
+		fontMain_);
 
-	DrawString(
-		left + 190,
-		top + 90,
+	DrawStringToHandle(
+		promoteLeft +
+		static_cast<int>(promoteWindowW * 0.63f),
+		promoteTop +
+		static_cast<int>(promoteWindowH * 0.62f),
 		"いいえ",
-		!promoteSelect_
-		? GetColor(255, 255, 0)
-		: GetColor(255, 255, 255));
+		noColor,
+		fontMain_);
 }
 
 void MiniShogi::Reset(void)
@@ -316,10 +786,14 @@ void MiniShogi::InputUpdate(void)
 		return;
 	}
 
-	if (ins.IsTrgUp(KEY_INPUT_UP)) cursor_->MoveUp();
-	if (ins.IsTrgUp(KEY_INPUT_DOWN)) cursor_->MoveDown();
-	if (ins.IsTrgUp(KEY_INPUT_LEFT)) cursor_->MoveLeft();
-	if (ins.IsTrgUp(KEY_INPUT_RIGHT)) cursor_->MoveRight();
+	if (ins.IsTrgUp(KEY_INPUT_UP) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP)) cursor_->MoveUp();
+	if (ins.IsTrgUp(KEY_INPUT_DOWN) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN)) cursor_->MoveDown();
+	if (ins.IsTrgUp(KEY_INPUT_LEFT) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT)) cursor_->MoveLeft();
+	if (ins.IsTrgUp(KEY_INPUT_RIGHT) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT)) cursor_->MoveRight();
 }
 
 void MiniShogi::UpdateCameraState(void)
@@ -351,11 +825,43 @@ void MiniShogi::UpdateCameraState(void)
 
 void MiniShogi::SelectUpdate(void)
 {
-	auto& ins = InputManager::GetInstance();
+	auto& ins =
+		InputManager::GetInstance();
 
-	if (!ins.IsTrgUp(KEY_INPUT_RETURN)) return;
+	//----------------------------------
+	// 選択解除
+	// BackSpace または パッドB
+	//----------------------------------
+	const bool isCancel =
+		ins.IsTrgUp(KEY_INPUT_BACK) ||
+		ins.IsPadBtnTrgDown(
+			InputManager::JOYPAD_NO::PAD1,
+			InputManager::JOYPAD_BTN::RIGHT);
 
-	// 未選択時
+	if (isCancel)
+	{
+		CancelSelect();
+		return;
+	}
+
+	//----------------------------------
+	// 決定
+	// Enter または パッドA
+	//----------------------------------
+	const bool isDecide =
+		ins.IsTrgUp(KEY_INPUT_RETURN) ||
+		ins.IsPadBtnTrgDown(
+			InputManager::JOYPAD_NO::PAD1,
+			InputManager::JOYPAD_BTN::DOWN);
+
+	if (!isDecide)
+	{
+		return;
+	}
+
+	//----------------------------------
+	// 駒をまだ選択していない
+	//----------------------------------
 	if (!selector_->IsSelecting())
 	{
 		switch (cursor_->GetArea())
@@ -368,12 +874,17 @@ void MiniShogi::SelectUpdate(void)
 		case CursorArea::ENEMY_HAND:
 			SelectHandPiece();
 			break;
+
+		default:
+			break;
 		}
 
 		return;
 	}
 
-	// 選択済み
+	//----------------------------------
+	// 駒を選択済み
+	//----------------------------------
 	switch (selector_->GetSelectArea())
 	{
 	case CursorArea::BOARD:
@@ -384,29 +895,64 @@ void MiniShogi::SelectUpdate(void)
 	case CursorArea::ENEMY_HAND:
 		DropHandPiece();
 		break;
+
+	default:
+		CancelSelect();
+		break;
 	}
 }
 
 void MiniShogi::UpdatePromotion(void)
 {
-	auto& ins = InputManager::GetInstance();
+	auto& ins =
+		InputManager::GetInstance();
 
-	if (ins.IsTrgUp(KEY_INPUT_LEFT) ||
-		ins.IsTrgUp(KEY_INPUT_RIGHT))
+	//----------------------------------
+	// はい・いいえの切り替え
+	//----------------------------------
+	const bool isMoveSelect =
+		ins.IsTrgUp(KEY_INPUT_LEFT) ||
+		ins.IsTrgUp(KEY_INPUT_RIGHT) ||
+		ins.IsPadBtnTrgDown(
+			InputManager::JOYPAD_NO::PAD1,
+			InputManager::JOYPAD_BTN::DPAD_LEFT) ||
+		ins.IsPadBtnTrgDown(
+			InputManager::JOYPAD_NO::PAD1,
+			InputManager::JOYPAD_BTN::DPAD_RIGHT);
+
+	if (isMoveSelect)
 	{
-		promoteSelect_ = !promoteSelect_;
+		promoteSelect_ =
+			!promoteSelect_;
 	}
 
-	if (!ins.IsTrgUp(KEY_INPUT_RETURN))
+	//----------------------------------
+	// 決定
+	// Enter または パッドA
+	//----------------------------------
+	const bool isDecide =
+		ins.IsTrgUp(KEY_INPUT_RETURN) ||
+		ins.IsPadBtnTrgDown(
+			InputManager::JOYPAD_NO::PAD1,
+			InputManager::JOYPAD_BTN::DOWN);
+
+	if (!isDecide)
 	{
 		return;
 	}
 
+	//----------------------------------
+	// 「はい」なら成る
+	//----------------------------------
 	if (promoteSelect_)
 	{
-		rule_->Promote(pendingMovePiece_);
+		rule_->Promote(
+			pendingMovePiece_);
 	}
 
+	//----------------------------------
+	// 移動を確定
+	//----------------------------------
 	board_->SetPiece(
 		pendingToX_,
 		pendingToY_,
@@ -418,9 +964,11 @@ void MiniShogi::UpdatePromotion(void)
 
 	selector_->Select(false);
 
-	promotionState_ = PromotionState::NONE;
+	promotionState_ =
+		PromotionState::NONE;
 
-	isPlayerTurn_ = !isPlayerTurn_;
+	isPlayerTurn_ =
+		!isPlayerTurn_;
 
 	CheckGameOver();
 }
@@ -720,62 +1268,104 @@ void MiniShogi::CheckGameOver(void)
 	}
 
 	//----------------------------------
-	// 王の消失は異常時の保険
+	// 王が盤面に存在するか
 	//----------------------------------
-	if (!rule_->IsKingExist(
-		*board_,
-		true))
+	const bool playerKingExist =
+		rule_->IsKingExist(
+			*board_,
+			true);
+
+	const bool cpuKingExist =
+		rule_->IsKingExist(
+			*board_,
+			false);
+
+	if (!playerKingExist)
 	{
 		isGameOver_ = true;
 		isPlayerWin_ = false;
+
 		gameOverReason_ =
 			GameOverReason::KING_MISSING;
+
 		gameOverFrame_ = 180;
 		return;
 	}
 
-	if (!rule_->IsKingExist(
-		*board_,
-		false))
+	if (!cpuKingExist)
 	{
 		isGameOver_ = true;
 		isPlayerWin_ = true;
+
 		gameOverReason_ =
 			GameOverReason::KING_MISSING;
+
 		gameOverFrame_ = 180;
 		return;
 	}
 
 	//----------------------------------
-	// 現在手番側が詰んでいるか
+	// 現在の手番側
 	//----------------------------------
+	const bool currentSide =
+		isPlayerTurn_;
+
 	const Hand& currentHand =
-		isPlayerTurn_
+		currentSide
 		? *player0Hand_
 		: *player1Hand_;
 
-	if (!rule_->IsCheckmate(
-		*board_,
-		currentHand,
-		isPlayerTurn_))
+	const bool isCheck =
+		rule_->IsCheck(
+			*board_,
+			currentSide);
+
+	const bool hasLegalMove =
+		rule_->HasAnyLegalMove(
+			*board_,
+			currentHand,
+			currentSide);
+
+	//----------------------------------
+	// 指せる手があるなら続行
+	//----------------------------------
+	if (hasLegalMove)
 	{
 		return;
 	}
 
+	//----------------------------------
+	// 指せる手がないので終局
+	//----------------------------------
 	isGameOver_ = true;
 
-	// 詰んだ側の相手が勝者
-	isPlayerWin_ = !isPlayerTurn_;
+	// 現在CPU手番ならプレイヤー勝利
+	// 現在プレイヤー手番ならCPU勝利
+	isPlayerWin_ = !currentSide;
 
-	gameOverReason_ =
-		GameOverReason::CHECKMATE;
+	if (isCheck)
+	{
+		gameOverReason_ =
+			GameOverReason::CHECKMATE;
+	}
+	else
+	{
+		gameOverReason_ =
+			GameOverReason::NO_LEGAL_MOVE;
+	}
 
+	// 60FPSで約3秒
 	gameOverFrame_ = 180;
 
 }
 
 void MiniShogi::UpdateGameOver(void)
 {
+	if (!isGameOver_)
+	{
+		return;
+	}
+
 	if (gameOverFrame_ > 0)
 	{
 		gameOverFrame_--;
@@ -785,36 +1375,95 @@ void MiniShogi::UpdateGameOver(void)
 	isReturn_ = true;
 }
 
+void MiniShogi::CancelSelect(void)
+{
+	if (!selector_->IsSelecting())
+	{
+		return;
+	}
+
+	selector_->Select(false);
+
+	// 持ち駒選択後に盤面へ移動していた場合も、
+	// カーソル位置はそのままで選択だけ解除する
+	ruleMessage_ = "選択を解除しました";
+	ruleMessageFrame_ = 60;
+}
+
 void MiniShogi::CpuUpdate(void)
 {
+	if (isGameOver_)
+	{
+		return;
+	}
+
 	CpuMove move =
 		cpu_->Think(
 			*board_,
 			*player1Hand_,
 			*rule_);
 
+	//----------------------------------
+	// CPUに指せる手がない
+	//----------------------------------
 	if (move.pieceType == PieceType::NONE)
 	{
-		// 詰みまたは合法手なしを共通処理で判定
 		CheckGameOver();
+
+		//----------------------------------
+		// Rule側では合法手があるのに、
+		// CPUが手を生成できなかった場合
+		//----------------------------------
+		if (!isGameOver_)
+		{
+			ruleMessage_ =
+				"CPUの手生成に失敗しました";
+
+			ruleMessageFrame_ = 180;
+		}
+
 		return;
 	}
 
+	//----------------------------------
+	// 持ち駒を打つ
+	//----------------------------------
 	if (move.isDrop)
 	{
-		ExecuteDrop(
-			move.pieceType,
-			move.toX,
-			move.toY);
+		const bool result =
+			ExecuteDrop(
+				move.pieceType,
+				move.toX,
+				move.toY);
+
+		if (!result)
+		{
+			ruleMessage_ =
+				"CPUが不正な駒打ちを選びました";
+
+			ruleMessageFrame_ = 180;
+		}
+
+		return;
 	}
-	else
-	{
+
+	//----------------------------------
+	// 盤上の駒を動かす
+	//----------------------------------
+	const bool result =
 		ExecuteCpuMove(
 			move.fromX,
 			move.fromY,
 			move.toX,
 			move.toY,
 			move.isPromote);
+
+	if (!result)
+	{
+		ruleMessage_ =
+			"CPUが不正な移動を選びました";
+
+		ruleMessageFrame_ = 180;
 	}
 }
 
@@ -847,10 +1496,19 @@ bool MiniShogi::ExecuteCpuMove(int fromX, int fromY, int toX, int toY, bool isPr
 		Piece capturePiece =
 			board_->GetPiece(toX, toY);
 
-		capturePiece.isPlayer_ = isPlayerTurn_;
+		// 王を取る手は実行しない
+		if (capturePiece.type_ == PieceType::OU)
+		{
+			return false;
+		}
+
+		capturePiece.isPlayer_ =
+			isPlayerTurn_;
+
 		capturePiece.isPromote_ = false;
 
-		player1Hand_->AddPiece(capturePiece.type_);
+		player1Hand_->AddPiece(
+			capturePiece.type_);
 	}
 
 	if (isPromote || rule_->MustPromote(realMovePiece, toY))
