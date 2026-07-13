@@ -1221,24 +1221,10 @@ bool Quoridor::PauseUpdate(void)
 				pauseScreenHandle_);
 
 			PlaySoundMem(menuSe_, DX_PLAYTYPE_BACK);
-			//StopSoundMem(bgm_);
-			StopSoundMem(pMH_);
-			StopSoundMem(wMH_);
-			StopSoundMem(wRH_);
-			StopSoundMem(mCH_);
-			StopSoundMem(vicH_);
-			StopSoundMem(defH_);
 		}
 		else
 		{
 			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-			//PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
-			PlaySoundMem(pMH_, DX_PLAYTYPE_BACK, false);
-			PlaySoundMem(wMH_, DX_PLAYTYPE_BACK, false);
-			PlaySoundMem(wRH_, DX_PLAYTYPE_BACK, false);
-			PlaySoundMem(mCH_, DX_PLAYTYPE_BACK, false);
-			PlaySoundMem(vicH_, DX_PLAYTYPE_BACK, false);
-			PlaySoundMem(defH_, DX_PLAYTYPE_BACK, false);
 		}
 
 		// 開いた・閉じた瞬間は入力を消費
@@ -1290,7 +1276,6 @@ bool Quoridor::PauseUpdate(void)
 		case 0:
 			isPause_ = false;
 			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-			//PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
 			return true;    // このフレームはゲームへ入力を渡さない
 
 		case 1:

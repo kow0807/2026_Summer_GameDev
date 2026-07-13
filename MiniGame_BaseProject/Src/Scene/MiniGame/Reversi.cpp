@@ -106,6 +106,7 @@ void Reversi::Update(void)
 
 		if (resultTimer_ >= 240)
 		{
+			StopSoundMem(bgm_);
 			isReturn_ = true;
 		}
 
@@ -1006,12 +1007,10 @@ bool Reversi::PauseUpdate(void)
 		else
 		{
 			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-			PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
-			PlaySoundMem(pieceSe_, DX_PLAYTYPE_BACK, false);
-			PlaySoundMem(clearSe_, DX_PLAYTYPE_BACK, false);
-			PlaySoundMem(overSe_, DX_PLAYTYPE_BACK, false);
-			PlaySoundMem(skipSe_, DX_PLAYTYPE_BACK, false);
-			PlaySoundMem(cursorSe_, DX_PLAYTYPE_BACK, false);
+			if (gameState_ != GameState::RESULT)
+			{
+				PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+			}
 		}
 
 		// 開いた・閉じた瞬間は入力を消費
@@ -1063,7 +1062,10 @@ bool Reversi::PauseUpdate(void)
 		case 0:
 			isPause_ = false;
 			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-			PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+			if (gameState_ != GameState::RESULT)
+			{
+				PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+			}
 			return true;    // このフレームはゲームへ入力を渡さない
 
 		case 1:

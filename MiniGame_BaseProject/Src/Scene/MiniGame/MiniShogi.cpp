@@ -1577,12 +1577,10 @@ bool MiniShogi::PauseUpdate(void)
 				pauseScreenHandle_);
 
 			PlaySoundMem(menuSe_, DX_PLAYTYPE_BACK);
-			//StopSoundMem(bgm_);
 		}
 		else
 		{
 			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-			//PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
 		}
 
 		// 開いた・閉じた瞬間は入力を消費
@@ -1634,7 +1632,6 @@ bool MiniShogi::PauseUpdate(void)
 		case 0:
 			isPause_ = false;
 			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-			//PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
 			return true;    // このフレームはゲームへ入力を渡さない
 
 		case 1:

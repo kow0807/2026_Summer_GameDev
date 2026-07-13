@@ -242,6 +242,7 @@ void FirstPressGame::Update(void)
                 if (timer_ > 240)
                 {
                     // 完全終了
+                    StopSoundMem(bgm_);
                     isReturn_ = true;
                 }
             }
@@ -1392,18 +1393,11 @@ bool FirstPressGame::PauseUpdate(void)
         }
         else
         {
+            if (gameState_ != GameState::RESULT)
+            {
+                PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+            }
             PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-            PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
-            PlaySoundMem(pressSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(pointSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(lostSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(clearSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(overSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(fallingSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(noiseSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(countSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(errorSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(triviaSe_, DX_PLAYTYPE_BACK, false);
         }
 
         // 開いた・閉じた瞬間は入力を消費
@@ -1455,7 +1449,10 @@ bool FirstPressGame::PauseUpdate(void)
         case 0:
             isPause_ = false;
             PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-            PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+            if (gameState_ != GameState::RESULT)
+            {
+                PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+            }
             return true;    // このフレームはゲームへ入力を渡さない
 
         case 1:

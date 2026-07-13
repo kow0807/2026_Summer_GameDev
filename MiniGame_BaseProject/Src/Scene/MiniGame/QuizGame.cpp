@@ -373,6 +373,7 @@ void QuizGame::UpdatePlay(void)
     if (timeLimitFrame_ <= 0)
     {
         isCorrectAnswer_ = false;
+        PlaySoundMem(buzzerSe_, DX_PLAYTYPE_BACK);
         answerEffectFrame_ = 120;
 
         return;
@@ -427,6 +428,7 @@ void QuizGame::UpdateResult(void)
     // 6.5ïbå„(60fpsëzíË)
     if (resultFrame_ >= 390)
     {
+        StopSoundMem(bgm_);
         isReturn_ = true;
     }
 }
@@ -911,7 +913,7 @@ bool QuizGame::PauseUpdate(void)
                 Application::SCREEN_SIZE_X,
                 Application::SCREEN_SIZE_Y,
                 pauseScreenHandle_);
-
+            
             PlaySoundMem(menuSe_, DX_PLAYTYPE_BACK);
             StopSoundMem(bgm_);
             StopSoundMem(readySe_);
@@ -923,12 +925,10 @@ bool QuizGame::PauseUpdate(void)
         else
         {
             PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-            PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
-            PlaySoundMem(readySe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(correctSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(buzzerSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(cursorSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(resultSe_, DX_PLAYTYPE_BACK, false);
+            if (gameState_ == GameState::PLAY)
+            {
+                PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+            }
         }
 
         // äJÇ¢ÇΩÅEï¬Ç∂ÇΩèuä‘ÇÕì¸óÕÇè¡îÔ
@@ -980,7 +980,10 @@ bool QuizGame::PauseUpdate(void)
         case 0:
             isPause_ = false;
             PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-            PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+            if (gameState_ == GameState::PLAY)
+            {
+                PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+            }
             return true;    // Ç±ÇÃÉtÉåÅ[ÉÄÇÕÉQÅ[ÉÄÇ÷ì¸óÕÇìnÇ≥Ç»Ç¢
 
         case 1:

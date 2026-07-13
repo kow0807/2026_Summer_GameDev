@@ -598,13 +598,20 @@ bool ButtonMashGame::PauseUpdate(void)
         else
         {
             PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-            PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
-            PlaySoundMem(readySe_, DX_PLAYTYPE_LOOP, false);
-            PlaySoundMem(pushSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(clearSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(overSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(pointSe_, DX_PLAYTYPE_BACK, false);
-            PlaySoundMem(lostSe_, DX_PLAYTYPE_BACK, false);
+            if (gameState_ == GameState::READY)
+            {
+                if (playerWinCount_ != 0 || cpuWinCount_ != 0)
+                {
+                    PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+                }
+            }
+            else
+            {
+                if (playerWinCount_ < 2 && cpuWinCount_ < 2)
+                {
+                    PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+                }
+            }
         }
 
         // ŠJ‚¢‚½E•Â‚¶‚½uŠÔ‚Í“ü—Í‚ðÁ”ï
@@ -656,7 +663,20 @@ bool ButtonMashGame::PauseUpdate(void)
         case 0:
             isPause_ = false;
             PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
-            PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+            if (gameState_ == GameState::READY)
+            {
+                if (playerWinCount_ != 0 || cpuWinCount_ != 0)
+                {
+                    PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+                }
+            }
+            else
+            {
+                if (playerWinCount_ < 2 && cpuWinCount_ < 2)
+                {
+                    PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+                }
+            }
             return true;    // ‚±‚ÌƒtƒŒ[ƒ€‚ÍƒQ[ƒ€‚Ö“ü—Í‚ð“n‚³‚È‚¢
 
         case 1:
