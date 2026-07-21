@@ -189,7 +189,7 @@ VECTOR HandActor::CalcWorldPosition(int index) const
 
 	return VGet(
 		x,
-		15.0f,
+		50.0f,
 		z
 	);
 }

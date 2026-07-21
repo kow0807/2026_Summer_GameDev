@@ -365,6 +365,10 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Quoridor/Texture/White.jpg");
 	resourcesMap_.emplace(SRC::QUORIDOR_TEXTURE_WHITE, res);
 
+	// クオリドールの白いテクスチャ
+	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Quoridor/Texture/Wood_Color.jpg");
+	resourcesMap_.emplace(SRC::QUORIDOR_TEXTURE_WOOD, res);
+
 	// クオリドールのピースの移動SE
 	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Quoridor/pieceMove.mp3");
 	resourcesMap_.emplace(SRC::QUORIDOR_PIECEMOVE_SE, res);
@@ -432,6 +436,10 @@ void ResourceManager::Init(void)
 	// 五々将棋のUVテクスチャ
 	res = std::make_unique<RES>(RES_T::IMG, PATH_MDL + "MiniShogi/Shogiban/Texture/Wood_2K_NormalDX.jpg");
 	resourcesMap_.emplace(SRC::MINISHOGI_TEXTURE_UV, res);
+
+	// 五々将棋の畳テクスチャ
+	res = std::make_unique<RES>(RES_T::IMG, PATH_IMG + "MiniShogi/tatami.jpg");
+	resourcesMap_.emplace(SRC::MINISHOGI_TEXTURE_TATAMI, res);
 }
 
 void ResourceManager::Release(void)

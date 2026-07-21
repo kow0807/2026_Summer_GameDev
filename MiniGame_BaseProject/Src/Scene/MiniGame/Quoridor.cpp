@@ -5,13 +5,13 @@
 #include "../../Manager/InputManager.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Setting.h"
-#include "../../Manager/PythonRuntimeManager.h"
 #include "../../Object/Actor/Quoridor/Desk.h"
 #include "../../Object/Actor/Quoridor/QuoridorBoard.h"
 #include "../../Object/Actor/Quoridor/Wall.h"
 #include "../../Object/Actor/Quoridor/PlayerPiece.h"
 #include "../../Object/Actor/Quoridor/PythonAI.h"
 #include "../../Object/Actor/Quoridor/Triangle.h"
+#include "../../Object/Actor/Quoridor/QuoridorCpu.h"
 #include "../../Application.h"
 #include "Quoridor.h"
 
@@ -165,51 +165,9 @@ void Quoridor::Init(void)
 
 	RefreshMoveCandidates();
 
-	auto& pythonRuntime = PythonRuntimeManager::GetInstance();
-	pythonAI_ = std::make_unique<PythonAI>();
+	cpu_ = std::make_unique<QuoridorCpu>();
 
-#ifdef _DEBUG
-	fs::exists(pythonRuntime.GetPythonExePath()) ?
-		DbgLog("[Init] Python runtime found: ") :
-		DbgLog("[Init] Python runtime NOT found: ");
 
-	if(fs::exists(pythonRuntime.GetPythonExePath()))
-	{
-		MessageBoxW(
-			nullptr,
-			pythonRuntime.GetPythonExePath().c_str(),
-			L"Path",
-			MB_OK
-		);
-	}
-	if (fs::exists(pythonRuntime.GetPythonExePath()))
-	{
-		MessageBoxW(nullptr, L"FOUND", L"DEBUG", MB_OK);
-	}
-	else
-	{
-		MessageBoxW(nullptr, L"NOT FOUND", L"DEBUG", MB_OK);
-	}
-
-#endif // DEBUG
-
-	// Python接続開始
-	bool ok = pythonAI_->Start(
-		pythonRuntime.GetPythonExePath(),
-		pythonRuntime.GetScriptPath(L"CPU_AI\\Quoridor_Ai.py")
-	);
-
-	if (ok)
-	{
-#ifdef _DEBUG
-		DbgLog("[Init] PythonAI Start OK");
-#endif
-	}
-	else
-	{
-		DbgLog("[Init] PythonAI Start FAILED -> PLAYER mode");
-		gameMode_ = GAME_MODE::PLAYER;
-	}
 }
 
 void Quoridor::Update(void)
@@ -508,15 +466,6 @@ void Quoridor::DrawUI(void)
 
 void Quoridor::Reset(void)
 {
-	// もし思考中なら結果を一回破棄するなどしてクリアさせる
-	if (pythonAI_ && pythonAI_->IsThinking())
-	{
-		if (pythonAI_->HasResult())
-		{
-			pythonAI_->TakeResult();
-		}
-		isCpuThinking_ = false;
-	}
 
 	mode_ = MODE::MOVE;
 
@@ -556,139 +505,6 @@ void Quoridor::RefreshMoveCandidates(void)
 bool Quoridor::IsBlink(void) const
 {
 	return ((GetNowCount() / 300) % 2) == 0;
-}
-
-void Quoridor::ApplyCpuMove(const std::string& json)
-{
-	Player& cpu = players_[1];
-
-	DbgLog("[ApplyCpuMove] json=" + json);
-
-	auto findInt = [&](const std::string& key) -> int
-		{
-			std::string search = "\"" + key + "\": ";
-			auto pos = json.find(search);
-			if (pos == std::string::npos) return -1;
-			size_t valueStart = pos + search.size();
-			try { return std::stoi(json.substr(valueStart)); }
-			catch (...) { return -1; }
-		};
-
-	if (json.find("\"type\": \"move\"") != std::string::npos)
-	{
-		int x = findInt("x");
-		int y = findInt("y");
-		DbgLog("[ApplyCpuMove] parsed x=" + std::to_string(x) + " y=" + std::to_string(y));
-
-		if (x >= 0 && y >= 0)
-		{
-			auto cands = board_->GetAllMoveCandidates(cpu, players_);
-
-			std::string candStr = "[ApplyCpuMove] candidates=";
-			for (auto& [cx, cy] : cands)
-				candStr += "(" + std::to_string(cx) + "," + std::to_string(cy) + ")";
-			DbgLog(candStr);
-
-			bool moved = false;
-			for (auto& [cx, cy] : cands)
-			{
-				if (cx == x && cy == y)
-				{
-					cpu.x_ = x;
-					cpu.y_ = y;
-					PlaySoundMem(pMH_, DX_PLAYTYPE_BACK);
-					moved = true;
-					DbgLog("[ApplyCpuMove] MOVE APPLIED: cpu -> (" + std::to_string(x) + "," + std::to_string(y) + ")");
-					break;
-				}
-			}
-			if (!moved)
-			{
-				DbgLog("[ApplyCpuMove] REJECTED: (" + std::to_string(x) + "," + std::to_string(y) + ") not in candidates");
-			}
-		}
-		else
-		{
-			DbgLog("[ApplyCpuMove] invalid x or y (negative)");
-		}
-	}
-	else if (json.find("\"type\": \"wall\"") != std::string::npos)
-	{
-		if (cpu.remainingWalls_ <= 0) return;
-
-		int x = findInt("x");
-		int y = findInt("y");
-		bool vertical = (json.find("\"vertical\": true") != std::string::npos);
-
-		if (x >= 0 && y >= 0)
-		{
-			bool placed = board_->PlaceWall(x, y, vertical, players_, cpu.wallColor_);
-			if (placed)
-			{
-				cpu.remainingWalls_--;
-				PlaySoundMem(wMH_, DX_PLAYTYPE_BACK);
-				mode_ = MODE::MOVE;
-				DbgLog("[ApplyCpuMove] WALL placed at (" + std::to_string(x) + "," + std::to_string(y) + ")");
-			}
-		}
-	}
-	else
-	{
-		DbgLog("[ApplyCpuMove] unknown type in json");
-	}
-}
-
-std::string Quoridor::BuildBoardJson(void) const
-{
-	std::string json = "{";
-
-	json += "\"players\":["
-		"[" + std::to_string(players_[0].x_) + "," + std::to_string(players_[0].y_) + "],"
-		"[" + std::to_string(players_[1].x_) + "," + std::to_string(players_[1].y_) + "]],";
-
-	json += "\"remaining_walls\":["
-		+ std::to_string(players_[0].remainingWalls_) + ","
-		+ std::to_string(players_[1].remainingWalls_) + "],";
-
-	auto cands = board_->GetAllMoveCandidates(players_[1], players_);
-	json += "\"move_candidates\":[";
-	for (int i = 0; i < (int)cands.size(); ++i)
-	{
-		if (i > 0) json += ",";
-		json += "[" + std::to_string(cands[i].first) + "," + std::to_string(cands[i].second) + "]";
-	}
-	json += "],";
-
-	json += "\"vertical_walls\":[";
-	for (int y = 0; y < BOARD_SIZE; ++y)
-	{
-		if (y > 0) json += ",";
-		json += "[";
-		for (int x = 0; x < BOARD_SIZE - 1; ++x)
-		{
-			if (x > 0) json += ",";
-			json += board_->GetVerticalWall(x, y) ? "1" : "0";
-		}
-		json += "]";
-	}
-	json += "],";
-
-	json += "\"horizontal_walls\":[";
-	for (int y = 0; y < BOARD_SIZE - 1; ++y)
-	{
-		if (y > 0) json += ",";
-		json += "[";
-		for (int x = 0; x < BOARD_SIZE; ++x)
-		{
-			if (x > 0) json += ",";
-			json += board_->GetHorizontalWall(x, y) ? "1" : "0";
-		}
-		json += "]";
-	}
-	json += "],";
-
-	json += "\"turn\":1}";
-	return json;
 }
 
 void Quoridor::UpdatePlayer(void)
@@ -849,61 +665,75 @@ void Quoridor::UpdatePlayer(void)
 
 void Quoridor::UpdateCpu(void)
 {
-	if (!pythonAI_ || !pythonAI_->IsRunning())
+	constexpr int CPU_INDEX = 1;
+	constexpr int SEARCH_DEPTH = 2;
+	constexpr int THINKING_TIME_MS = 700;
+
+	// CPUのターンでなければ何もしない
+	if (currentTurn_ != CPU_INDEX)
 	{
-		DbgLog("[UpdateCpu] PythonAI not running");
-		return;
-	}
-
-	// ─── 【改善】すでに結果が届いている場合の処理 ───
-	if (pythonAI_->HasResult())
-	{
-		// 演出用の最低思考時間（ミリ秒）。400ms ほど「考えたフリ」をさせる
-		const int MIN_THINKING_TIME_MS = 400;
-		int elapsedTime = GetNowCount() - cpuStartTime_;
-
-		// 最低思考時間を過ぎるまでは、画面をフリーズさせずに「考え中」のまま待機させる
-		if (elapsedTime < MIN_THINKING_TIME_MS)
-		{
-			return;
-		}
-
-		DbgLog("[UpdateCpu] HasResult=true & MinTime passed");
-		std::string response = pythonAI_->TakeResult();
-		DbgLog("[UpdateCpu] response=" + response);
-
-		if (!response.empty()) ApplyCpuMove(response);
-
-		// 思考終了
 		isCpuThinking_ = false;
-		isChangeTurn_ = true;
 		return;
 	}
 
-	// ─── 【改善】まだPythonにリクエストを送っていない（思考開始時） ───
-	if (!pythonAI_->IsThinking())
+	// CPU本体が生成されていない
+	if (!cpu_)
 	{
-		std::string boardJson = BuildBoardJson();
-
-		// 【アイデア3の拡張】CPU（players_[1]）の壁が0枚なら、JSONの末尾に拡張ヒントを仕込む
-		if (players_[1].remainingWalls_ <= 0)
-		{
-			// JSONの閉じ括弧「}」を削って、推奨する探索深さ(1)を結合して閉じ直す
-			if (!boardJson.empty() && boardJson.back() == '}') {
-				boardJson.pop_back();
-				boardJson += ",\"suggested_depth\":1}";
-			}
-		}
-
-		DbgLog("[UpdateCpu] QueryAsync: " + boardJson);
-
-		// 非同期リクエスト開始
-		pythonAI_->QueryAsync(boardJson, nullptr);
-
-		// 【演出用】考え始めた時間をミリ秒で記録し、思考中フラグをON
-		cpuStartTime_ = GetNowCount();
-		isCpuThinking_ = true;
+		return;
 	}
+
+	// 最初のフレームでは思考演出を開始する
+	if (!isCpuThinking_)
+	{
+		isCpuThinking_ = true;
+		cpuStartTime_ = GetNowCount();
+		return;
+	}
+
+	// 一定時間は「CPU思考中」を表示する
+	const int elapsedTime =
+		GetNowCount() - cpuStartTime_;
+
+	if (elapsedTime < THINKING_TIME_MS)
+	{
+		return;
+	}
+
+	QuoridorCpu::CpuAction action{};
+
+	const bool foundAction =
+		cpu_->FindBestAction(
+			*board_,
+			players_,
+			action,
+			SEARCH_DEPTH);
+
+	if (!foundAction)
+	{
+#ifdef _DEBUG
+		DbgLog(
+			"[UpdateCpu] CPU action was not found.");
+#endif // DEBUG
+
+		isCpuThinking_ = false;
+		return;
+	}
+
+	if (!ApplyCpuAction(action))
+	{
+#ifdef _DEBUG
+		DbgLog(
+			"[UpdateCpu] Failed to apply CPU action.");
+#endif // DEBUG
+
+		isCpuThinking_ = false;
+		return;
+	}
+
+	isCpuThinking_ = false;
+
+	// Update()の最後でターンを切り替える
+	isChangeTurn_ = true;
 }
 
 VECTOR Quoridor::GetWorldPos(int x, int y) const
@@ -1444,4 +1274,126 @@ void Quoridor::PauseDraw(void)
 		GetColor(80, 80, 80));
 
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+}
+
+bool Quoridor::ApplyCpuAction(const QuoridorCpu::CpuAction& action)
+{
+	constexpr int CPU_INDEX = 1;
+
+	Player& cpuPlayer =
+		players_[CPU_INDEX];
+
+	// ---------------------------------
+	// 壁を配置する場合
+	// ---------------------------------
+	if (action.isWall)
+	{
+		if (cpuPlayer.remainingWalls_ <= 0)
+		{
+			DbgLog(
+				"[ApplyCpuAction] CPU has no walls.");
+
+			return false;
+		}
+
+		const bool placed =
+			board_->PlaceWall(
+				action.x,
+				action.y,
+				action.isVertical,
+				players_,
+				cpuPlayer.wallColor_);
+
+		if (!placed)
+		{
+			DbgLog(
+				"[ApplyCpuAction] Wall placement failed: (" +
+				std::to_string(action.x) +
+				"," +
+				std::to_string(action.y) +
+				")");
+
+			return false;
+		}
+
+		cpuPlayer.remainingWalls_--;
+
+		PlaySoundMem(
+			wMH_,
+			DX_PLAYTYPE_BACK);
+
+		mode_ = MODE::MOVE;
+
+		DbgLog(
+			"[ApplyCpuAction] WALL placed: (" +
+			std::to_string(action.x) +
+			"," +
+			std::to_string(action.y) +
+			"), vertical=" +
+			std::to_string(action.isVertical));
+
+		return true;
+	}
+
+	// ---------------------------------
+	// 駒を移動する場合
+	// ---------------------------------
+	if (action.x < 0 ||
+		action.x >= BOARD_SIZE ||
+		action.y < 0 ||
+		action.y >= BOARD_SIZE)
+	{
+		DbgLog(
+			"[ApplyCpuAction] Move is outside board.");
+
+		return false;
+	}
+
+	// 実際の盤面側でも合法手を再確認する
+	const auto candidates =
+		board_->GetAllMoveCandidates(
+			cpuPlayer,
+			players_);
+
+	bool isLegalMove = false;
+
+	for (const auto& candidate : candidates)
+	{
+		if (candidate.first == action.x &&
+			candidate.second == action.y)
+		{
+			isLegalMove = true;
+			break;
+		}
+	}
+
+	if (!isLegalMove)
+	{
+		DbgLog(
+			"[ApplyCpuAction] Illegal move rejected: (" +
+			std::to_string(action.x) +
+			"," +
+			std::to_string(action.y) +
+			")");
+
+		return false;
+	}
+
+	cpuPlayer.x_ = action.x;
+	cpuPlayer.y_ = action.y;
+
+	PlaySoundMem(
+		pMH_,
+		DX_PLAYTYPE_BACK);
+
+	mode_ = MODE::MOVE;
+
+	DbgLog(
+		"[ApplyCpuAction] MOVE applied: (" +
+		std::to_string(action.x) +
+		"," +
+		std::to_string(action.y) +
+		")");
+
+	return true;
 }

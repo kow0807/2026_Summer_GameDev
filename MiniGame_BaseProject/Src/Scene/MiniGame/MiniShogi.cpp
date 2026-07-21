@@ -6,6 +6,7 @@
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Setting.h"
 
+#include "../../Object/Actor/MiniShogi/Floor.h"
 #include "../../Object/Actor/MiniShogi/Shogiban.h"
 #include "../../Object/Actor/MiniShogi/Komadai.h"
 
@@ -92,11 +93,21 @@ void MiniShogi::Init(void)
 	SceneManager::GetInstance().GetCamera()->ChangeGameTypeCamera(Camera::GAME_TYPE::MINISHOGI);
 	SceneManager::GetInstance().GetCamera()->ChangeShogiTypeCamera(Camera::SHOGI_TYPE::NORMAL);
 
+	floor_ = std::make_unique<Floor>();
+	floor_->Init();
+	floor_->SetPosition(Floor::DEFAULT_POSITION);
+
 	shogiban_ = std::make_unique<Shogiban>();
 	shogiban_->Init();
 
-	komadai_ = std::make_unique<Komadai>();
-	komadai_->Init();
+
+	pKomadai_ = std::make_unique<Komadai>();
+	pKomadai_->Init();
+	pKomadai_->SetPosition(Komadai::PLAYER_POSITION);
+
+	eKomadai_ = std::make_unique<Komadai>();
+	eKomadai_->Init();
+	eKomadai_->SetPosition(Komadai::ENEMY_POSITION);
 
 	cursor_ = std::make_unique<Cursor>();
 	cursor_->SetPlayerTurn(isPlayerTurn_);
@@ -151,8 +162,12 @@ void MiniShogi::Update(void)
 		return;
 	}
 
+	floor_->Update();
 	shogiban_->Update();
-	komadai_->Update();
+
+	pKomadai_->Update();
+	eKomadai_->Update();
+	
 
 	if (isGameOver_)
 	{
@@ -206,9 +221,13 @@ void MiniShogi::Update(void)
 
 void MiniShogi::Draw(void)
 {
+	floor_->Draw();
+	shogiban_->Draw();
 
-	//shogiban_->Draw();
-	komadai_->Draw();
+	pKomadai_->Draw();
+	eKomadai_->Draw();
+	
+
 	actor_->Draw();
 
 }

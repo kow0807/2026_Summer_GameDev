@@ -6,7 +6,6 @@
 #include "../Manager/ResourceManager.h"
 #include "../Manager/InputManager.h"
 #include "../Manager/Setting.h"
-#include "../Manager/PythonRuntimeManager.h"
 #include "../Renderer/PixelMaterial.h"
 #include "../Renderer/PixelRenderer.h"
 #include "../Scene/MiniGame/GameBase.h"
@@ -42,9 +41,6 @@ void GameScene::Init(void)
 	// 定点カメラ
 	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FIXED_POINT);
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::MOUSE);
-
-	// Pythonランタイムの初期化
-	PythonRuntimeManager::CreateInstance();
 
 	explanationFontHandle_ = CreateFontToHandle(
 		"游明朝",
@@ -120,7 +116,6 @@ void GameScene::Update(void)
 		break;
 
 	case SELECT_STATE::RUNTIME_LOADING:
-		if(PythonRuntimeManager::GetInstance().IsFinished())
 		{
 			CreateMiniGame();
 			selectState_ = SELECT_STATE::PLAYING;
@@ -164,7 +159,7 @@ void GameScene::Draw(void)
 	case SELECT_STATE::EXPLANATION:
 		break;
 	case SELECT_STATE::RUNTIME_LOADING:
-		DrawRunTimeLoading();
+		//DrawRunTimeLoading();
 		break;
 	case SELECT_STATE::TRANSITION_OUT:
 		ExplanationDrawUI();
@@ -287,21 +282,10 @@ void GameScene::ExplanationUpdate()
 	{
 		if (isYes_)
 		{
-			if (!PythonRuntimeManager::GetInstance().IsFinished() && (miniState_ == MINI_STATE::QUORIDOR))
-			{
-				StopSoundMem(bgm_);
-				PythonRuntimeManager::GetInstance().StartExtractAsync();
-				selectState_ = SELECT_STATE::RUNTIME_LOADING;
-
-				PlaySoundMem(decideSEH_, DX_PLAYTYPE_BACK);
-			}
-			else
-			{
-				StopSoundMem(bgm_);
-				PlaySoundMem(decideSEH_, DX_PLAYTYPE_BACK);
-				fadeAlpha_ = 0;
-				selectState_ = SELECT_STATE::TRANSITION_OUT;
-			}
+			StopSoundMem(bgm_);
+			PlaySoundMem(decideSEH_, DX_PLAYTYPE_BACK);
+			fadeAlpha_ = 0;
+			selectState_ = SELECT_STATE::TRANSITION_OUT;
 		}
 		else
 		{
@@ -1922,390 +1906,6 @@ void GameScene::ExplanationMiniShogiUI(void)
 		fontScale,
 		"いいえ",
 		noColor);
-}
-
-void GameScene::DrawRunTimeLoading(void)
-{
-	const auto& windowSize = Setting::GetInstance().GetWindowSize();
-
-	const int screenW = windowSize.width_;
-	const int screenH = windowSize.height_;
-
-
-	if (!PythonRuntimeManager::GetInstance().IsFinished())
-	{
-		const int screenCenterX = screenW / 2;
-		const int screenCenterY = screenH / 2;
-
-		//==================================================
-		// Progress
-		//==================================================
-
-		float progress =
-			PythonRuntimeManager::GetInstance().GetProgress();
-
-		static float visualProgress = 0.0f;
-
-		visualProgress +=
-			(progress - visualProgress) * 0.05f;
-
-		//==================================================
-		// Color
-		//==================================================
-
-		const int bgColor =
-			GetColor(250, 238, 218);
-
-		const int panelColor =
-			GetColor(255, 253, 228);
-
-		const int frameColor =
-			GetColor(240, 153, 123);
-
-		const int accentColor =
-			GetColor(216, 90, 48);
-
-		const int textColor =
-			GetColor(180, 60, 20);
-
-		const int subTextColor =
-			GetColor(224, 148, 106);
-
-		//==================================================
-		// Background
-		//==================================================
-
-		DrawBox(
-			0,
-			0,
-			screenW,
-			screenH,
-			bgColor,
-			TRUE
-		);
-
-		//==================================================
-		// Scale
-		//==================================================
-
-		const float scale =
-			static_cast<float>(screenH) / 720.0f;
-
-		//==================================================
-		// Element Size
-		//==================================================
-
-		const int dotRadius =
-			static_cast<int>(14 * scale);
-
-		const int dotSpacing =
-			static_cast<int>(14 * scale);
-
-		const int barWidth =
-			static_cast<int>(420 * scale);
-
-		const int barHeight =
-			static_cast<int>(24 * scale);
-
-		//==================================================
-		// UI GROUP SIZE
-		//==================================================
-
-		const int uiWidth =
-			barWidth;
-
-		const int uiHeight =
-			static_cast<int>(383 * scale) + 16;
-
-		//==================================================
-		// UI GROUP POSITION
-		//==================================================
-
-		const int uiX =
-			screenCenterX - (uiWidth / 2);
-
-		const int uiY =
-			screenCenterY - (uiHeight / 2);
-
-		//==================================================
-		// Panel
-		//==================================================
-
-		const int panelPaddingX =
-			static_cast<int>(60 * scale);
-
-		const int panelPaddingY =
-			static_cast<int>(60 * scale);
-
-		const int panelX =
-			uiX - panelPaddingX;
-
-		const int panelY =
-			uiY - panelPaddingY;
-
-		const int panelW =
-			uiWidth + (panelPaddingX * 2);
-
-		const int panelH =
-			uiHeight + (panelPaddingY * 2);
-
-		const int cornerRadius =
-			static_cast<int>(20 * scale);
-
-		DrawRoundRect(
-			panelX,
-			panelY,
-			panelX + panelW,
-			panelY + panelH,
-			cornerRadius,
-			cornerRadius,
-			panelColor,
-			TRUE
-		);
-
-		DrawRoundRect(
-			panelX,
-			panelY,
-			panelX + panelW,
-			panelY + panelH,
-			cornerRadius,
-			cornerRadius,
-			frameColor,
-			FALSE
-		);
-
-		//==================================================
-		// UI CENTER
-		//==================================================
-
-		const int uiCenterX =
-			uiX + (uiWidth / 2);
-
-		//==================================================
-		// Y Layout
-		//==================================================
-
-		int currentY = uiY;
-
-		//==================================================
-		// Title
-		//==================================================
-
-		const char* title =
-			"Now Loading!";
-
-		int titleWidth =
-			GetDrawStringWidth(
-				title,
-				static_cast<int>(strlen(title))
-			);
-
-		DrawString(
-			uiCenterX - (titleWidth / 2),
-			currentY,
-			title,
-			textColor
-		);
-
-		currentY += static_cast<int>(45 * scale);
-
-		//==================================================
-		// Subtitle
-		//==================================================
-
-		const char* subTitle =
-			"Preparing your game...";
-
-		int subTitleWidth =
-			GetDrawStringWidth(
-				subTitle,
-				static_cast<int>(strlen(subTitle))
-			);
-
-		DrawString(
-			uiCenterX - (subTitleWidth / 2),
-			currentY,
-			subTitle,
-			subTextColor
-		);
-
-		currentY += static_cast<int>(75 * scale);
-
-		//==================================================
-		// Bouncing Dots
-		//==================================================
-
-		const int dotColors[5][3] =
-		{
-			{ 240, 153, 123 },  // coral
-			{ 250, 199, 117 },  // yellow
-			{ 151, 196,  89 },  // green
-			{  93, 202, 165 },  // teal
-			{ 133, 183, 235 },  // blue
-		};
-
-		const int dotCount = 5;
-
-		const int dotsWidth =
-			(dotRadius * 2) * dotCount + dotSpacing * (dotCount - 1);
-
-		const int dotsStartX =
-			uiCenterX - (dotsWidth / 2) + dotRadius;
-
-		const int dotBaseY =
-			currentY + dotRadius + 10;
-
-		const int dotSwing =
-			static_cast<int>(18 * scale);
-
-		for (int i = 0; i < dotCount; i++)
-		{
-			float phase =
-				static_cast<float>(GetNowCount()) * 0.005f
-				+ i * 0.5f;
-
-			int offsetY =
-				static_cast<int>(sin(phase) * dotSwing);
-
-			int cx =
-				dotsStartX + i * (dotRadius * 2 + dotSpacing);
-
-			int cy =
-				dotBaseY + offsetY;
-
-			DrawCircle(
-				cx,
-				cy,
-				dotRadius,
-				GetColor(
-					dotColors[i][0],
-					dotColors[i][1],
-					dotColors[i][2]
-				),
-				TRUE
-			);
-		}
-
-		currentY += static_cast<int>(30 * scale);
-		currentY += static_cast<int>(40 * scale);
-
-		//==================================================
-		// Loading
-		//==================================================
-
-		static int dotAnim = 0;
-
-		if (GetNowCount() % 20 == 0)
-		{
-			dotAnim =
-				(dotAnim + 1) % 4;
-		}
-
-		std::string loadingText =
-			"Loading";
-
-		for (int i = 0; i < dotAnim; i++)
-		{
-			loadingText += ".";
-		}
-
-		int loadingWidth =
-			GetDrawStringWidth(
-				loadingText.c_str(),
-				static_cast<int>(loadingText.size())
-			);
-
-		DrawString(
-			uiCenterX - (loadingWidth / 2),
-			currentY,
-			loadingText.c_str(),
-			subTextColor
-		);
-
-		currentY += static_cast<int>(50 * scale);
-
-		//==================================================
-		// Bar
-		//==================================================
-
-		const int barX =
-			uiCenterX - (barWidth / 2);
-
-		const int barY =
-			currentY;
-
-		const int barRadius =
-			static_cast<int>(12 * scale);
-
-		DrawRoundRect(
-			barX - 2,
-			barY - 2,
-			barX + barWidth,
-			barY + barHeight,
-			barRadius,
-			barRadius,
-			GetColor(255, 225, 200),
-			TRUE
-		);
-
-		DrawRoundRect(
-			barX,
-			barY,
-			barX + barWidth,
-			barY + barHeight,
-			barRadius,
-			barRadius,
-			GetColor(255, 225, 200),
-			TRUE
-		);
-
-		int filledWidth =
-			static_cast<int>(
-				barWidth * visualProgress
-				);
-
-		DrawRoundRect(
-			barX,
-			barY,
-			barX + filledWidth,
-			barY + barHeight,
-			barRadius,
-			barRadius,
-			accentColor,
-			TRUE
-		);
-
-		currentY += static_cast<int>(70 * scale);
-
-		//==================================================
-		// Wait
-		//==================================================
-
-		const char* waitText = visualProgress >= 0.8f ?
-			"Almost there!" : "Hang tight";
-
-		int waitWidth =
-			GetDrawStringWidth(
-				waitText,
-				static_cast<int>(strlen(waitText))
-			);
-
-		DrawString(
-			uiCenterX - (waitWidth / 2),
-			currentY,
-			waitText,
-			subTextColor
-		);
-	}
-	else
-	{
-		DrawBox(0,
-			0,
-			screenW,
-			screenH,
-			GetColor(0, 0, 0),
-			true);
-	}
 }
 
 void GameScene::CreateMiniGame(void)

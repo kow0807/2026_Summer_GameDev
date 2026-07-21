@@ -1,5 +1,6 @@
 ﻿#include <queue>
 #include <cstring>
+#include <algorithm>
 #include <DxLib.h>
 #include "BoardBase.h"
 #include "Grid.h"
@@ -367,4 +368,253 @@ bool QuoridorBoard::GetVerticalWall(int x, int y) const
 bool QuoridorBoard::GetHorizontalWall(int x, int y) const
 {
     return horizontalWalls_[x][y];
+}
+
+int QuoridorBoard::GetShortestDistance(int startX, int startY, int goalY) const
+{
+    constexpr int UNREACHABLE_DISTANCE = 999;
+
+    // 開始地点が盤面外の場合
+    if (startX < 0 || startX >= BOARD_SIZE ||
+        startY < 0 || startY >= BOARD_SIZE)
+    {
+        return UNREACHABLE_DISTANCE;
+    }
+
+    // ゴール行が盤面外の場合
+    if (goalY < 0 || goalY >= BOARD_SIZE)
+    {
+        return UNREACHABLE_DISTANCE;
+    }
+
+    // 既にゴール行にいる
+    if (startY == goalY)
+    {
+        return 0;
+    }
+
+    struct SearchNode
+    {
+        int x;
+        int y;
+        int distance;
+    };
+
+    bool visited[BOARD_SIZE][BOARD_SIZE] = {};
+
+    std::queue<SearchNode> searchQueue;
+
+    searchQueue.push({
+        startX,
+        startY,
+        0
+        });
+
+    // 配列は[x][y]の順番で統一
+    visited[startX][startY] = true;
+
+    constexpr int DIRECTIONS[4][2] =
+    {
+        { 1,  0 },
+        {-1,  0 },
+        { 0,  1 },
+        { 0, -1 }
+    };
+
+    while (!searchQueue.empty())
+    {
+        SearchNode current = searchQueue.front();
+        searchQueue.pop();
+
+        for (const auto& direction : DIRECTIONS)
+        {
+            const int dx = direction[0];
+            const int dy = direction[1];
+
+            const int nextX = current.x + dx;
+            const int nextY = current.y + dy;
+
+            // 盤面外
+            if (nextX < 0 || nextX >= BOARD_SIZE ||
+                nextY < 0 || nextY >= BOARD_SIZE)
+            {
+                continue;
+            }
+
+            // 既に確認済み
+            if (visited[nextX][nextY])
+            {
+                continue;
+            }
+
+            // 壁によって移動できない
+            if (!CanMove(current.x, current.y, dx, dy))
+            {
+                continue;
+            }
+
+            const int nextDistance =
+                current.distance + 1;
+
+            // ゴール行へ到達
+            if (nextY == goalY)
+            {
+                return nextDistance;
+            }
+
+            visited[nextX][nextY] = true;
+
+            searchQueue.push({
+                nextX,
+                nextY,
+                nextDistance
+                });
+        }
+    }
+
+    return UNREACHABLE_DISTANCE;
+}
+
+std::vector<std::pair<int, int>> QuoridorBoard::GetShorttestPath(int startX, int startY, int goalY) const
+{
+    std::vector<std::pair<int, int>> path;
+
+    // 開始地点が盤面外
+    if (startX < 0 || startX >= BOARD_SIZE ||
+        startY < 0 || startY >= BOARD_SIZE)
+    {
+        return path;
+    }
+
+    // ゴール行が盤面外
+    if (goalY < 0 || goalY >= BOARD_SIZE)
+    {
+        return path;
+    }
+
+    // 探索済みかどうか
+    bool visited[BOARD_SIZE][BOARD_SIZE] = {};
+
+    // 1つ前のマスを記録する
+    std::pair<int, int> previous[BOARD_SIZE][BOARD_SIZE];
+
+    // 初期値として無効な座標を入れる
+    for (int x = 0; x < BOARD_SIZE; x++)
+    {
+        for (int y = 0; y < BOARD_SIZE; y++)
+        {
+            previous[x][y] = { -1, -1 };
+        }
+    }
+
+    std::queue<std::pair<int, int>> searchQueue;
+
+    searchQueue.push({ startX, startY });
+    visited[startX][startY] = true;
+
+    constexpr int DIRECTIONS[4][2] =
+    {
+        { 1,  0 },
+        {-1,  0 },
+        { 0,  1 },
+        { 0, -1 }
+    };
+
+    int goalX = -1;
+    int reachedGoalY = -1;
+
+    while (!searchQueue.empty())
+    {
+        const auto [currentX, currentY] =
+            searchQueue.front();
+
+        searchQueue.pop();
+
+        // ゴール行へ到達
+        if (currentY == goalY)
+        {
+            goalX = currentX;
+            reachedGoalY = currentY;
+            break;
+        }
+
+        for (const auto& direction : DIRECTIONS)
+        {
+            const int dx = direction[0];
+            const int dy = direction[1];
+
+            const int nextX = currentX + dx;
+            const int nextY = currentY + dy;
+
+            // 盤面外
+            if (nextX < 0 || nextX >= BOARD_SIZE ||
+                nextY < 0 || nextY >= BOARD_SIZE)
+            {
+                continue;
+            }
+
+            // 探索済み
+            if (visited[nextX][nextY])
+            {
+                continue;
+            }
+
+            // 壁で移動できない
+            if (!CanMove(currentX, currentY, dx, dy))
+            {
+                continue;
+            }
+
+            visited[nextX][nextY] = true;
+
+            // nextの1つ前はcurrent
+            previous[nextX][nextY] =
+            {
+                currentX,
+                currentY
+            };
+
+            searchQueue.push({
+                nextX,
+                nextY
+                });
+        }
+    }
+
+    // ゴールへ到達できなかった
+    if (goalX == -1 || reachedGoalY == -1)
+    {
+        return path;
+    }
+
+    // ゴール地点から開始地点まで逆向きにたどる
+    int currentX = goalX;
+    int currentY = reachedGoalY;
+
+    while (currentX != -1 && currentY != -1)
+    {
+        path.push_back({
+            currentX,
+            currentY
+            });
+
+        if (currentX == startX &&
+            currentY == startY)
+        {
+            break;
+        }
+
+        const auto parent =
+            previous[currentX][currentY];
+
+        currentX = parent.first;
+        currentY = parent.second;
+    }
+
+    // 現在はゴール→開始の順なので反転する
+    std::reverse(
+        path.begin(),
+        path.end());
+
+    return path;
 }

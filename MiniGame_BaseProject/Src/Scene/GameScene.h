@@ -113,8 +113,6 @@ private:
 	void ExplanationQuoridorDrawUI(void);
 	void ExplanationMiniShogiUI(void);
 
-	void DrawRunTimeLoading(void);
-
 	//　ミニゲーム生成
 	void CreateMiniGame(void);
 

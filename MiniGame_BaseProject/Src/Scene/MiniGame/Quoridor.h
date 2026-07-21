@@ -4,13 +4,12 @@
 #include <array>
 #include "GameBase.h"
 #include "../../Object/Actor/Quoridor/QuoridorPlayer.h"
-#include "../../Object/Actor/Quoridor/PythonAI.h"
+#include "../../Object/Actor/Quoridor/QuoridorCpu.h"
 
 class Desk;
 class QuoridorBoard;
 class Wall;
 class PlayerPiece;
-class PythonAI;
 class Triangle;
 
 class Quoridor : public GameBase
@@ -131,7 +130,7 @@ private:
 	std::unique_ptr<QuoridorBoard> board_;
 	std::unique_ptr<Wall> previewWall_;
 	std::unique_ptr<PlayerPiece> playerPieces_[2];
-	std::unique_ptr<PythonAI> pythonAI_;
+	std::unique_ptr<QuoridorCpu> cpu_;
 	std::array<std::unique_ptr<Triangle>, 8> moveTriangleIndicators_; // 移動方向表示用の三角形オブジェクト
 
 
@@ -140,9 +139,6 @@ private:
 
 	// 思考時間の演出用タイマー
 	int cpuStartTime_;
-
-	void ApplyCpuMove(const std::string& json);
-	std::string BuildBoardJson(void) const;
 
 	// プレイヤー・CPUの処理を分離
 	void UpdatePlayer(void);
@@ -169,4 +165,8 @@ private:
 	// Pause用
 	bool PauseUpdate(void);
 	void PauseDraw(void);
+
+	// C++版CPUが選択した行動を実際の盤面へ反映する
+	bool ApplyCpuAction(
+		const QuoridorCpu::CpuAction& action);
 };

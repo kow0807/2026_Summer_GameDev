@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Object\Actor\MiniShogi\Floor.cpp" />
+    <ClCompile Include="Src\Object\Actor\Quoridor\QuoridorCpu.cpp" />
     <ClCompile Include="Src\Object\Actor\MiniShogi\MiniShogiCpu.cpp" />
     <ClCompile Include="Src\Object\Actor\MiniShogi\HandActor.cpp" />
     <ClCompile Include="Src\Object\Actor\MiniShogi\MiniShogiActor.cpp" />
@@ -40,7 +42,6 @@
     <ClCompile Include="Src\Object\Actor\Quoridor\PlayerPiece.cpp" />
     <ClCompile Include="Src\Object\Actor\Quoridor\Grid.cpp" />
     <ClCompile Include="Src\Object\Actor\Quoridor\BoardBase.cpp" />
-    <ClCompile Include="Src\Object\Actor\Quoridor\QuoridorPlayer.cpp" />
     <ClCompile Include="Src\Object\Actor\Quoridor\QuoridorBoard.cpp" />
     <ClCompile Include="Src\Object\Actor\Quoridor\Desk.cpp" />
     <ClCompile Include="Src\Scene\MiniGame\Quoridor.cpp" />
@@ -79,6 +80,8 @@
     <ClCompile Include="Src\Object\Actor\Quoridor\Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Object\Actor\MiniShogi\Floor.h" />
+    <ClInclude Include="Src\Object\Actor\Quoridor\QuoridorCpu.h" />
     <ClInclude Include="Src\Object\Actor\MiniShogi\MiniShogiCpu.h" />
     <ClInclude Include="Src\Object\Actor\MiniShogi\HandActor.h" />
     <ClInclude Include="Src\Object\Actor\MiniShogi\MiniShogiActor.h" />
@@ -378,6 +381,16 @@
     <None Include="Src\Shader\Common\Vertex\VertexShader3DHeader.hlsli" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Src\Shader\Model\Minishogi\Komadai_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)/Data/Shader/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)/Data/Shader/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
     <FxCompile Include="Src\Shader\Model\Minishogi\Shogiban_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

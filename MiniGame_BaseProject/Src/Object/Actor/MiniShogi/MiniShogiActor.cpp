@@ -106,7 +106,7 @@ void MiniShogiActor::Update(void)
 
 void MiniShogiActor::Draw(void)
 {
-	if (grid_) grid_->Draw();
+	//if (grid_) grid_->Draw();
 
 	for (auto& piece : pieces_)
 	{

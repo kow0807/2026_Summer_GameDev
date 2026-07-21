@@ -20,7 +20,7 @@ void Shogiban::Init(void)
         )
     );
 
-    transform_.pos = VGet(100.0f, -10.0f, 100.0f);
+    transform_.pos = VGet(0.0f, -195.0f, 0.0f);
     transform_.scl = DEFAULT_SCALE;
 
     transform_.Update();

@@ -21,11 +21,12 @@ void Desk::Init(void)
 	// モデル描画用の初期化
 	mMaterial_ = std::make_unique<ModelMaterial>("Desk_VS.cso", 0, "Desk_PS.cso", 1);
 	
-	//// テクスチャのセット
-	//mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE).handleId_);
+	// テクスチャのセット
+	mMaterial_->SetTextureBuf(0, resMng_.Load(ResourceManager::SRC::QUORIDOR_TEXTURE_WOOD).handleId_);
 	//mMaterial_->SetTextureBuf(1, resMng_.Load(ResourceManager::SRC::WOOD_BOARD_TEXTURE_N).handleId_);
 
-	mMaterial_->SetConstBufPS(0, FLOAT4{ 37.46f, 26.44f, 40.98f, 1.0f });
+	//mMaterial_->SetConstBufPS(0, FLOAT4{ 37.46f, 26.44f, 40.98f, 1.0f });
+	mMaterial_->SetConstBufPS(0, FLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f });
 
 	mRenderer_ = std::make_unique<ModelRenderer>(transform_.modelId, *mMaterial_);
 

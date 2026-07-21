@@ -62,6 +62,11 @@ public:
     bool GetVerticalWall(int x, int y) const;
 	bool GetHorizontalWall(int x, int y) const;
 
+    //
+    int GetShortestDistance(int startX, int startY, int goalY) const;
+
+    std::vector<std::pair<int, int>> GetShorttestPath(int startX, int startY, int goalY) const;
+
 private:
 
     // verticalWalls_[x][y]: x Ç∆ x+1 ÇÃä‘ÅAçs y Ç…ècï«Ç™Ç†ÇÈÇ©

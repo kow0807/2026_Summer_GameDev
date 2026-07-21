@@ -4,6 +4,7 @@
 
 #include "../../Object/Actor/MiniShogi/Piece.h"
 
+class Floor;
 class Shogiban;
 class Komadai;
 
@@ -45,9 +46,10 @@ public:
 
 private:
 
-
+    std::unique_ptr<Floor> floor_;
     std::unique_ptr<Shogiban> shogiban_;
-    std::unique_ptr<Komadai> komadai_;
+    std::unique_ptr<Komadai> pKomadai_;
+    std::unique_ptr<Komadai> eKomadai_;
 
     std::unique_ptr<Cursor> cursor_;
     std::unique_ptr<Selector> selector_;
