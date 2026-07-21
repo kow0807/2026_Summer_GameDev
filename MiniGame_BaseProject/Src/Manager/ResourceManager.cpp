@@ -437,6 +437,14 @@ void ResourceManager::Init(void)
 	res = std::make_unique<RES>(RES_T::IMG, PATH_MDL + "MiniShogi/Shogiban/Texture/Wood_2K_NormalDX.jpg");
 	resourcesMap_.emplace(SRC::MINISHOGI_TEXTURE_UV, res);
 
+	// 五々将棋のUVテクスチャ
+	res = std::make_unique<RES>(RES_T::IMG, PATH_IMG + "MiniShogi/.jpg");
+	resourcesMap_.emplace(SRC::MINISHOGI_TEXTURE_DAI, res);
+
+	// 五々将棋のUVテクスチャ
+	res = std::make_unique<RES>(RES_T::IMG, PATH_IMG + "MiniShogi/Wood.jpg");
+	resourcesMap_.emplace(SRC::MINISHOGI_TEXTURE_WOOD, res);
+
 	// 五々将棋の畳テクスチャ
 	res = std::make_unique<RES>(RES_T::IMG, PATH_IMG + "MiniShogi/tatami.jpg");
 	resourcesMap_.emplace(SRC::MINISHOGI_TEXTURE_TATAMI, res);

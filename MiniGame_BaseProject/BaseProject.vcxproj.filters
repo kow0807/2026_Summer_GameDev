@@ -676,6 +676,7 @@
     <FxCompile Include="Src\Shader\Model\Minishogi\Shogiban_VS.hlsl" />
     <FxCompile Include="Src\Shader\Model\Minishogi\Shogiban_PS.hlsl" />
     <FxCompile Include="Src\Shader\Model\Minishogi\Komadai_PS.hlsl" />
+    <FxCompile Include="Src\Shader\Model\Minishogi\Komadai_VS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Python\python-3.14.5-embed-amd64\LICENSE.txt" />
