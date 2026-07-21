@@ -297,25 +297,19 @@ void MiniShogiActor::DrawMoveList(void)
 				move.y_
 			);
 
-		DrawSphere3D(
+		AsoUtility::DrawBox3DThick(
 			VGet(
-				center.x,
+				center.x -50.0f,
+				5.0f,
+				center.z -50.0f
+			),
+			VGet(
+				center.x +50.0f,
 				20.0f,
-				center.z
+				center.z+50.0f
 			),
-			10.0f,
-			16,
-			GetColor(
-				0,
-				255,
-				255
-			),
-			GetColor(
-				0,
-				255,
-				255
-			),
-			TRUE
+			3.0f,
+			GetColor(0,255,255)
 		);
 	}
 }
@@ -352,9 +346,9 @@ unsigned int MiniShogiActor::GetCursorColor(void) const
 
 void MiniShogiActor::DrawBoardCursor(void)
 {
+	DrawMoveList();
 	DrawCursor();
 	DrawSelectMarker();
-	DrawMoveList();
 }
 
 void MiniShogiActor::DrawHandCursor(void)

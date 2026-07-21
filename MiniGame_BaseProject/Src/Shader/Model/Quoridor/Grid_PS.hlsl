@@ -24,30 +24,30 @@ float4 main(PS_INPUT PSInput) : SV_TARGET0
     float4 defaultColor = 0;
     defaultColor = diffuseMapTexture.Sample(diffuseMapSampler, uv);
     
-    // ノーマルマップから法線を取得
-    float3 normalTexture = normalMapTexture.Sample(normalMapSampler, uv).xyz;
+    //// ノーマルマップから法線を取得
+    //float3 normalTexture = normalMapTexture.Sample(normalMapSampler, uv).xyz;
     
-    // 法線を[-1, 1]の範囲に変換
-    normalTexture = normalTexture * 2.0f - 1.0f;
+    //// 法線を[-1, 1]の範囲に変換
+    //normalTexture = normalTexture * 2.0f - 1.0f;
     
-    // DXの法線はY軸が反転しているため、Y成分を反転
-    normalTexture.y *= -1;
+    //// DXの法線はY軸が反転しているため、Y成分を反転
+    //normalTexture.y *= -1;
     
-    // 元の法線
-    float3 originalNormal = normalize(PSInput.normal);
+    //// 元の法線
+    //float3 originalNormal = normalize(PSInput.normal);
     
-    // ノーマルの影響度を弱める
-    float strength = 0.5f; // 0.0fでノーマルマップの影響なし、1.0fで完全にノーマルマップの法線
-    normalTexture = normalize(lerp(originalNormal, normalTexture, strength));
+    //// ノーマルの影響度を弱める
+    //float strength = 0.5f; // 0.0fでノーマルマップの影響なし、1.0fで完全にノーマルマップの法線
+    //normalTexture = normalize(lerp(originalNormal, normalTexture, strength));
     
-    // 法線マップと元の法線を組み合わせる
-    float3 combinedNormal = normalize(originalNormal + normalTexture);
+    //// 法線マップと元の法線を組み合わせる
+    //float3 combinedNormal = normalize(originalNormal + normalTexture);
     
     // ライトの方向を定義(これは真上から)
     float3 lightDir = normalize(float3(0.0f, -1.0f, 0.0f));
     
     // 拡散光の計算
-    float diffuse = max(dot(combinedNormal, lightDir), 0.0f);
+    float diffuse = max(dot(PSInput.normal, lightDir), 0.0f);
     
     // 疑似AA
     float edge = fwidth(diffuse);

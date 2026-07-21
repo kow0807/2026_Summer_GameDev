@@ -59,14 +59,17 @@ void GameScene::Init(void)
 	gameThumbnail_[1] = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_EXPLANATION).handleId_;
 	gameThumbnail_[2] = resMng_.Load(ResourceManager::SRC::REVERSI_EXPLANATION).handleId_;
 	gameThumbnail_[3] = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_EXPLANATION).handleId_;
-	gameThumbnail_[4] = resMng_.Load(ResourceManager::SRC::KARI).handleId_;
-	gameThumbnail_[5] = resMng_.Load(ResourceManager::SRC::KARI).handleId_;
+	gameThumbnail_[4] = resMng_.Load(ResourceManager::SRC::QUORIDOR_EXPLANATION).handleId_;
+	gameThumbnail_[5] = resMng_.Load(ResourceManager::SRC::MINISHOGI_EXPLANATION).handleId_;
 
 	firstPressExplanationImg_ = resMng_.Load(ResourceManager::SRC::FIRST_PRESS_GAME_EXPLANATION).handleId_;
 	quizExplanationImg_ = resMng_.Load(ResourceManager::SRC::QUIZ_GAME_EXPLANATION).handleId_;
 	reversiExplanationImg_ = resMng_.Load(ResourceManager::SRC::REVERSI_EXPLANATION).handleId_;
 	buttonMashExplanationImg_ = resMng_.Load(ResourceManager::SRC::BUTTON_MASH_GAME_EXPLANATION).handleId_;
 	decideSEH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_DICIDE_SE).handleId_;
+
+	quoridorExplanationImg_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_EXPLANATION).handleId_;
+	miniShogiExplanationImg_ = resMng_.Load(ResourceManager::SRC::MINISHOGI_EXPLANATION).handleId_;
 
 	isBgm_ = true;
 	bgm_ = resMng_.Load(ResourceManager::SRC::SELECT_BGM).handleId_;
@@ -1553,359 +1556,1430 @@ void GameScene::ExplanationButtonMashDrawUI(void)
 
 void GameScene::ExplanationQuoridorDrawUI(void)
 {
-	int index = static_cast<int>(miniState_);
+	const auto& windowSize =
+		Setting::GetInstance().GetWindowSize();
 
-	// 🎨 画面解像度に応じた比率（スケール）の計算
-	const auto& windowSize = Setting::GetInstance().GetWindowSize();
-	float scaleX = static_cast<float>(windowSize.width_) / 1024.0f;
-	float scaleY = static_cast<float>(windowSize.height_) / 640.0f;
+	const int screenW = windowSize.width_;
+	const int screenH = windowSize.height_;
 
-	// 文字の大きさの基準（縦横の比率が極端に崩れないよう、小さい方の比率をベースにする）
-	float fontScale = (scaleX < scaleY) ? scaleX : scaleY;
-	if (fontScale < 0.1f) fontScale = 1.0f; // 安全対策
+	const int centerX = screenW / 2;
+	const int centerY = screenH / 2;
 
-	// 色定義
-	int titleColor = GetColor(240, 200, 80);	// 上品なアンティークゴールド
-	int headerColor = GetColor(230, 210, 150); // 落ち着いたライトゴールド
-	int textColor = GetColor(240, 240, 240); // 眩しすぎないオフホワイト
-	int alertColor = GetColor(255, 130, 130); // 規則用のサーモンピンク
-	int yellowColor = GetColor(255, 255, 150); // 注意を引く明るいイエロー
-	int whiteColor = GetColor(240, 240, 240); // 説明文のオフホワイト
+	// --------------------------------------------------
+	// 基準解像度からスケールを計算
+	// --------------------------------------------------
+	constexpr float BASE_SCREEN_W = 1280.0f;
+	constexpr float BASE_SCREEN_H = 720.0f;
 
-	int selectActiveColor = GetColor(255, 230, 100); // 選択中の鮮やかなゴールド
-	int selectInactiveColor = GetColor(160, 180, 180); // 非選択時のくすんだシルバー
+	const float scaleX =
+		static_cast<float>(screenW) / BASE_SCREEN_W;
 
-	// 📐 画面比率を掛けた基準座標（左端のライン）
-	int baseX = static_cast<int>(180 * scaleX);
-	int baseY = static_cast<int>(110 * scaleY);
-	int lineSpace = static_cast<int>(28 * scaleY);
+	const float scaleY =
+		static_cast<float>(screenH) / BASE_SCREEN_H;
 
-	int curY = baseY;
+	const float uiScale =
+		(scaleX < scaleY) ? scaleX : scaleY;
 
-	// 📢 ルール説明文の描画（baseXを基準に美しく整列）
-	DrawExtendString(baseX, curY, fontScale, fontScale, "【 コリドール (Quoridor) 概要 】", titleColor);
-	curY += lineSpace * 2;
+	auto S = [uiScale](int value)
+		{
+			return static_cast<int>(
+				static_cast<float>(value) * uiScale
+				);
+		};
 
-	DrawExtendString(baseX, curY, fontScale, fontScale, "■ 勝利条件", headerColor);
-	curY += lineSpace;
-	DrawExtendString(baseX, curY, fontScale, fontScale, "自分のコマ(赤)を、一番奥(最上段)の列へ相手(青)より先に到達させたら勝利！", whiteColor);
-	curY += lineSpace * 2;
+	// --------------------------------------------------
+	// 色
+	// --------------------------------------------------
+	const unsigned int colorAccent =
+		GetColor(205, 169, 91);
 
-	DrawExtendString(baseX, curY, fontScale, fontScale, "■ あなたのターンでできること（どちらか1つ）", yellowColor);
-	curY += lineSpace;
-	DrawExtendString(baseX + static_cast<int>(20 * scaleX), curY, fontScale, fontScale, "【1】 コマの移動 : 上下左右に1マス動かせます。(敵と隣接時は飛び越し可能)", whiteColor);
-	curY += lineSpace;
-	DrawExtendString(baseX + static_cast<int>(20 * scaleX), curY, fontScale, fontScale, "【2】 壁の設置 : 残り壁を消費して、相手の進路を邪魔する壁を置けます。", whiteColor);
-	curY += lineSpace * 2;
+	const unsigned int colorAccentDark =
+		GetColor(125, 96, 48);
 
-	DrawExtendString(baseX, curY, fontScale, fontScale, "注意：相手を完全に閉じ込める壁の配置は禁止です！(常にゴールへの道を1マス以上残す)", alertColor);
-	curY += lineSpace * 3;
+	const unsigned int colorPanel =
+		GetColor(22, 19, 17);
 
-	// ──────────────────────────────────────────
-	// 🔘 画像 image_85dec1.png のレイアウトを完全再現する部分
-	// ──────────────────────────────────────────
-	int yesColor = isYes_ ? selectActiveColor : selectInactiveColor;
-	int noColor = !isYes_ ? selectActiveColor : selectInactiveColor;
+	const unsigned int colorImageBackground =
+		GetColor(32, 27, 22);
 
-	// 1. 質問文の描画：タイトルより少し右（インデント）にずらして配置
-	DrawExtendString(baseX + static_cast<int>(100 * scaleX), curY, fontScale, fontScale, "このゲームを開始しますか？", textColor);
+	const unsigned int colorButton =
+		GetColor(43, 36, 29);
 
-	// 下方向に移動
-	curY += static_cast<int>(50 * scaleY);
+	const unsigned int colorText =
+		GetColor(235, 230, 220);
 
-	// 2. 「はい」の描画：★タイトルの左端（baseX）から少し右（例: +160px）の位置に固定
-	// これにより、上の文章構造と完全に美しい縦ラインが形成されます。
-	int yesX = baseX + static_cast<int>(160 * scaleX);
-	DrawExtendString(yesX, curY, fontScale, fontScale, "はい", yesColor);
+	const unsigned int colorSubText =
+		GetColor(170, 165, 155);
 
-	// 3. 「いいえ」の描画：「はい」の開始位置からさらに右に一定の距離（例: +160px）離して配置
-	int noX = yesX + static_cast<int>(160 * scaleX);
-	DrawExtendString(noX, curY, fontScale, fontScale, "いいえ", noColor);
+	const unsigned int colorWarning =
+		GetColor(225, 105, 85);
+
+	const unsigned int colorSelected =
+		GetColor(255, 220, 105);
+
+	const unsigned int colorUnselected =
+		GetColor(145, 140, 132);
+
+	// --------------------------------------------------
+	// 背景暗転
+	// --------------------------------------------------
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 195);
+
+	DrawBox(
+		0,
+		0,
+		screenW,
+		screenH,
+		GetColor(0, 0, 0),
+		TRUE
+	);
+
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	// --------------------------------------------------
+	// メインパネル
+	// --------------------------------------------------
+	const int panelW = S(1160);
+	const int panelH = S(680);
+
+	const int panelX =
+		centerX - panelW / 2;
+
+	const int panelY =
+		centerY - panelH / 2;
+
+	const int borderSize = S(3);
+
+	// 影
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 140);
+
+	DrawBox(
+		panelX + S(8),
+		panelY + S(8),
+		panelX + panelW + S(8),
+		panelY + panelH + S(8),
+		GetColor(0, 0, 0),
+		TRUE
+	);
+
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	// 外枠
+	DrawBox(
+		panelX - borderSize,
+		panelY - borderSize,
+		panelX + panelW + borderSize,
+		panelY + panelH + borderSize,
+		colorAccent,
+		TRUE
+	);
+
+	// 内側
+	DrawBox(
+		panelX,
+		panelY,
+		panelX + panelW,
+		panelY + panelH,
+		colorPanel,
+		TRUE
+	);
+
+	// --------------------------------------------------
+	// タイトル
+	// --------------------------------------------------
+	DrawStringToHandle(
+		panelX + S(55),
+		panelY + S(20),
+		"コリドール",
+		colorAccent,
+		explanationFontHandle_
+	);
+
+	DrawLine(
+		panelX + S(35),
+		panelY + S(75),
+		panelX + panelW - S(35),
+		panelY + S(75),
+		colorAccentDark
+	);
+
+	// --------------------------------------------------
+	// 左側：説明画像
+	// --------------------------------------------------
+	const int imageFrameX =
+		panelX + S(40);
+
+	const int imageFrameY =
+		panelY + S(105);
+
+	const int imageFrameW =
+		S(550);
+
+	const int imageFrameH =
+		S(390);
+
+	DrawBox(
+		imageFrameX,
+		imageFrameY,
+		imageFrameX + imageFrameW,
+		imageFrameY + imageFrameH,
+		colorImageBackground,
+		TRUE
+	);
+
+	DrawBox(
+		imageFrameX,
+		imageFrameY,
+		imageFrameX + imageFrameW,
+		imageFrameY + imageFrameH,
+		colorAccentDark,
+		FALSE
+	);
+
+	const int imageCenterX =
+		imageFrameX + imageFrameW / 2;
+
+	const int imageCenterY =
+		imageFrameY + imageFrameH / 2;
+
+	if (quoridorExplanationImg_ != -1)
+	{
+		DrawRotaGraph(
+			imageCenterX,
+			imageCenterY,
+			0.50 * uiScale,
+			0.0,
+			quoridorExplanationImg_,
+			TRUE
+		);
+	}
+	else
+	{
+		const char* noImageText =
+			"説明画像";
+
+		const int noImageTextW =
+			GetDrawStringWidthToHandle(
+				noImageText,
+				static_cast<int>(strlen(noImageText)),
+				explanationFontHandle_
+			);
+
+		DrawStringToHandle(
+			imageCenterX - noImageTextW / 2,
+			imageCenterY,
+			noImageText,
+			colorSubText,
+			explanationFontHandle_
+		);
+	}
+
+	// --------------------------------------------------
+	// 右側：ルール説明
+	// --------------------------------------------------
+	const int textX =
+		panelX + S(640);
+
+	const int textRight =
+		panelX + panelW - S(40);
+
+	const int textTop =
+		panelY + S(100);
+
+	const int fontH =
+		GetFontSizeToHandle(explanationFontHandle_);
+
+	const int lineH =
+		fontH + S(7);
+
+	int curY = textTop;
+
+	// 見出し
+	DrawStringToHandle(
+		textX,
+		curY,
+		"■ ルール説明",
+		colorText,
+		explanationFontHandle_
+	);
+
+	curY += lineH + S(3);
+
+	DrawLine(
+		textX,
+		curY,
+		textRight,
+		curY,
+		colorAccentDark
+	);
+
+	curY += S(15);
+
+	// 勝利条件
+	DrawStringToHandle(
+		textX,
+		curY,
+		"[ 勝利条件 ]",
+		colorAccent,
+		explanationFontHandle_
+	);
+
+	curY += lineH;
+
+	DrawStringToHandle(
+		textX,
+		curY,
+		"・自分の駒を相手側の",
+		colorText,
+		explanationFontHandle_
+	);
+
+	curY += lineH;
+
+	DrawStringToHandle(
+		textX + S(18),
+		curY,
+		"最奥列まで進めると勝利",
+		colorText,
+		explanationFontHandle_
+	);
+
+	curY += lineH + S(10);
+
+	// ターン中の行動
+	DrawStringToHandle(
+		textX,
+		curY,
+		"[ ターン中の行動 ]",
+		colorAccent,
+		explanationFontHandle_
+	);
+
+	curY += lineH;
+
+	DrawStringToHandle(
+		textX,
+		curY,
+		"・駒を1マス移動する",
+		colorText,
+		explanationFontHandle_
+	);
+
+	curY += lineH;
+
+	DrawStringToHandle(
+		textX,
+		curY,
+		"・壁を1枚配置する",
+		colorText,
+		explanationFontHandle_
+	);
+
+	curY += lineH;
+
+	DrawStringToHandle(
+		textX,
+		curY,
+		"※どちらか一方を選択",
+		colorSubText,
+		explanationFontHandle_
+	);
+
+	curY += lineH + S(10);
+
+	// 注意
+	DrawStringToHandle(
+		textX,
+		curY,
+		"[ 注意 ]",
+		colorWarning,
+		explanationFontHandle_
+	);
+
+	curY += lineH;
+
+	DrawStringToHandle(
+		textX,
+		curY,
+		"ゴールへの道を完全に",
+		colorWarning,
+		explanationFontHandle_
+	);
+
+	curY += lineH;
+
+	DrawStringToHandle(
+		textX,
+		curY,
+		"ふさぐことはできません",
+		colorWarning,
+		explanationFontHandle_
+	);
+
+	// --------------------------------------------------
+	// 下部：開始確認
+	// --------------------------------------------------
+	const int bottomAreaH =
+		S(135);
+
+	const int bottomLineY =
+		panelY + panelH - bottomAreaH;
+
+	DrawLine(
+		panelX + S(40),
+		bottomLineY,
+		panelX + panelW - S(40),
+		bottomLineY,
+		colorAccentDark
+	);
+
+	const char* startText =
+		"ゲームを開始しますか？";
+
+	const int startTextW =
+		GetDrawStringWidthToHandle(
+			startText,
+			static_cast<int>(strlen(startText)),
+			explanationFontHandle_
+		);
+
+	DrawStringToHandle(
+		centerX - startTextW / 2,
+		bottomLineY + S(12),
+		startText,
+		colorText,
+		explanationFontHandle_
+	);
+
+	// --------------------------------------------------
+	// はい・いいえボタン
+	// --------------------------------------------------
+	const unsigned int yesColor =
+		isYes_
+		? colorSelected
+		: colorUnselected;
+
+	const unsigned int noColor =
+		!isYes_
+		? colorSelected
+		: colorUnselected;
+
+	const int buttonW = S(180);
+	const int buttonH = S(42);
+	const int buttonGap = S(40);
+
+	const int totalButtonW =
+		buttonW * 2 + buttonGap;
+
+	const int buttonStartX =
+		centerX - totalButtonW / 2;
+
+	const int buttonY =
+		bottomLineY + S(55);
+
+	auto DrawSelectButton =
+		[&](
+			int x,
+			const char* text,
+			bool isSelected,
+			unsigned int textColor)
+		{
+			DrawBox(
+				x,
+				buttonY,
+				x + buttonW,
+				buttonY + buttonH,
+				colorButton,
+				TRUE
+			);
+
+			if (isSelected)
+			{
+				// 左側のアクセント
+				DrawBox(
+					x,
+					buttonY,
+					x + S(5),
+					buttonY + buttonH,
+					colorSelected,
+					TRUE
+				);
+
+				DrawBox(
+					x,
+					buttonY,
+					x + buttonW,
+					buttonY + buttonH,
+					colorSelected,
+					FALSE
+				);
+			}
+			else
+			{
+				DrawBox(
+					x,
+					buttonY,
+					x + buttonW,
+					buttonY + buttonH,
+					colorAccentDark,
+					FALSE
+				);
+			}
+
+			const int textW =
+				GetDrawStringWidthToHandle(
+					text,
+					static_cast<int>(strlen(text)),
+					explanationFontHandle_
+				);
+
+			const int textH =
+				GetFontSizeToHandle(
+					explanationFontHandle_
+				);
+
+			DrawStringToHandle(
+				x + buttonW / 2 - textW / 2,
+				buttonY + buttonH / 2 - textH / 2,
+				text,
+				textColor,
+				explanationFontHandle_
+			);
+		};
+
+	const int yesX =
+		buttonStartX;
+
+	const int noX =
+		yesX + buttonW + buttonGap;
+
+	DrawSelectButton(
+		yesX,
+		"はい",
+		isYes_,
+		yesColor
+	);
+
+	DrawSelectButton(
+		noX,
+		"いいえ",
+		!isYes_,
+		noColor
+	);
 }
 
 void GameScene::ExplanationMiniShogiUI(void)
 {
-	int index = static_cast<int>(miniState_);
+	//----------------------------------
+	// 画面サイズ
+	//----------------------------------
+	const int screenX =
+		Application::SCREEN_SIZE_X;
+
+	const int screenY =
+		Application::SCREEN_SIZE_Y;
+
+	const int centerX =
+		screenX / 2;
+
+	const int centerY =
+		screenY / 2;
 
 	//----------------------------------
-	// 画面サイズに応じたスケール
+	// 基準解像度から表示倍率を計算
 	//----------------------------------
-	const auto& windowSize =
-		Setting::GetInstance().GetWindowSize();
+	const float scaleX =
+		static_cast<float>(screenX) /
+		1280.0f;
 
-	float scaleX =
-		static_cast<float>(windowSize.width_) /
-		1024.0f;
+	const float scaleY =
+		static_cast<float>(screenY) /
+		720.0f;
 
-	float scaleY =
-		static_cast<float>(windowSize.height_) /
-		640.0f;
-
-	float fontScale =
+	float scale =
 		(scaleX < scaleY)
 		? scaleX
 		: scaleY;
 
-	if (fontScale < 0.1f)
+	if (scale < 0.1f)
 	{
-		fontScale = 1.0f;
+		scale = 1.0f;
+	}
+
+	//----------------------------------
+	// 座標・サイズ変換
+	//----------------------------------
+	auto S =
+		[scale](int value)
+		{
+			return static_cast<int>(
+				static_cast<float>(value) *
+				scale);
+		};
+
+	//----------------------------------
+	// フォントハンドル
+	//
+	// 関数内のstaticなので、毎フレーム作り直さない
+	//----------------------------------
+	static int titleFontHandle = -1;
+	static int sectionFontHandle = -1;
+	static int headingFontHandle = -1;
+	static int bodyFontHandle = -1;
+	static int buttonFontHandle = -1;
+
+	static int lastScreenX = -1;
+	static int lastScreenY = -1;
+
+	//----------------------------------
+	// 初回または解像度変更時にフォントを再作成
+	//----------------------------------
+	if (titleFontHandle == -1 ||
+		sectionFontHandle == -1 ||
+		headingFontHandle == -1 ||
+		bodyFontHandle == -1 ||
+		buttonFontHandle == -1 ||
+		lastScreenX != screenX ||
+		lastScreenY != screenY)
+	{
+		//----------------------------------
+		// 古いフォントを削除
+		//----------------------------------
+		if (titleFontHandle != -1)
+		{
+			DeleteFontToHandle(
+				titleFontHandle);
+
+			titleFontHandle = -1;
+		}
+
+		if (sectionFontHandle != -1)
+		{
+			DeleteFontToHandle(
+				sectionFontHandle);
+
+			sectionFontHandle = -1;
+		}
+
+		if (headingFontHandle != -1)
+		{
+			DeleteFontToHandle(
+				headingFontHandle);
+
+			headingFontHandle = -1;
+		}
+
+		if (bodyFontHandle != -1)
+		{
+			DeleteFontToHandle(
+				bodyFontHandle);
+
+			bodyFontHandle = -1;
+		}
+
+		if (buttonFontHandle != -1)
+		{
+			DeleteFontToHandle(
+				buttonFontHandle);
+
+			buttonFontHandle = -1;
+		}
+
+		//----------------------------------
+		// フォントサイズ
+		//
+		// DrawExtendStringで縮小せず、
+		// 実際に表示したい大きさで作成する
+		//----------------------------------
+		int titleFontSize =
+			S(27);
+
+		int sectionFontSize =
+			S(25);
+
+		int headingFontSize =
+			S(22);
+
+		int bodyFontSize =
+			S(20);
+
+		int buttonFontSize =
+			S(21);
+
+		//----------------------------------
+		// 小さくなりすぎないよう制限
+		//----------------------------------
+		if (titleFontSize < 22)
+		{
+			titleFontSize = 22;
+		}
+
+		if (sectionFontSize < 20)
+		{
+			sectionFontSize = 20;
+		}
+
+		if (headingFontSize < 18)
+		{
+			headingFontSize = 18;
+		}
+
+		if (bodyFontSize < 17)
+		{
+			bodyFontSize = 17;
+		}
+
+		if (buttonFontSize < 18)
+		{
+			buttonFontSize = 18;
+		}
+
+		//----------------------------------
+		// フォント作成
+		//
+		// メイリオ：
+		// 小さいサイズでも線が欠けにくい
+		//
+		// EDGEは使用せず通常の4X4 AAを使用
+		//----------------------------------
+		titleFontHandle =
+			CreateFontToHandle(
+				"メイリオ",
+				titleFontSize,
+				7,
+				DX_FONTTYPE_ANTIALIASING_4X4);
+
+		sectionFontHandle =
+			CreateFontToHandle(
+				"メイリオ",
+				sectionFontSize,
+				7,
+				DX_FONTTYPE_ANTIALIASING_4X4);
+
+		headingFontHandle =
+			CreateFontToHandle(
+				"メイリオ",
+				headingFontSize,
+				7,
+				DX_FONTTYPE_ANTIALIASING_4X4);
+
+		bodyFontHandle =
+			CreateFontToHandle(
+				"メイリオ",
+				bodyFontSize,
+				6,
+				DX_FONTTYPE_ANTIALIASING_4X4);
+
+		buttonFontHandle =
+			CreateFontToHandle(
+				"メイリオ",
+				buttonFontSize,
+				7,
+				DX_FONTTYPE_ANTIALIASING_4X4);
+
+		lastScreenX = screenX;
+		lastScreenY = screenY;
 	}
 
 	//----------------------------------
 	// 色
 	//----------------------------------
-	const int titleColor =
-		GetColor(240, 200, 80);
+	const int colorPanelOuter =
+		GetColor(176, 132, 62);
 
-	const int headerColor =
-		GetColor(230, 210, 150);
+	const int colorPanelInner =
+		GetColor(28, 22, 17);
 
-	const int textColor =
-		GetColor(240, 240, 240);
+	const int colorSection =
+		GetColor(47, 37, 27);
 
-	const int alertColor =
-		GetColor(255, 130, 130);
+	const int colorLine =
+		GetColor(145, 108, 55);
 
-	const int yellowColor =
-		GetColor(255, 255, 150);
+	const int colorTitle =
+		GetColor(235, 205, 135);
 
-	const int whiteColor =
-		GetColor(240, 240, 240);
+	const int colorHeader =
+		GetColor(225, 190, 115);
 
-	const int selectActiveColor =
-		GetColor(255, 230, 100);
+	const int colorText =
+		GetColor(238, 235, 225);
 
-	const int selectInactiveColor =
-		GetColor(160, 180, 180);
+	const int colorWarning =
+		GetColor(245, 120, 95);
+
+	const int colorSelected =
+		GetColor(255, 220, 100);
+
+	const int colorInactive =
+		GetColor(145, 135, 120);
+
+	const int colorButton =
+		GetColor(48, 38, 28);
+
+	const int colorShadow =
+		GetColor(18, 12, 8);
 
 	//----------------------------------
-	// 基準座標
+	// 文字描画
+	//
+	// 拡大縮小を行わず等倍で描画する
 	//----------------------------------
-	const int baseX =
-		static_cast<int>(150 * scaleX);
+	auto DrawText =
+		[colorShadow](
+			int x,
+			int y,
+			const char* text,
+			int color,
+			int fontHandle,
+			bool drawShadow = false)
+		{
+			if (drawShadow)
+			{
+				DrawStringToHandle(
+					x + 1,
+					y + 1,
+					text,
+					colorShadow,
+					fontHandle);
+			}
 
-	const int baseY =
-		static_cast<int>(50 * scaleY);
+			DrawStringToHandle(
+				x,
+				y,
+				text,
+				color,
+				fontHandle);
+		};
 
-	const int lineSpace =
-		static_cast<int>(20 * scaleY);
+	//----------------------------------
+	// 文字幅取得
+	//----------------------------------
+	auto GetTextWidth =
+		[](
+			const char* text,
+			int fontHandle)
+		{
+			return GetDrawStringWidthToHandle(
+				text,
+				static_cast<int>(
+					std::strlen(text)),
+				fontHandle);
+		};
 
-	int curY = baseY;
+	//----------------------------------
+	// 背景暗転
+	//----------------------------------
+	SetDrawBlendMode(
+		DX_BLENDMODE_ALPHA,
+		190);
+
+	DrawBox(
+		0,
+		0,
+		screenX,
+		screenY,
+		GetColor(0, 0, 0),
+		TRUE);
+
+	SetDrawBlendMode(
+		DX_BLENDMODE_NOBLEND,
+		0);
+
+	//----------------------------------
+	// メインパネル
+	//----------------------------------
+	const int panelW =
+		S(1200);
+
+	const int panelH =
+		S(680);
+
+	const int panelX =
+		centerX -
+		panelW / 2;
+
+	const int panelY =
+		centerY -
+		panelH / 2;
+
+	int borderSize =
+		S(3);
+
+	if (borderSize < 1)
+	{
+		borderSize = 1;
+	}
+
+	//----------------------------------
+	// 外枠
+	//----------------------------------
+	DrawBox(
+		panelX - borderSize,
+		panelY - borderSize,
+		panelX + panelW + borderSize,
+		panelY + panelH + borderSize,
+		colorPanelOuter,
+		TRUE);
+
+	//----------------------------------
+	// パネル内側
+	//----------------------------------
+	DrawBox(
+		panelX,
+		panelY,
+		panelX + panelW,
+		panelY + panelH,
+		colorPanelInner,
+		TRUE);
 
 	//----------------------------------
 	// タイトル
 	//----------------------------------
-	DrawExtendString(
-		baseX,
-		curY,
-		fontScale,
-		fontScale,
-		"【 五々将棋 概要 】",
-		titleColor);
+	DrawText(
+		panelX + S(55),
+		panelY + S(16),
+		"対局ルール",
+		colorTitle,
+		titleFontHandle,
+		true);
 
-	curY += lineSpace * 2;
+	//----------------------------------
+	// タイトル下の区切り線
+	//----------------------------------
+	DrawLine(
+		panelX + S(30),
+		panelY + S(72),
+		panelX + panelW - S(30),
+		panelY + S(72),
+		colorLine);
+
+	//----------------------------------
+	// 左右の説明領域
+	//----------------------------------
+	const int contentTop =
+		panelY + S(95);
+
+	const int contentBottom =
+		panelY + S(545);
+
+	const int leftX =
+		panelX + S(40);
+
+	const int leftW =
+		S(535);
+
+	const int rightX =
+		panelX + S(625);
+
+	const int rightW =
+		S(535);
+
+	//----------------------------------
+	// 左側パネル
+	//----------------------------------
+	DrawBox(
+		leftX,
+		contentTop,
+		leftX + leftW,
+		contentBottom,
+		colorSection,
+		TRUE);
+
+	DrawBox(
+		leftX,
+		contentTop,
+		leftX + leftW,
+		contentBottom,
+		colorLine,
+		FALSE);
+
+	//----------------------------------
+	// 右側パネル
+	//----------------------------------
+	DrawBox(
+		rightX,
+		contentTop,
+		rightX + rightW,
+		contentBottom,
+		colorSection,
+		TRUE);
+
+	DrawBox(
+		rightX,
+		contentTop,
+		rightX + rightW,
+		contentBottom,
+		colorLine,
+		FALSE);
+
+	//----------------------------------
+	// 共通レイアウト
+	//----------------------------------
+	const int panelPadding =
+		S(25);
+
+	const int bodyIndent =
+		S(15);
+
+	const int bodyLine =
+		S(31);
+
+	const int headingToBody =
+		S(37);
+
+	const int sectionGap =
+		S(44);
+
+	//----------------------------------
+	// 左側：基本ルール
+	//----------------------------------
+	int textX =
+		leftX + panelPadding;
+
+	int textY =
+		contentTop + S(14);
+
+	//----------------------------------
+	// 左パネル見出し
+	//----------------------------------
+	DrawBox(
+		textX,
+		textY + S(7),
+		textX + S(18),
+		textY + S(25),
+		colorHeader,
+		TRUE);
+
+	DrawText(
+		textX + S(30),
+		textY,
+		"基本ルール",
+		colorHeader,
+		sectionFontHandle,
+		true);
+
+	DrawLine(
+		textX,
+		textY + S(41),
+		leftX + leftW - panelPadding,
+		textY + S(41),
+		colorLine);
+
+	textY += S(57);
 
 	//----------------------------------
 	// 勝利条件
 	//----------------------------------
-	DrawExtendString(
-		baseX,
-		curY,
-		fontScale,
-		fontScale,
-		"■ 勝利条件",
-		headerColor);
+	DrawText(
+		textX,
+		textY,
+		"【 勝利条件 】",
+		colorTitle,
+		headingFontHandle,
+		true);
 
-	curY += lineSpace;
+	textY += headingToBody;
 
-	DrawExtendString(
-		baseX,
-		curY,
-		fontScale,
-		fontScale,
-		"相手の王を逃げられない状態にする「詰み」にすれば勝利です。",
-		whiteColor);
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"相手の王を逃げられない状態にする",
+		colorText,
+		bodyFontHandle);
 
-	curY += lineSpace * 2;
+	textY += bodyLine;
 
-	//----------------------------------
-	// ターン中にできること
-	//----------------------------------
-	DrawExtendString(
-		baseX,
-		curY,
-		fontScale,
-		fontScale,
-		"■ あなたのターンでできること",
-		yellowColor);
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"「詰み」にすれば勝利です。",
+		colorText,
+		bodyFontHandle);
 
-	curY += lineSpace;
-
-	DrawExtendString(
-		baseX + static_cast<int>(20 * scaleX),
-		curY,
-		fontScale,
-		fontScale,
-		"【1】盤上の自分の駒を選び、移動可能なマスへ動かす",
-		whiteColor);
-
-	curY += lineSpace;
-
-	DrawExtendString(
-		baseX + static_cast<int>(20 * scaleX),
-		curY,
-		fontScale,
-		fontScale,
-		"【2】持ち駒を選び、空いているマスへ配置する",
-		whiteColor);
-
-	curY += lineSpace * 2;
+	textY += sectionGap;
 
 	//----------------------------------
-	// 成り
+	// 自分の手番
 	//----------------------------------
-	DrawExtendString(
-		baseX,
-		curY,
-		fontScale,
-		fontScale,
-		"■ 成り",
-		headerColor);
+	DrawText(
+		textX,
+		textY,
+		"【 自分の手番 】",
+		colorTitle,
+		headingFontHandle,
+		true);
 
-	curY += lineSpace;
+	textY += headingToBody;
 
-	DrawExtendString(
-		baseX + static_cast<int>(20 * scaleX),
-		curY,
-		fontScale,
-		fontScale,
-		"銀・角・飛車・歩は、相手陣に入るか相手陣から出るときに成れます。",
-		whiteColor);
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"・盤上の駒を選び、移動させる",
+		colorText,
+		bodyFontHandle);
 
-	curY += lineSpace;
+	textY += bodyLine;
 
-	DrawExtendString(
-		baseX + static_cast<int>(20 * scaleX),
-		curY,
-		fontScale,
-		fontScale,
-		"歩が最終段へ進む場合は、必ず成ります。",
-		whiteColor);
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"・持ち駒を空いているマスへ打つ",
+		colorText,
+		bodyFontHandle);
 
-	curY += lineSpace * 2;
+	textY += sectionGap;
 
 	//----------------------------------
 	// 駒を取る
 	//----------------------------------
-	DrawExtendString(
-		baseX,
-		curY,
-		fontScale,
-		fontScale,
-		"■ 駒を取る",
-		headerColor);
+	DrawText(
+		textX,
+		textY,
+		"【 駒を取る 】",
+		colorTitle,
+		headingFontHandle,
+		true);
 
-	curY += lineSpace;
+	textY += headingToBody;
 
-	DrawExtendString(
-		baseX + static_cast<int>(20 * scaleX),
-		curY,
-		fontScale,
-		fontScale,
-		"相手の駒があるマスへ移動すると、その駒を持ち駒として使用できます。",
-		whiteColor);
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"相手の駒があるマスへ移動すると、",
+		colorText,
+		bodyFontHandle);
 
-	curY += lineSpace * 2;
+	textY += bodyLine;
+
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"その駒を持ち駒として使えます。",
+		colorText,
+		bodyFontHandle);
 
 	//----------------------------------
-	// 注意事項
+	// 右側：成りと禁止されている手
 	//----------------------------------
-	DrawExtendString(
-		baseX,
-		curY,
-		fontScale,
-		fontScale,
-		"■ 禁止されている手",
-		alertColor);
+	textX =
+		rightX + panelPadding;
 
-	curY += lineSpace;
+	textY =
+		contentTop + S(14);
 
-	DrawExtendString(
-		baseX + static_cast<int>(20 * scaleX),
-		curY,
-		fontScale,
-		fontScale,
-		"・同じ縦列に、自分の成っていない歩を2枚置く「二歩」",
-		alertColor);
+	//----------------------------------
+	// 右パネル見出し
+	//----------------------------------
+	DrawBox(
+		textX,
+		textY + S(7),
+		textX + S(18),
+		textY + S(25),
+		colorHeader,
+		TRUE);
 
-	curY += lineSpace;
+	DrawText(
+		textX + S(30),
+		textY,
+		"成りと禁止されている手",
+		colorHeader,
+		sectionFontHandle,
+		true);
 
-	DrawExtendString(
-		baseX + static_cast<int>(20 * scaleX),
-		curY,
-		fontScale,
-		fontScale,
-		"・歩を最終段へ打ち、動けない状態にする手",
-		alertColor);
+	DrawLine(
+		textX,
+		textY + S(41),
+		rightX + rightW - panelPadding,
+		textY + S(41),
+		colorLine);
 
-	curY += lineSpace;
+	textY += S(57);
 
-	DrawExtendString(
-		baseX + static_cast<int>(20 * scaleX),
-		curY,
-		fontScale,
-		fontScale,
-		"・自分の王が取られる状態になる手、または王手を放置する手",
-		alertColor);
+	//----------------------------------
+	// 成り
+	//----------------------------------
+	DrawText(
+		textX,
+		textY,
+		"【 成り 】",
+		colorTitle,
+		headingFontHandle,
+		true);
 
-	curY += lineSpace * 2;
+	textY += headingToBody;
+
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"銀・角・飛車・歩は、相手陣へ",
+		colorText,
+		bodyFontHandle);
+
+	textY += bodyLine;
+
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"入るか、相手陣から出るときに",
+		colorText,
+		bodyFontHandle);
+
+	textY += bodyLine;
+
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"成ることができます。",
+		colorText,
+		bodyFontHandle);
+
+	textY += bodyLine;
+
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"歩が最終段へ進む場合は必ず成ります。",
+		colorText,
+		bodyFontHandle);
+
+	textY += S(40);
+
+	//----------------------------------
+	// 禁止されている手
+	//----------------------------------
+	DrawText(
+		textX,
+		textY,
+		"【 禁止されている手 】",
+		colorWarning,
+		headingFontHandle,
+		true);
+
+	textY += headingToBody;
+
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"・同じ縦列に、成っていない歩を",
+		colorText,
+		bodyFontHandle);
+
+	textY += bodyLine;
+
+	DrawText(
+		textX + S(35),
+		textY,
+		"2枚置く「二歩」",
+		colorWarning,
+		bodyFontHandle,
+		true);
+
+	textY += bodyLine;
+
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"・歩を最終段へ打つ手",
+		colorText,
+		bodyFontHandle);
+
+	textY += bodyLine;
+
+	DrawText(
+		textX + bodyIndent,
+		textY,
+		"・自分の王が取られる状態になる手",
+		colorText,
+		bodyFontHandle);
+
+	textY += bodyLine;
+
+	DrawText(
+		textX + S(35),
+		textY,
+		"または王手を放置する手",
+		colorText,
+		bodyFontHandle);
+
+	//----------------------------------
+	// 下部の区切り線
+	//----------------------------------
+	const int bottomLineY =
+		panelY + S(565);
+
+	DrawLine(
+		panelX + S(40),
+		bottomLineY,
+		panelX + panelW - S(40),
+		bottomLineY,
+		colorLine);
 
 	//----------------------------------
 	// 開始確認
 	//----------------------------------
+	const char* startText =
+		"ゲームを開始しますか？";
+
+	const int startTextW =
+		GetTextWidth(
+			startText,
+			bodyFontHandle);
+
+	DrawText(
+		centerX - startTextW / 2,
+		panelY + S(573),
+		startText,
+		colorText,
+		bodyFontHandle,
+		true);
+
+	//----------------------------------
+	// ボタン設定
+	//----------------------------------
+	const int buttonW =
+		S(180);
+
+	const int buttonH =
+		S(42);
+
+	const int buttonGap =
+		S(40);
+
+	const int totalButtonW =
+		buttonW * 2 +
+		buttonGap;
+
+	const int buttonStartX =
+		centerX -
+		totalButtonW / 2;
+
+	const int buttonY =
+		panelY + S(620);
+
 	const int yesColor =
 		isYes_
-		? selectActiveColor
-		: selectInactiveColor;
+		? colorSelected
+		: colorInactive;
 
 	const int noColor =
 		!isYes_
-		? selectActiveColor
-		: selectInactiveColor;
+		? colorSelected
+		: colorInactive;
 
-	DrawExtendString(
-		baseX + static_cast<int>(100 * scaleX),
-		curY,
-		fontScale,
-		fontScale,
-		"このゲームを開始しますか？",
-		textColor);
-
-	curY += static_cast<int>(45 * scaleY);
-
+	//----------------------------------
+	// 「はい」ボタン
+	//----------------------------------
 	const int yesX =
-		baseX +
-		static_cast<int>(160 * scaleX);
+		buttonStartX;
 
-	DrawExtendString(
+	DrawBox(
 		yesX,
-		curY,
-		fontScale,
-		fontScale,
-		"はい",
-		yesColor);
+		buttonY,
+		yesX + buttonW,
+		buttonY + buttonH,
+		colorButton,
+		TRUE);
 
+	DrawBox(
+		yesX,
+		buttonY,
+		yesX + buttonW,
+		buttonY + buttonH,
+		isYes_
+		? colorSelected
+		: colorLine,
+		FALSE);
+
+	if (isYes_)
+	{
+		DrawBox(
+			yesX + 2,
+			buttonY + 2,
+			yesX + buttonW - 2,
+			buttonY + buttonH - 2,
+			colorSelected,
+			FALSE);
+	}
+
+	const char* yesText =
+		"はい";
+
+	const int yesTextW =
+		GetTextWidth(
+			yesText,
+			buttonFontHandle);
+
+	const int buttonFontH =
+		GetFontSizeToHandle(
+			buttonFontHandle);
+
+	DrawText(
+		yesX +
+		buttonW / 2 -
+		yesTextW / 2,
+		buttonY +
+		(buttonH - buttonFontH) / 2,
+		yesText,
+		yesColor,
+		buttonFontHandle,
+		isYes_);
+
+	//----------------------------------
+	// 「いいえ」ボタン
+	//----------------------------------
 	const int noX =
 		yesX +
-		static_cast<int>(160 * scaleX);
+		buttonW +
+		buttonGap;
 
-	DrawExtendString(
+	DrawBox(
 		noX,
-		curY,
-		fontScale,
-		fontScale,
-		"いいえ",
-		noColor);
+		buttonY,
+		noX + buttonW,
+		buttonY + buttonH,
+		colorButton,
+		TRUE);
+
+	DrawBox(
+		noX,
+		buttonY,
+		noX + buttonW,
+		buttonY + buttonH,
+		!isYes_
+		? colorSelected
+		: colorLine,
+		FALSE);
+
+	if (!isYes_)
+	{
+		DrawBox(
+			noX + 2,
+			buttonY + 2,
+			noX + buttonW - 2,
+			buttonY + buttonH - 2,
+			colorSelected,
+			FALSE);
+	}
+
+	const char* noText =
+		"いいえ";
+
+	const int noTextW =
+		GetTextWidth(
+			noText,
+			buttonFontHandle);
+
+	DrawText(
+		noX +
+		buttonW / 2 -
+		noTextW / 2,
+		buttonY +
+		(buttonH - buttonFontH) / 2,
+		noText,
+		noColor,
+		buttonFontHandle,
+		!isYes_);
 }
 
 void GameScene::CreateMiniGame(void)

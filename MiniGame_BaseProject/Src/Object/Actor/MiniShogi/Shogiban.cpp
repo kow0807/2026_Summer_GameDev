@@ -32,8 +32,8 @@ void Shogiban::Init(void)
         1
     );
 
-    mMaterial_->SetTextureBuf(0, 
-        { resMng_.Load(ResourceManager::SRC::MINISHOGI_TEXTURE_WOOD).handleId_});
+    //mMaterial_->SetTextureBuf(0, 
+    //    { resMng_.Load(ResourceManager::SRC::MINISHOGI_TEXTURE_WOOD).handleId_});
     mMaterial_->AddConstBufPS(FLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f });
 
     mRenderer_ = std::make_unique<ModelRenderer>(
@@ -53,6 +53,7 @@ void Shogiban::Draw(void)
     SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
     SetMaxAnisotropy(16);
     SetDrawMode(DX_DRAWMODE_BILINEAR);
-    mRenderer_->Draw();
+    //mRenderer_->Draw();
+	MV1DrawModel(transform_.modelId);
     SetDrawMode(DX_DRAWMODE_NUM);
 }

@@ -234,10 +234,9 @@ void MiniShogi::Draw(void)
 
 void MiniShogi::DrawUI(void)
 {
-
 	//----------------------------------
-	// 現在の画面サイズを取得
-	//----------------------------------
+		// 現在の画面サイズを取得
+		//----------------------------------
 	int screenW;
 	int screenH;
 
@@ -248,7 +247,7 @@ void MiniShogi::DrawUI(void)
 	//----------------------------------
 	// 解像度変更時にフォントを再作成
 	//----------------------------------
-	static int lastScreenH = screenH;
+	static int lastScreenH = -1;
 
 	if (screenH != lastScreenH)
 	{
@@ -303,64 +302,78 @@ void MiniShogi::DrawUI(void)
 	// 色
 	//----------------------------------
 	const unsigned int colorWhite =
-	GetColor(240, 230, 220);
+		GetColor(240, 230, 215);
 
 	const unsigned int colorGray =
-	GetColor(150, 140, 130);
+		GetColor(175, 160, 140);
 
 	const unsigned int colorPlayer =
-	GetColor(200, 80, 80);
+		GetColor(215, 115, 90);
 
-	const unsigned int colorCpu =
-	GetColor(80, 130, 230);
+	const unsigned int colorOpponent =
+		GetColor(190, 175, 145);
 
-	const unsigned int colorYellow =
-	GetColor(240, 200, 80);
+	const unsigned int colorGold =
+		GetColor(220, 180, 95);
 
 	const unsigned int colorWarning =
-	GetColor(255, 120, 100);
+		GetColor(235, 100, 80);
+
+	const unsigned int colorPanel =
+		GetColor(40, 28, 20);
+
+	const unsigned int colorLine =
+		GetColor(125, 100, 70);
 
 	//----------------------------------
 	// 左側UIの座標
 	//----------------------------------
 	const int panelLeft =
-	static_cast<int>(screenW * 0.015f);
+		static_cast<int>(screenW * 0.015f);
 
 	const int panelTop =
-	static_cast<int>(screenH * 0.025f);
+		static_cast<int>(screenH * 0.025f);
 
 	const int panelRight =
-	static_cast<int>(screenW * 0.245f);
+		static_cast<int>(screenW * 0.245f);
 
 	const int panelBottom =
-	static_cast<int>(screenH * 0.7f);
+		static_cast<int>(screenH * 0.70f);
 
-	const int leftX =
-	static_cast<int>(screenW * 0.04f);
+	const int labelX =
+		static_cast<int>(screenW * 0.038f);
 
-	const int leftX1 =
-		static_cast<int>(screenW * 0.45f);
+	const int valueX =
+		static_cast<int>(screenW * 0.052f);
 
+	const int lineLeft =
+		static_cast<int>(screenW * 0.030f);
 
-	const int lineGap =
-	static_cast<int>(screenH * 0.04f);
+	const int lineRight =
+		static_cast<int>(screenW * 0.220f);
 
-	const int itemGap =
-	static_cast<int>(screenH * 0.042f);
+	const int valueGap =
+		static_cast<int>(screenH * 0.040f);
+
+	const int sectionGap =
+		static_cast<int>(screenH * 0.125f);
+
+	const int operationGap =
+		static_cast<int>(screenH * 0.041f);
 
 	//----------------------------------
 	// 左側背景
 	//----------------------------------
 	SetDrawBlendMode(
 		DX_BLENDMODE_ALPHA,
-		170);
+		185);
 
 	DrawBox(
 		panelLeft,
 		panelTop,
 		panelRight,
 		panelBottom,
-		GetColor(25, 20, 15),
+		colorPanel,
 		TRUE);
 
 	SetDrawBlendMode(
@@ -368,57 +381,74 @@ void MiniShogi::DrawUI(void)
 		0);
 
 	//----------------------------------
-	// タイトル
+	// パネル左側の装飾線
 	//----------------------------------
-	DrawStringToHandle(
-		leftX - static_cast<int>(screenW * 0.015f),
-		static_cast<int>(screenH * 0.05f),
-		"MINI SHOGI",
-		colorWhite,
-		fontTitle_);
+	DrawBox(
+		panelLeft,
+		panelTop,
+		panelLeft + static_cast<int>(screenW * 0.004f),
+		panelBottom,
+		colorGold,
+		TRUE);
 
 	//----------------------------------
 	// 現在の手番
 	//----------------------------------
 	const int turnY =
-	static_cast<int>(screenH * 0.17f);
+		static_cast<int>(screenH * 0.075f);
 
 	DrawStringToHandle(
-		leftX,
+		labelX,
 		turnY,
-		"TURN",
+		"手番",
 		colorGray,
 		fontMain_);
 
+	const char* turnText = nullptr;
+	unsigned int turnColor = colorWhite;
+
 	if (isPlayerTurn_)
 	{
-		DrawStringToHandle(
-			leftX,
-			turnY + lineGap,
-			"あなたの手番",
-			colorPlayer,
-			fontMain_);
+		turnText = "あなた";
+		turnColor = colorPlayer;
 	}
 	else
 	{
-		DrawStringToHandle(
-			leftX,
-			turnY + lineGap,
-			"CPUの手番",
-			colorCpu,
-			fontMain_);
+		turnText = "相手";
+		turnColor = colorOpponent;
 	}
+
+	DrawStringToHandle(
+		valueX,
+		turnY + valueGap,
+		turnText,
+		turnColor,
+		fontMain_);
+
+	//----------------------------------
+	// 区切り線
+	//----------------------------------
+	const int turnLineY =
+		turnY +
+		static_cast<int>(screenH * 0.095f);
+
+	DrawLine(
+		lineLeft,
+		turnLineY,
+		lineRight,
+		turnLineY,
+		colorLine);
 
 	//----------------------------------
 	// 現在の選択場所
 	//----------------------------------
 	const int selectY =
-	static_cast<int>(screenH * 0.29f);
+		turnY + sectionGap;
 
 	DrawStringToHandle(
-		leftX,
+		labelX,
 		selectY,
-		"SELECT",
+		"選択場所",
 		colorGray,
 		fontMain_);
 
@@ -431,11 +461,11 @@ void MiniShogi::DrawUI(void)
 		break;
 
 	case CursorArea::PLAYER_HAND:
-		selectText = "あなたの持ち駒";
+		selectText = "自分の持ち駒";
 		break;
 
 	case CursorArea::ENEMY_HAND:
-		selectText = "CPUの持ち駒";
+		selectText = "相手の持ち駒";
 		break;
 
 	default:
@@ -444,67 +474,70 @@ void MiniShogi::DrawUI(void)
 	}
 
 	DrawStringToHandle(
-		leftX,
-		selectY + lineGap,
+		valueX,
+		selectY + valueGap,
 		selectText,
 		colorWhite,
 		fontMain_);
 
 	//----------------------------------
-	// 状態表示
+	// 区切り線
+	//----------------------------------
+	const int selectLineY =
+		selectY +
+		static_cast<int>(screenH * 0.095f);
+
+	DrawLine(
+		lineLeft,
+		selectLineY,
+		lineRight,
+		selectLineY,
+		colorLine);
+
+	//----------------------------------
+	// 対局状態
 	//----------------------------------
 	const int stateY =
-	static_cast<int>(screenH * 0.40f);
+		selectY + sectionGap;
 
 	DrawStringToHandle(
-		leftX,
+		labelX,
 		stateY,
-		"STATUS",
+		"対局状況",
 		colorGray,
 		fontMain_);
 
+	const char* stateText = "対局中";
+	unsigned int stateColor = colorWhite;
+
 	if (isGameOver_)
 	{
-		DrawStringToHandle(
-			leftX,
-			stateY + lineGap,
-			"対局終了",
-			colorYellow,
-			fontMain_);
+		stateText = "対局終了";
+		stateColor = colorGold;
 	}
 	else if (promotionState_ ==
 		PromotionState::WAIT_SELECT)
 	{
-		DrawStringToHandle(
-			leftX,
-			stateY + lineGap,
-			"成りを選択中",
-			colorYellow,
-			fontMain_);
+		stateText = "成りを選択中";
+		stateColor = colorGold;
 	}
 	else if (rule_->IsCheck(
 		*board_,
 		isPlayerTurn_))
 	{
-		DrawStringToHandle(
-			leftX,
-			stateY + lineGap,
-			"王手されています",
-			colorWarning,
-			fontMain_);
-	}
-	else
-	{
-		DrawStringToHandle(
-			leftX,
-			stateY + lineGap,
-			"対局中",
-			colorWhite,
-			fontMain_);
+		stateText = "王手";
+		stateColor = colorWarning;
 	}
 
+	DrawStringToHandle(
+		valueX,
+		stateY + valueGap,
+		stateText,
+		stateColor,
+		fontMain_);
+
 	//----------------------------------
-	// CPU思考中
+	// 相手思考中
 	//----------------------------------
 	if (!isPlayerTurn_ &&
 		!isGameOver_)
@@ -513,105 +546,121 @@ void MiniShogi::DrawUI(void)
 			(GetNowCount() / 300) % 4;
 
 		std::string thinkingText =
-			"CPU思考中";
+			"相手が考えています";
 
 		for (int i = 0;
 			i < dotCount;
-			i++)
+			++i)
 		{
-			thinkingText += ".";
+			thinkingText += "・";
 		}
 
 		DrawFormatStringToHandle(
-			leftX,
-			stateY + lineGap * 2,
-			colorYellow,
+			valueX,
+			stateY + valueGap * 2,
+			colorGold,
 			fontMain_,
 			"%s",
 			thinkingText.c_str());
 	}
 
 	//----------------------------------
+	// 操作説明との区切り線
+	//----------------------------------
+	const int operationLineY =
+		static_cast<int>(screenH * 0.505f);
+
+	DrawLine(
+		lineLeft,
+		operationLineY,
+		lineRight,
+		operationLineY,
+		colorLine);
+
+	//----------------------------------
 	// 操作説明
 	//----------------------------------
-	const int menuY =
-	static_cast<int>(screenH * 0.56f);
+	const int operationY =
+		static_cast<int>(screenH * 0.530f);
 
 	DrawStringToHandle(
-		leftX,
-		menuY - itemGap,
-		"CONTROL",
+		labelX,
+		operationY,
+		"操作方法",
 		colorGray,
 		fontMain_);
 
+	const int operationTextY =
+		operationY + valueGap;
+
 	const bool isPadConnected =
-	GetJoypadNum() > 0;
+		GetJoypadNum() > 0;
 
 	if (isPadConnected)
 	{
 		DrawStringToHandle(
-			leftX,
-			menuY,
-			"移動      ：十字ボタン",
-			colorGray,
+			valueX,
+			operationTextY,
+			"十字ボタン　移動",
+			colorWhite,
 			fontMain_);
 
 		DrawStringToHandle(
-			leftX,
-			menuY + itemGap,
-			"決定      ：A",
-			colorGray,
+			valueX,
+			operationTextY + operationGap,
+			"Aボタン　　 決定",
+			colorWhite,
 			fontMain_);
 
 		DrawStringToHandle(
-			leftX,
-			menuY + itemGap * 2,
-			"選択解除  ：B",
-			colorGray,
+			valueX,
+			operationTextY + operationGap * 2,
+			"Bボタン　　 戻る",
+			colorWhite,
 			fontMain_);
 
 		if (promotionState_ ==
 			PromotionState::WAIT_SELECT)
 		{
 			DrawStringToHandle(
-				leftX,
-				menuY + itemGap * 3,
-				"成り選択  ：左右",
-				colorGray,
+				valueX,
+				operationTextY + operationGap * 3,
+				"左右　　　　成りを選択",
+				colorWhite,
 				fontMain_);
 		}
 	}
 	else
 	{
 		DrawStringToHandle(
-			leftX,
-			menuY,
-			"移動      ：方向キー",
-			colorGray,
+			valueX,
+			operationTextY,
+			"方向キー　　移動",
+			colorWhite,
 			fontMain_);
 
 		DrawStringToHandle(
-			leftX,
-			menuY + itemGap,
-			"決定      ：ENTER",
-			colorGray,
+			valueX,
+			operationTextY + operationGap,
+			"Enter　　　 決定",
+			colorWhite,
 			fontMain_);
 
 		DrawStringToHandle(
-			leftX,
-			menuY + itemGap * 2,
-			"選択解除  ：BackSpace",
-			colorGray,
+			valueX,
+			operationTextY + operationGap * 2,
+			"BackSpace　 戻る",
+			colorWhite,
 			fontMain_);
 
 		if (promotionState_ ==
 			PromotionState::WAIT_SELECT)
 		{
 			DrawStringToHandle(
-				leftX,
-				menuY + itemGap * 3,
-				"成り選択  ：左右キー",
-				colorGray,
+				valueX,
+				operationTextY + operationGap * 3,
+				"左右キー　　成りを選択",
+				colorWhite,
 				fontMain_);
 		}
 	}
@@ -637,19 +686,27 @@ void MiniShogi::DrawUI(void)
 
 		SetDrawBlendMode(
 			DX_BLENDMODE_ALPHA,
-			190);
+			210);
 
 		DrawBox(
 			boxX,
 			boxY,
 			boxX + boxW,
 			boxY + boxH,
-			GetColor(80, 20, 20),
+			GetColor(75, 25, 20),
 			TRUE);
 
 		SetDrawBlendMode(
 			DX_BLENDMODE_NOBLEND,
 			0);
+
+		DrawBox(
+			boxX,
+			boxY,
+			boxX + boxW,
+			boxY + boxH,
+			colorWarning,
+			FALSE);
 
 		const int textWidth =
 			GetDrawStringWidthToHandle(
@@ -662,15 +719,18 @@ void MiniShogi::DrawUI(void)
 			boxX +
 			(boxW - textWidth) / 2;
 
+		const int textHeight =
+			GetFontSizeToHandle(fontMain_);
+
 		const int textY =
 			boxY +
-			static_cast<int>(boxH * 0.28f);
+			(boxH - textHeight) / 2;
 
 		DrawStringToHandle(
 			textX,
 			textY,
 			ruleMessage_,
-			colorWarning,
+			colorWhite,
 			fontMain_);
 	}
 
@@ -679,13 +739,52 @@ void MiniShogi::DrawUI(void)
 	//----------------------------------
 	if (isGameOver_)
 	{
+		const int resultWindowW =
+			static_cast<int>(screenW * 0.42f);
+
+		const int resultWindowH =
+			static_cast<int>(screenH * 0.25f);
+
+		const int resultLeft =
+			(screenW - resultWindowW) / 2;
+
 		const int resultTop =
-			static_cast<int>(screenH * 0.47f);
+			(screenH - resultWindowH) / 2;
+
+		const int resultRight =
+			resultLeft + resultWindowW;
+
+		const int resultBottom =
+			resultTop + resultWindowH;
+
+		SetDrawBlendMode(
+			DX_BLENDMODE_ALPHA,
+			225);
+
+		DrawBox(
+			resultLeft,
+			resultTop,
+			resultRight,
+			resultBottom,
+			colorPanel,
+			TRUE);
+
+		SetDrawBlendMode(
+			DX_BLENDMODE_NOBLEND,
+			0);
+
+		DrawBox(
+			resultLeft,
+			resultTop,
+			resultRight,
+			resultBottom,
+			colorGold,
+			FALSE);
 
 		const char* resultText =
 			isPlayerWin_
-			? "あなたの勝ち"
-			: "CPUの勝ち";
+			? "勝利"
+			: "敗北";
 
 		const char* reasonText = "";
 
@@ -704,35 +803,73 @@ void MiniShogi::DrawUI(void)
 			break;
 
 		default:
+			reasonText = "";
 			break;
 		}
 
-		DrawStringToHandle(
-			leftX1,
-			resultTop,
-			resultText,
-			colorYellow,
-			fontTitle_);
+		const int resultTextWidth =
+			GetDrawStringWidthToHandle(
+				resultText,
+				static_cast<int>(
+					std::strlen(resultText)),
+				fontTitle_);
+
+		const int resultTextX =
+			resultLeft +
+			(resultWindowW - resultTextWidth) / 2;
+
+		const int resultTextY =
+			resultTop +
+			static_cast<int>(resultWindowH * 0.20f);
 
 		DrawStringToHandle(
-			leftX1,
-			resultTop +
-			static_cast<int>(screenH * 0.065f),
-			reasonText,
-			colorWhite,
-			fontMain_);
+			resultTextX,
+			resultTextY,
+			resultText,
+			isPlayerWin_
+			? colorGold
+			: colorWarning,
+			fontTitle_);
+
+		if (reasonText[0] != '\0')
+		{
+			const int reasonTextWidth =
+				GetDrawStringWidthToHandle(
+					reasonText,
+					static_cast<int>(
+						std::strlen(reasonText)),
+					fontMain_);
+
+			const int reasonTextX =
+				resultLeft +
+				(resultWindowW - reasonTextWidth) / 2;
+
+			const int reasonTextY =
+				resultTop +
+				static_cast<int>(resultWindowH * 0.62f);
+
+			DrawStringToHandle(
+				reasonTextX,
+				reasonTextY,
+				reasonText,
+				colorWhite,
+				fontMain_);
+		}
 
 		return;
 	}
 
-	// パネルが見えている間だけ描画
-	if (isPause_ || pauseX_ > -320.0f)
+	//----------------------------------
+	// ポーズ画面
+	//----------------------------------
+	if (isPause_ ||
+		pauseX_ > -320.0f)
 	{
 		PauseDraw();
 	}
 
 	//----------------------------------
-	// 成り選択ウィンドウ
+	// 成り選択中でなければ終了
 	//----------------------------------
 	if (promotionState_ !=
 		PromotionState::WAIT_SELECT)
@@ -740,34 +877,37 @@ void MiniShogi::DrawUI(void)
 		return;
 	}
 
+	//----------------------------------
+	// 成り選択ウィンドウ
+	//----------------------------------
 	const int promoteWindowW =
-	static_cast<int>(screenW * 0.32f);
+		static_cast<int>(screenW * 0.32f);
 
 	const int promoteWindowH =
-	static_cast<int>(screenH * 0.22f);
+		static_cast<int>(screenH * 0.22f);
 
 	const int promoteLeft =
-	(screenW - promoteWindowW) / 2;
+		(screenW - promoteWindowW) / 2;
 
 	const int promoteTop =
-	(screenH - promoteWindowH) / 2;
+		(screenH - promoteWindowH) / 2;
 
 	const int promoteRight =
-	promoteLeft + promoteWindowW;
+		promoteLeft + promoteWindowW;
 
 	const int promoteBottom =
-	promoteTop + promoteWindowH;
+		promoteTop + promoteWindowH;
 
 	SetDrawBlendMode(
 		DX_BLENDMODE_ALPHA,
-		220);
+		230);
 
 	DrawBox(
 		promoteLeft,
 		promoteTop,
 		promoteRight,
 		promoteBottom,
-		GetColor(40, 40, 40),
+		colorPanel,
 		TRUE);
 
 	SetDrawBlendMode(
@@ -779,45 +919,119 @@ void MiniShogi::DrawUI(void)
 		promoteTop,
 		promoteRight,
 		promoteBottom,
-		colorWhite,
+		colorGold,
 		FALSE);
 
-	DrawStringToHandle(
+	//----------------------------------
+	// 成り確認メッセージ
+	//----------------------------------
+	const char* promoteMessage =
+		"成りますか？";
+
+	const int promoteMessageWidth =
+		GetDrawStringWidthToHandle(
+			promoteMessage,
+			static_cast<int>(
+				std::strlen(promoteMessage)),
+			fontMain_);
+
+	const int promoteMessageX =
 		promoteLeft +
-		static_cast<int>(promoteWindowW * 0.29f),
+		(promoteWindowW - promoteMessageWidth) / 2;
+
+	const int promoteMessageY =
 		promoteTop +
-		static_cast<int>(promoteWindowH * 0.16f),
-		"成りますか？",
+		static_cast<int>(promoteWindowH * 0.18f);
+
+	DrawStringToHandle(
+		promoteMessageX,
+		promoteMessageY,
+		promoteMessage,
 		colorWhite,
 		fontMain_);
 
+	//----------------------------------
+	// 成る・成らないの色
+	//----------------------------------
 	const unsigned int yesColor =
-	promoteSelect_
-	? colorYellow
+		promoteSelect_
+		? colorGold
 		: colorWhite;
 
 	const unsigned int noColor =
-	!promoteSelect_
-	? colorYellow
+		!promoteSelect_
+		? colorGold
 		: colorWhite;
 
-	DrawStringToHandle(
+	const char* yesText = "成る";
+	const char* noText = "成らない";
+
+	const int yesTextWidth =
+		GetDrawStringWidthToHandle(
+			yesText,
+			static_cast<int>(
+				std::strlen(yesText)),
+			fontMain_);
+
+	const int noTextWidth =
+		GetDrawStringWidthToHandle(
+			noText,
+			static_cast<int>(
+				std::strlen(noText)),
+			fontMain_);
+
+	const int yesCenterX =
 		promoteLeft +
-		static_cast<int>(promoteWindowW * 0.22f),
+		static_cast<int>(promoteWindowW * 0.30f);
+
+	const int noCenterX =
+		promoteLeft +
+		static_cast<int>(promoteWindowW * 0.70f);
+
+	const int selectionY =
 		promoteTop +
-		static_cast<int>(promoteWindowH * 0.62f),
-		"はい",
+		static_cast<int>(promoteWindowH * 0.62f);
+
+	DrawStringToHandle(
+		yesCenterX - yesTextWidth / 2,
+		selectionY,
+		yesText,
 		yesColor,
 		fontMain_);
 
 	DrawStringToHandle(
-		promoteLeft +
-		static_cast<int>(promoteWindowW * 0.63f),
-		promoteTop +
-		static_cast<int>(promoteWindowH * 0.62f),
-		"いいえ",
+		noCenterX - noTextWidth / 2,
+		selectionY,
+		noText,
 		noColor,
 		fontMain_);
+
+	//----------------------------------
+	// 選択中の項目に下線を表示
+	//----------------------------------
+	const int underlineY =
+		selectionY +
+		GetFontSizeToHandle(fontMain_) +
+		static_cast<int>(screenH * 0.008f);
+
+	if (promoteSelect_)
+	{
+		DrawLine(
+			yesCenterX - yesTextWidth / 2,
+			underlineY,
+			yesCenterX + yesTextWidth / 2,
+			underlineY,
+			colorGold);
+	}
+	else
+	{
+		DrawLine(
+			noCenterX - noTextWidth / 2,
+			underlineY,
+			noCenterX + noTextWidth / 2,
+			underlineY,
+			colorGold);
+	}
 }
 
 void MiniShogi::Reset(void)

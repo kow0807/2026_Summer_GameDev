@@ -66,6 +66,9 @@ private:
 	int buttonMashExplanationImg_;
 	bool isKeyboard_;
 
+	int quoridorExplanationImg_;
+	int miniShogiExplanationImg_;
+
 	bool isBgm_;
 	int bgm_;
 	int moveSe_;

@@ -290,174 +290,578 @@ void Quoridor::Draw(void)
 
 void Quoridor::DrawUI(void)
 {
-	// 1. 現在の画面サイズを動的に取得
-	int screenW, screenH;
+	int screenW = 0;
+	int screenH = 0;
 	GetWindowSize(&screenW, &screenH);
 
-	// 2. 画面サイズ（特に縦幅）の変化を検知してフォントサイズを動的更新
-	// 初回に Init で作ったフォントを消さないよう、初期値を screenH に合わせておく
-	static int lastScreenH = screenH;
+	// --------------------------------------------------
+	// フォント更新
+	// --------------------------------------------------
+	static int lastScreenH = -1;
+
 	if (screenH != lastScreenH)
 	{
-		if (fontTitle_ != -1) DeleteFontToHandle(fontTitle_);
-		if (fontMain_ != -1)  DeleteFontToHandle(fontMain_);
+		if (fontTitle_ != -1)
+		{
+			DeleteFontToHandle(fontTitle_);
+		}
 
-		int titleFontSize = (int)(32.0f * ((float)screenH / 720.0f));
-		int mainFontSize = (int)(12.0f * ((float)screenH / 720.0f));
+		if (fontMain_ != -1)
+		{
+			DeleteFontToHandle(fontMain_);
+		}
 
-		if (titleFontSize < 16) titleFontSize = 16;
-		if (mainFontSize < 9)   mainFontSize = 9;
+		const float scale = static_cast<float>(screenH) / 720.0f;
 
-		// 環境依存の少ない DX_FONTTYPE_ANTIALIAS 変更して安全性を高める
-		fontTitle_ = CreateFontToHandle("游明朝", titleFontSize, 3, DX_FONTTYPE_ANTIALIASING);
-		fontMain_ = CreateFontToHandle("游明朝", mainFontSize, 2, DX_FONTTYPE_ANTIALIASING);
+		int emphasisFontSize = static_cast<int>(24.0f * scale);
+		int mainFontSize = static_cast<int>(16.0f * scale);
+
+		if (emphasisFontSize < 18)
+		{
+			emphasisFontSize = 18;
+		}
+
+		if (mainFontSize < 12)
+		{
+			mainFontSize = 12;
+		}
+
+		// fontTitle_ はタイトルではなく、強調文字用として使用
+		fontTitle_ = CreateFontToHandle(
+			"BIZ UDPゴシック",
+			emphasisFontSize,
+			5,
+			DX_FONTTYPE_ANTIALIASING
+		);
+
+		fontMain_ = CreateFontToHandle(
+			"BIZ UDPゴシック",
+			mainFontSize,
+			3,
+			DX_FONTTYPE_ANTIALIASING
+		);
 
 		lastScreenH = screenH;
 	}
 
-	// 各種色の定義
-	unsigned int colorWhite = GetColor(240, 230, 220);
-	unsigned int colorGray = GetColor(150, 140, 130);
-	unsigned int colorRed = GetColor(200, 80, 80);
-	unsigned int colorBlue = GetColor(80, 80, 200);
-
-	// 3. 座標を画面サイズの「割合（％）」で動的に計算
-	int leftX = (int)(screenW * 0.04f);
-	int rightX = (int)(screenW * 0.78f);
-	int lineGap = (int)(screenH * 0.04f);
-
-	// --- 背景ボックスの描画 ---
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 160);
-	// 左側のUI背景ボックス
-	DrawBox(
-		(int)(screenW * 0.02f), (int)(screenH * 0.03f),
-		(int)(screenW * 0.25f), (int)(screenH * 0.78f),
-		GetColor(25, 20, 15), TRUE
-	);
-	// 右側のUI背景ボックス
-	DrawBox(
-		(int)(screenW * 0.76f), (int)(screenH * 0.14f),
-		(int)(screenW * 0.98f), (int)(screenH * 0.52f),
-		GetColor(25, 20, 15), TRUE
-	);
-	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-	// --------------------------------------------------
-	// 左側：タイトルとゲーム状態
-	// --------------------------------------------------
-	DrawStringToHandle(leftX - static_cast<int>(leftX * 0.5f), (int)(screenH * 0.05f), "QUORIDOR", colorWhite, fontTitle_);
-
-	int turnY = (int)(screenH * 0.18f);
-	DrawFormatStringToHandle(leftX, turnY, colorGray, fontMain_, "TURN");
-	if (currentTurn_ == 0) {
-		DrawFormatStringToHandle(leftX, turnY + lineGap, colorRed, fontMain_, "Player 1 (あなた)");
-	}
-	else {
-		DrawFormatStringToHandle(leftX, turnY + lineGap, colorBlue, fontMain_, "Player 2 (CPU)");
-	}
-
-	int modeY = (int)(screenH * 0.30f);
-	DrawFormatStringToHandle(leftX, modeY, colorGray, fontMain_, "MODE");
-	const char* modeText = (mode_ == MODE::MOVE) ? "MOVE" : "WALL";
-	DrawFormatStringToHandle(leftX, modeY + lineGap, colorWhite, fontMain_, "%s", modeText);
-
-	bool isPadConnected = (GetJoypadNum() > 0);
-
-	// --------------------------------------------------
-	// 左下：操作説明
-	// --------------------------------------------------
-	int menuY = (int)(screenH * 0.52f);
-	int itemGap = (int)(screenH * 0.042f);
-
-	if (isPadConnected)
+	if (fontTitle_ == -1 || fontMain_ == -1)
 	{
-		DrawFormatStringToHandle(leftX, menuY, colorGray, fontMain_, "移動      ：十字ボタン");
-		DrawFormatStringToHandle(leftX, menuY + itemGap, colorGray, fontMain_, "モード切替：X");
-		DrawFormatStringToHandle(leftX, menuY + itemGap * 2, colorGray, fontMain_, "壁の回転  ：Y");
-		DrawFormatStringToHandle(leftX, menuY + itemGap * 3, colorGray, fontMain_, "決定      ：A");
-		
-		if (isDiagonalSelect_)
+		return;
+	}
+
+	// --------------------------------------------------
+	// 色
+	// --------------------------------------------------
+	const unsigned int colorText =
+		GetColor(238, 233, 224);
+
+	const unsigned int colorSubText =
+		GetColor(172, 166, 156);
+
+	const unsigned int colorPanel =
+		GetColor(22, 19, 17);
+
+	const unsigned int colorPanelBorder =
+		GetColor(100, 89, 75);
+
+	const unsigned int colorGold =
+		GetColor(205, 169, 91);
+
+	const unsigned int colorPlayer =
+		GetColor(210, 92, 82);
+
+	const unsigned int colorCpu =
+		GetColor(100, 125, 210);
+
+	const unsigned int colorWarning =
+		GetColor(232, 105, 83);
+
+	const unsigned int colorEmptyWall =
+		GetColor(73, 67, 60);
+
+	// --------------------------------------------------
+	// 共通描画ラムダ
+	// --------------------------------------------------
+
+	// 半透明パネル
+	auto DrawPanel =
+		[&](int x1, int y1, int x2, int y2, int alpha = 190)
 		{
-			DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "斜め移動  ：前後→左右→ENTER");
-			DrawFormatStringToHandle(leftX, menuY + itemGap * 5, colorGray, fontMain_, "斜め移動取り消し  ：B");
+			// 影
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha / 2);
+
+			DrawBox(
+				x1 + 4,
+				y1 + 5,
+				x2 + 4,
+				y2 + 5,
+				GetColor(0, 0, 0),
+				TRUE
+			);
+
+			// 本体
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
+			DrawBox(
+				x1,
+				y1,
+				x2,
+				y2,
+				colorPanel,
+				TRUE
+			);
+
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+			// 細い枠
+			DrawBox(
+				x1,
+				y1,
+				x2,
+				y2,
+				colorPanelBorder,
+				FALSE
+			);
+		};
+
+	// 中央揃え文字
+	auto DrawCenteredText =
+		[&](int centerX,
+			int y,
+			const char* text,
+			unsigned int color,
+			int fontHandle)
+		{
+			const int textWidth = GetDrawStringWidthToHandle(
+				text,
+				static_cast<int>(strlen(text)),
+				fontHandle
+			);
+
+			DrawStringToHandle(
+				centerX - textWidth / 2,
+				y,
+				text,
+				color,
+				fontHandle
+			);
+		};
+
+	// 残り壁ゲージ
+	auto DrawWallGauge =
+		[&](int x,
+			int y,
+			int remainingWalls,
+			unsigned int activeColor)
+		{
+			const int iconCount = MAX_WALLS;
+			const int iconWidth =
+				static_cast<int>(screenW * 0.008f);
+
+			const int iconHeight =
+				static_cast<int>(screenH * 0.019f);
+
+			const int iconGap =
+				static_cast<int>(screenW * 0.003f);
+
+			for (int i = 0; i < iconCount; ++i)
+			{
+				const int iconX =
+					x + i * (iconWidth + iconGap);
+
+				const unsigned int iconColor =
+					(i < remainingWalls)
+					? activeColor
+					: colorEmptyWall;
+
+				DrawBox(
+					iconX,
+					y,
+					iconX + iconWidth,
+					y + iconHeight,
+					iconColor,
+					TRUE
+				);
+			}
+		};
+
+	// プレイヤーカード
+	auto DrawPlayerCard =
+		[&](int x,
+			int y,
+			int width,
+			int height,
+			const char* playerName,
+			int remainingWalls,
+			unsigned int playerColor,
+			bool isActive)
+		{
+			DrawPanel(
+				x,
+				y,
+				x + width,
+				y + height,
+				isActive ? 215 : 170
+			);
+
+			// 手番中のアクセントライン
+			if (isActive)
+			{
+				const int accentWidth =
+					static_cast<int>(screenW * 0.004f);
+
+				DrawBox(
+					x,
+					y,
+					x + accentWidth,
+					y + height,
+					colorGold,
+					TRUE
+				);
+			}
+
+			const int paddingX =
+				static_cast<int>(screenW * 0.015f);
+
+			const int paddingY =
+				static_cast<int>(screenH * 0.018f);
+
+			DrawStringToHandle(
+				x + paddingX,
+				y + paddingY,
+				playerName,
+				playerColor,
+				fontMain_
+			);
+
+			const char* turnText =
+				isActive ? "手番" : "";
+
+			if (isActive)
+			{
+				const int turnTextWidth =
+					GetDrawStringWidthToHandle(
+						turnText,
+						static_cast<int>(strlen(turnText)),
+						fontMain_
+					);
+
+				DrawStringToHandle(
+					x + width - paddingX - turnTextWidth,
+					y + paddingY,
+					turnText,
+					colorGold,
+					fontMain_
+				);
+			}
+
+			const int gaugeY =
+				y + static_cast<int>(height * 0.57f);
+
+			DrawWallGauge(
+				x + paddingX,
+				gaugeY,
+				remainingWalls,
+				playerColor
+			);
+
+			DrawFormatStringToHandle(
+				x + width -
+				static_cast<int>(screenW * 0.052f),
+				gaugeY - 2,
+				colorText,
+				fontMain_,
+				"%d",
+				remainingWalls
+			);
+		};
+
+	// --------------------------------------------------
+	// ゲームオーバー
+	// --------------------------------------------------
+	// 通常HUDの上に描画するのではなく、
+	// ゲームオーバー画面を最優先にする
+	if (isGameOver_)
+	{
+		DrawGameOver();
+		return;
+	}
+
+	// --------------------------------------------------
+// 左上：現在のターン
+// --------------------------------------------------
+	const int turnPanelWidth =
+		static_cast<int>(screenW * 0.25f);
+
+	const int turnPanelHeight =
+		static_cast<int>(screenH * 0.105f);
+
+	const int turnPanelX =
+		static_cast<int>(screenW * 0.03f);
+
+	const int turnPanelY =
+		static_cast<int>(screenH * 0.035f);
+
+	DrawPanel(
+		turnPanelX,
+		turnPanelY,
+		turnPanelX + turnPanelWidth,
+		turnPanelY + turnPanelHeight,
+		180
+	);
+
+	const char* turnText =
+		(currentTurn_ == 0)
+		? "あなたのターン"
+		: "CPUのターン";
+
+	const unsigned int turnColor =
+		(currentTurn_ == 0)
+		? colorPlayer
+		: colorCpu;
+
+	const char* modeText =
+		(mode_ == MODE::MOVE)
+		? "駒を移動"
+		: "壁を配置";
+
+	const int textX =
+		turnPanelX + static_cast<int>(screenW * 0.018f);
+
+	DrawStringToHandle(
+		textX,
+		turnPanelY + static_cast<int>(screenH * 0.014f),
+		turnText,
+		turnColor,
+		fontTitle_
+	);
+
+	DrawStringToHandle(
+		textX,
+		turnPanelY + static_cast<int>(screenH * 0.060f),
+		modeText,
+		colorSubText,
+		fontMain_
+	);
+
+	// --------------------------------------------------
+	// 右上：プレイヤー情報
+	// --------------------------------------------------
+	const int cardWidth =
+		static_cast<int>(screenW * 0.205f);
+
+	const int cardHeight =
+		static_cast<int>(screenH * 0.105f);
+
+	const int cardX =
+		screenW - cardWidth -
+		static_cast<int>(screenW * 0.025f);
+
+	const int cardTop =
+		static_cast<int>(screenH * 0.17f);
+
+	const int cardGap =
+		static_cast<int>(screenH * 0.018f);
+
+	DrawPlayerCard(
+		cardX,
+		cardTop,
+		cardWidth,
+		cardHeight,
+		"あなた",
+		players_[0].remainingWalls_,
+		colorPlayer,
+		currentTurn_ == 0
+	);
+
+	DrawPlayerCard(
+		cardX,
+		cardTop + cardHeight + cardGap,
+		cardWidth,
+		cardHeight,
+		"CPU",
+		players_[1].remainingWalls_,
+		colorCpu,
+		currentTurn_ == 1
+	);
+
+	// --------------------------------------------------
+	// 下中央：状況に応じた操作ガイド
+	// --------------------------------------------------
+	const bool isPadConnected =
+		(GetJoypadNum() > 0);
+
+	const int guideWidth =
+		static_cast<int>(screenW * 0.61f);
+
+	const int guideHeight =
+		static_cast<int>(screenH * 0.075f);
+
+	const int guideX =
+		(screenW - guideWidth) / 2;
+
+	const int guideY =
+		screenH - guideHeight -
+		static_cast<int>(screenH * 0.025f);
+
+	DrawPanel(
+		guideX,
+		guideY,
+		guideX + guideWidth,
+		guideY + guideHeight,
+		165
+	);
+
+	std::string guideText;
+
+	if (isDiagonalSelect_)
+	{
+		if (isPadConnected)
+		{
+			guideText =
+				"十字ボタン：方向選択    A：決定    B：取り消し";
+		}
+		else
+		{
+			guideText =
+				"方向キー：方向選択    ENTER：決定    BACKSPACE：取り消し";
+		}
+	}
+	else if (mode_ == MODE::MOVE)
+	{
+		if (isPadConnected)
+		{
+			guideText =
+				"十字ボタン：移動    X：壁モード    A：決定";
+		}
+		else
+		{
+			guideText =
+				"方向キー：移動    TAB：壁モード    ENTER：決定";
 		}
 	}
 	else
 	{
-		DrawFormatStringToHandle(leftX, menuY, colorGray, fontMain_, "移動      ：方向キー");
-		DrawFormatStringToHandle(leftX, menuY + itemGap, colorGray, fontMain_, "モード切替：TAB");
-		DrawFormatStringToHandle(leftX, menuY + itemGap * 2, colorGray, fontMain_, "壁の回転  ：RSHIFT");
-		DrawFormatStringToHandle(leftX, menuY + itemGap * 3, colorGray, fontMain_, "決定      ：ENTER");
-		
-		if (isDiagonalSelect_)
+		if (isPadConnected)
 		{
-			DrawFormatStringToHandle(leftX, menuY + itemGap * 4, colorGray, fontMain_, "斜め移動  ：前後→左右→ENTER");
-			DrawFormatStringToHandle(leftX, menuY + itemGap * 5, colorGray, fontMain_, "斜め移動取り消し  ：BackSpace");
+			guideText =
+				"十字ボタン：移動    Y：壁を回転    X：駒モード    A：配置";
+		}
+		else
+		{
+			guideText =
+				"方向キー：移動    RSHIFT：壁を回転    TAB：駒モード    ENTER：配置";
 		}
 	}
 
+	DrawCenteredText(
+		screenW / 2,
+		guideY + static_cast<int>(screenH * 0.024f),
+		guideText.c_str(),
+		colorSubText,
+		fontMain_
+	);
 
 	// --------------------------------------------------
-	// 右側：プレイヤー情報
+	// CPU思考中
 	// --------------------------------------------------
-	int p1Y = (int)(screenH * 0.18f);
-	DrawFormatStringToHandle(rightX - static_cast<int>(rightX * 0.009f), p1Y, colorRed, fontMain_, "Player 1 (あなた)");
-	DrawFormatStringToHandle(rightX - static_cast<int>(rightX * 0.009f), p1Y + lineGap, colorWhite, fontMain_, "残りの壁: %d / %d", players_[0].remainingWalls_, MAX_WALLS);
-
-	int p2Y = (int)(screenH * 0.38f);
-	DrawFormatStringToHandle(rightX - static_cast<int>(rightX * 0.009f), p2Y, colorBlue, fontMain_, "Player 2 (CPU)");
-	DrawFormatStringToHandle(rightX - static_cast<int>(rightX * 0.009f), p2Y + lineGap, colorWhite, fontMain_, "残りの壁: %d / %d", players_[1].remainingWalls_, MAX_WALLS);
-
-	// --- ゲームオーバー時はゲームオーバー画面だけを描画して終了する ---
-	if (isGameOver_)
+	if (gameMode_ == GAME_MODE::CPU &&
+		currentTurn_ == 1 &&
+		isCpuThinking_)
 	{
-		DrawGameOver();
-	}
+		const int dotCount =
+			(GetNowCount() / 350) % 4;
 
-	// --------------------------------------------------
-	// 【追加】左側：CPUの「考えてる感」を出すインジケータ演出
-	// --------------------------------------------------
-	if (gameMode_ == GAME_MODE::CPU && currentTurn_ == 1 && isCpuThinking_)
-	{
-		// 300ミリ秒ごとに「.」「..」「...」「」と文字が変化する
-		int dotCount = (GetNowCount() / 300) % 4;
-		std::string thinkingText = "CPU思考中";
-		for (int i = 0; i < dotCount; ++i) {
+		std::string thinkingText = "CPUが考えています";
+
+		for (int i = 0; i < dotCount; ++i)
+		{
 			thinkingText += ".";
 		}
-		// モードテキストのさらに下に、少し目立つオレンジ〜黄色系の色で描画
-		DrawFormatStringToHandle(leftX, static_cast<int>(modeY + (lineGap * 2.5f)), GetColor(240, 200, 80), fontMain_, "%s", thinkingText.c_str());
+
+		const int thinkingWidth =
+			static_cast<int>(screenW * 0.25f);
+
+		const int thinkingHeight =
+			static_cast<int>(screenH * 0.06f);
+
+		const int thinkingX =
+			(screenW - thinkingWidth) / 2;
+
+		const int thinkingY =
+			turnPanelY + turnPanelHeight +
+			static_cast<int>(screenH * 0.012f);
+
+		DrawPanel(
+			thinkingX,
+			thinkingY,
+			thinkingX + thinkingWidth,
+			thinkingY + thinkingHeight,
+			170
+		);
+
+		DrawCenteredText(
+			screenW / 2,
+			thinkingY + static_cast<int>(screenH * 0.017f),
+			thinkingText.c_str(),
+			colorGold,
+			fontMain_
+		);
 	}
 
 	// --------------------------------------------------
-	// 【注目】壁がないときの警告テロップ描画
+	// 壁不足の警告
 	// --------------------------------------------------
 	if (isWallWarningActive_)
 	{
-		int boxW = (int)(screenW * 0.45f);
-		int boxH = (int)(screenH * 0.07f);
-		int boxX = (screenW - boxW) / 2;
-		int boxY = (int)(screenH * 0.88f);
+		const int warningWidth =
+			static_cast<int>(screenW * 0.38f);
 
-		// 1. 背景ボックス
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
-		DrawBox(boxX, boxY, boxX + boxW, boxY + boxH, GetColor(80, 20, 20), TRUE); // 警告なので少し赤を強めに
+		const int warningHeight =
+			static_cast<int>(screenH * 0.065f);
+
+		const int warningX =
+			(screenW - warningWidth) / 2;
+
+		const int warningY =
+			guideY -
+			warningHeight -
+			static_cast<int>(screenH * 0.015f);
+
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 220);
+
+		DrawBox(
+			warningX,
+			warningY,
+			warningX + warningWidth,
+			warningY + warningHeight,
+			GetColor(66, 25, 22),
+			TRUE
+		);
+
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-		// 2. 文字
-		const char* warnText = "残りの壁が 0 なので配置できません！";
+		DrawBox(
+			warningX,
+			warningY,
+			warningX + warningWidth,
+			warningY + warningHeight,
+			colorWarning,
+			FALSE
+		);
 
-		int textW = GetDrawStringWidthToHandle(warnText, (int)strlen(warnText), fontMain_);
-		int textX = boxX + (boxW - textW) / 2;
-		int textY = boxY + (boxH - (int)(18.0f * ((float)screenH / 720.0f))) / 2;
-
-		unsigned int colorWarn = GetColor(255, 120, 100);
-
-		// ⚠️ここを DrawStringToHandle からフォーマット対応の DrawFormatStringToHandle に統一
-		DrawFormatStringToHandle(textX, textY, colorWarn, fontMain_, "%s", warnText);
+		DrawCenteredText(
+			screenW / 2,
+			warningY + static_cast<int>(screenH * 0.018f),
+			"配置できる壁が残っていません",
+			colorWarning,
+			fontMain_
+		);
 	}
 
-	// パネルが見えている間だけ描画
+	// --------------------------------------------------
+	// ポーズ画面
+	// --------------------------------------------------
 	if (isPause_ || pauseX_ > -320.0f)
 	{
 		PauseDraw();
