@@ -1523,6 +1523,10 @@ bool Quoridor::PauseUpdate(void)
 		switch (pauseSelect_)
 		{
 		case 0:
+			if (!isGameOver_)
+			{
+				PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+			}
 			isPause_ = false;
 			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
 			return true;    // このフレームはゲームへ入力を渡さない
