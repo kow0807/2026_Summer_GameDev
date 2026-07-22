@@ -393,9 +393,17 @@ void ResourceManager::Init(void)
 	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Quoridor/victory.mp3");
 	resourcesMap_.emplace(SRC::QUORIDOR_VICTORY_SE, res);
 
+	// クオリドールの敗北SE
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Quoridor/gameover.mp3");
+	resourcesMap_.emplace(SRC::QUORIDOR_LOSE_SE, res);
+
 	// クオリドールの画像
 	res = std::make_shared<RES>(RES_T::IMG, PATH_IMG + "Quoridor/Quoridor.jpg");
 	resourcesMap_.emplace(SRC::QUORIDOR_EXPLANATION, res);
+
+	// クオリドールのBGM
+	res = std::make_shared<RES>(RES_T::SOUND, PATH_SND + "Quoridor/bgm.mp3");
+	resourcesMap_.emplace(SRC::QUORIDOR_BGM, res);
 
 	// 五々将棋の畳
 	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "MiniShogi");
@@ -456,6 +464,14 @@ void ResourceManager::Init(void)
 	// 五々将棋の紹介画像
 	res = std::make_unique<RES>(RES_T::IMG, PATH_IMG + "MiniShogi/minishogi.jpg");
 	resourcesMap_.emplace(SRC::MINISHOGI_EXPLANATION, res);
+
+	// 五々将棋の駒配置SE
+	res = std::make_unique<RES>(RES_T::SOUND, PATH_SND + "MiniShogi/place.mp3");
+	resourcesMap_.emplace(SRC::MINISHOGI_PLACE_SE, res);
+
+	// 五々将棋のBGM
+	res = std::make_unique<RES>(RES_T::SOUND, PATH_SND + "MiniShogi/bgm.mp3");
+	resourcesMap_.emplace(SRC::MINISHOGI_BGM, res);
 }
 
 void ResourceManager::Release(void)

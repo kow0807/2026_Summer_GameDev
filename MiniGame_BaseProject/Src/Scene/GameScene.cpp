@@ -655,7 +655,7 @@ void GameScene::SelectGameDrawUI()
 	//--------------------------------
 	int textW = GetDrawStringWidthToHandle(
 		names[index],
-		strlen(names[index]),
+		static_cast<int>(strlen(names[index])),
 		gameTitleFont_);
 
 	int textX = centerX - textW / 2;
@@ -1623,16 +1623,10 @@ void GameScene::ExplanationQuoridorDrawUI(void)
 	// --------------------------------------------------
 	// 背景暗転
 	// --------------------------------------------------
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 195);
+	// 背景暗転
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 200);
 
-	DrawBox(
-		0,
-		0,
-		screenW,
-		screenH,
-		GetColor(0, 0, 0),
-		TRUE
-	);
+	DrawBox(0, 0, screenW, screenH, GetColor(0, 0, 0), true);
 
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
@@ -2867,119 +2861,105 @@ void GameScene::ExplanationMiniShogiUI(void)
 		? colorSelected
 		: colorInactive;
 
-	//----------------------------------
-	// 「はい」ボタン
-	//----------------------------------
+	// --------------------------------------------------
+	// はい・いいえボタン
+	// --------------------------------------------------
+
+	const unsigned int colorAccentDark =
+		GetColor(125, 96, 48);
+
+	const unsigned int colorUnselected =
+		GetColor(145, 140, 132);
+
+	auto DrawSelectButton =
+		[&](
+			int x,
+			const char* text,
+			bool isSelected,
+			unsigned int textColor)
+		{
+			DrawBox(
+				x,
+				buttonY,
+				x + buttonW,
+				buttonY + buttonH,
+				colorButton,
+				TRUE
+			);
+
+			if (isSelected)
+			{
+				// 左側のアクセント
+				DrawBox(
+					x,
+					buttonY,
+					x + S(5),
+					buttonY + buttonH,
+					colorSelected,
+					TRUE
+				);
+
+				DrawBox(
+					x,
+					buttonY,
+					x + buttonW,
+					buttonY + buttonH,
+					colorSelected,
+					FALSE
+				);
+			}
+			else
+			{
+				DrawBox(
+					x,
+					buttonY,
+					x + buttonW,
+					buttonY + buttonH,
+					colorAccentDark,
+					FALSE
+				);
+			}
+
+			const int textW =
+				GetDrawStringWidthToHandle(
+					text,
+					static_cast<int>(strlen(text)),
+					explanationFontHandle_
+				);
+
+			const int textH =
+				GetFontSizeToHandle(
+					explanationFontHandle_
+				);
+
+			DrawStringToHandle(
+				x + buttonW / 2 - textW / 2,
+				buttonY + buttonH / 2 - textH / 2,
+				text,
+				textColor,
+				explanationFontHandle_
+			);
+		};
+
 	const int yesX =
 		buttonStartX;
 
-	DrawBox(
-		yesX,
-		buttonY,
-		yesX + buttonW,
-		buttonY + buttonH,
-		colorButton,
-		TRUE);
-
-	DrawBox(
-		yesX,
-		buttonY,
-		yesX + buttonW,
-		buttonY + buttonH,
-		isYes_
-		? colorSelected
-		: colorLine,
-		FALSE);
-
-	if (isYes_)
-	{
-		DrawBox(
-			yesX + 2,
-			buttonY + 2,
-			yesX + buttonW - 2,
-			buttonY + buttonH - 2,
-			colorSelected,
-			FALSE);
-	}
-
-	const char* yesText =
-		"はい";
-
-	const int yesTextW =
-		GetTextWidth(
-			yesText,
-			buttonFontHandle);
-
-	const int buttonFontH =
-		GetFontSizeToHandle(
-			buttonFontHandle);
-
-	DrawText(
-		yesX +
-		buttonW / 2 -
-		yesTextW / 2,
-		buttonY +
-		(buttonH - buttonFontH) / 2,
-		yesText,
-		yesColor,
-		buttonFontHandle,
-		isYes_);
-
-	//----------------------------------
-	// 「いいえ」ボタン
-	//----------------------------------
 	const int noX =
-		yesX +
-		buttonW +
-		buttonGap;
+		yesX + buttonW + buttonGap;
 
-	DrawBox(
+	DrawSelectButton(
+		yesX,
+		"はい",
+		isYes_,
+		yesColor
+	);
+
+	DrawSelectButton(
 		noX,
-		buttonY,
-		noX + buttonW,
-		buttonY + buttonH,
-		colorButton,
-		TRUE);
-
-	DrawBox(
-		noX,
-		buttonY,
-		noX + buttonW,
-		buttonY + buttonH,
-		!isYes_
-		? colorSelected
-		: colorLine,
-		FALSE);
-
-	if (!isYes_)
-	{
-		DrawBox(
-			noX + 2,
-			buttonY + 2,
-			noX + buttonW - 2,
-			buttonY + buttonH - 2,
-			colorSelected,
-			FALSE);
-	}
-
-	const char* noText =
-		"いいえ";
-
-	const int noTextW =
-		GetTextWidth(
-			noText,
-			buttonFontHandle);
-
-	DrawText(
-		noX +
-		buttonW / 2 -
-		noTextW / 2,
-		buttonY +
-		(buttonH - buttonFontH) / 2,
-		noText,
-		noColor,
-		buttonFontHandle,
-		!isYes_);
+		"いいえ",
+		!isYes_,
+		noColor
+	);
 }
 
 void GameScene::CreateMiniGame(void)

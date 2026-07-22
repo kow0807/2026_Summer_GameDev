@@ -80,18 +80,21 @@ private:
 	std::vector<std::pair<int, int>> moveCandidates_;
 
 	// seハンドル
-	int pMH_;// 駒が動いたとき
-	int wMH_;// 壁が動いたとき
-	int wRH_;// 壁が回転した時
-	int mCH_;// モードが切り替わった時
-	int vicH_;//勝利した時
-	int defH_;//敗北した時
+	int pMSe_;// 駒が動いたとき
+	int wMSe_;// 壁が動いたとき
+	int wRSe_;// 壁が回転した時
+	int mCSe_;// モードが切り替わった時
+	int vicSe_;//勝利した時
+	int loseSe_;//敗北した時
 
 	// Pause用	
+	bool isBgm_;
 	int menuSe_;
 	int cancelSe_;
 	int moveSe_;
 	int decideSEH_;
+	int bgm_;
+
 	bool isPause_;
 	int pauseScreenHandle_;
 	float pauseX_;
@@ -100,6 +103,8 @@ private:
 
 	// 斜め移動中のフラグ
 	bool isDiagonalSelect_;
+
+	int lastUiScreenH_ = -1;
 	
 	// 座標変換
 	VECTOR GetWorldPos(int x, int y) const;

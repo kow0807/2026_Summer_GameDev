@@ -92,11 +92,21 @@ private:
 
     bool isPlayerWin_;
 
-    // Pause—p
+    bool isJdg_;
+    bool isCu_;
+    bool isPlace_;
+    int placeSe_;
+    int cursorSe_;
+    int victorySe_;
+    int loseSe_;
+
+    // Pause—p	
+    bool isBgm_;
     int menuSe_;
     int cancelSe_;
     int moveSe_;
     int decideSEH_;
+    int bgm_;
 
     bool isPause_;
     int pauseScreenHandle_;
@@ -142,5 +152,7 @@ private:
     // Pause—p
     bool PauseUpdate(void);
     void PauseDraw(void);
+
+    void UpdateSe(void);
 };
 

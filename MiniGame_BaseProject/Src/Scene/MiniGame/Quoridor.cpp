@@ -89,17 +89,20 @@ void Quoridor::Init(void)
 	SceneManager::GetInstance().GetCamera()->ChangeGameCamera(Camera::GAME_CAMERA::NONE);
 	SceneManager::GetInstance().GetCamera()->ChangeGameTypeCamera(Camera::GAME_TYPE::QUORIDOR);
 
-	pMH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_PIECEMOVE_SE).handleId_;
-	wMH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_WALLMOVE_SE).handleId_;
-	wRH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_WALLROTATION_SE).handleId_;
-	mCH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_MODECHANGE_SE).handleId_;
-	vicH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_VICTORY_SE).handleId_;
-	defH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_PIECEMOVE_SE).handleId_;
+	pMSe_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_PIECEMOVE_SE).handleId_;
+	wMSe_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_WALLMOVE_SE).handleId_;
+	wRSe_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_WALLROTATION_SE).handleId_;
+	mCSe_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_MODECHANGE_SE).handleId_;
+	vicSe_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_VICTORY_SE).handleId_;
+	loseSe_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_LOSE_SE).handleId_;
 
 	menuSe_ = resMng_.Load(ResourceManager::SRC::SELECT_MENU_SE).handleId_;
 	cancelSe_ = resMng_.Load(ResourceManager::SRC::SELECT_CANCEL_SE).handleId_;
 	moveSe_ = resMng_.Load(ResourceManager::SRC::SELECT_MOVE_SE).handleId_;
 	decideSEH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_DICIDE_SE).handleId_;
+	bgm_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_BGM).handleId_;
+	ChangeVolumeSoundMem(190, bgm_);
+	isBgm_ = true;
 
 	isPause_ = false;
 	pauseScreenHandle_ = MakeScreen(
@@ -177,6 +180,12 @@ void Quoridor::Update(void)
 		return;
 	}
 
+	if (isBgm_)
+	{
+		PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP);
+		isBgm_ = false;
+	}
+
 	auto& ins = InputManager::GetInstance();
 	if (isGameOver_)
 	{
@@ -186,6 +195,8 @@ void Quoridor::Update(void)
 			rFrameCount_ > 180)
 		{
 			isReturn_ = true;
+			StopSoundMem(bgm_);
+			StopSoundMem(loseSe_);
 			return;
 		}
 
@@ -247,11 +258,11 @@ void Quoridor::Update(void)
 
 			if (winner_ == 0)
 			{
-				PlaySoundMem(vicH_, DX_PLAYTYPE_BACK);
+				PlaySoundMem(vicSe_, DX_PLAYTYPE_BACK);
 			}
 			else
 			{
-				PlaySoundMem(defH_, DX_PLAYTYPE_BACK);
+				PlaySoundMem(loseSe_, DX_PLAYTYPE_BACK);
 			}
 		}
 		return;
@@ -297,9 +308,8 @@ void Quoridor::DrawUI(void)
 	// --------------------------------------------------
 	// フォント更新
 	// --------------------------------------------------
-	static int lastScreenH = -1;
 
-	if (screenH != lastScreenH)
+	if (screenH != lastUiScreenH_)
 	{
 		if (fontTitle_ != -1)
 		{
@@ -341,7 +351,7 @@ void Quoridor::DrawUI(void)
 			DX_FONTTYPE_ANTIALIASING
 		);
 
-		lastScreenH = screenH;
+		lastUiScreenH_ = screenH;
 	}
 
 	if (fontTitle_ == -1 || fontMain_ == -1)
@@ -943,7 +953,7 @@ void Quoridor::UpdatePlayer(void)
 		if (player.remainingWalls_ > 0)
 		{
 			mode_ = (mode_ == MODE::MOVE) ? MODE::WALL : MODE::MOVE;
-			PlaySoundMem(mCH_, DX_PLAYTYPE_BACK);
+			PlaySoundMem(mCSe_, DX_PLAYTYPE_BACK);
 			WaitTimer(150);
 			RefreshMoveCandidates();
 		}
@@ -958,7 +968,7 @@ void Quoridor::UpdatePlayer(void)
 			{
 				player.x_ = diagTarget_.first;
 				player.y_ = diagTarget_.second;
-				PlaySoundMem(pMH_, DX_PLAYTYPE_BACK);
+				PlaySoundMem(pMSe_, DX_PLAYTYPE_BACK);
 				isChangeTurn_ = true;
 				isDiagChoosing_ = false; // 状態を解除
 				isDiagonalSelect_ = false;
@@ -1004,7 +1014,7 @@ void Quoridor::UpdatePlayer(void)
 					// 十字方向への移動（または敵を直線に飛び越える移動）なら即座に確定
 					player.x_ = cands[0].first;
 					player.y_ = cands[0].second;
-					PlaySoundMem(pMH_, DX_PLAYTYPE_BACK);
+					PlaySoundMem(pMSe_, DX_PLAYTYPE_BACK);
 					isChangeTurn_ = true;
 					DbgLog("[UpdatePlayer] 通常移動確定: (" + std::to_string(player.x_) + "," + std::to_string(player.y_) + ")");
 				}
@@ -1031,13 +1041,13 @@ void Quoridor::UpdatePlayer(void)
 
 		if (moved)
 		{
-			PlaySoundMem(wMH_, DX_PLAYTYPE_BACK);
+			PlaySoundMem(wMSe_, DX_PLAYTYPE_BACK);
 		}
 
 		if (ins.IsTrgUp(KEY_INPUT_RSHIFT) || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::TOP))
 		{
 			wallVertical_ = !wallVertical_;
-			PlaySoundMem(wRH_, DX_PLAYTYPE_BACK);
+			PlaySoundMem(wRSe_, DX_PLAYTYPE_BACK);
 		}
 
 		wallCursorX_ = max(0, min(wallCursorX_, BOARD_SIZE - 2));
@@ -1057,7 +1067,7 @@ void Quoridor::UpdatePlayer(void)
 			if (placed)
 			{
 				player.remainingWalls_--;
-				PlaySoundMem(wMH_, DX_PLAYTYPE_BACK);
+				PlaySoundMem(wMSe_, DX_PLAYTYPE_BACK);
 				mode_ = MODE::MOVE;
 				isChangeTurn_ = true;
 				WaitTimer(150);
@@ -1455,10 +1465,15 @@ bool Quoridor::PauseUpdate(void)
 				pauseScreenHandle_);
 
 			PlaySoundMem(menuSe_, DX_PLAYTYPE_BACK);
+			StopSoundMem(bgm_);
 		}
 		else
 		{
 			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
+			if (!isGameOver_)
+			{
+				PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+			}
 		}
 
 		// 開いた・閉じた瞬間は入力を消費
@@ -1723,7 +1738,7 @@ bool Quoridor::ApplyCpuAction(const QuoridorCpu::CpuAction& action)
 		cpuPlayer.remainingWalls_--;
 
 		PlaySoundMem(
-			wMH_,
+			wMSe_,
 			DX_PLAYTYPE_BACK);
 
 		mode_ = MODE::MOVE;
@@ -1787,7 +1802,7 @@ bool Quoridor::ApplyCpuAction(const QuoridorCpu::CpuAction& action)
 	cpuPlayer.y_ = action.y;
 
 	PlaySoundMem(
-		pMH_,
+		pMSe_,
 		DX_PLAYTYPE_BACK);
 
 	mode_ = MODE::MOVE;

@@ -47,6 +47,11 @@ void MiniShogi::Init(void)
 	promoteSelect_ = true;
 	gameOverReason_ = GameOverReason::NONE;
 
+	isBgm_ = true;
+	isCu_ = false;
+	isPlace_ = false;
+	isJdg_ = false;
+
 	int screenW;
 	int screenH;
 
@@ -136,10 +141,17 @@ void MiniShogi::Init(void)
 
 	cpu_ = std::make_unique<MiniShogiCpu>();
 
+	placeSe_ = resMng_.Load(ResourceManager::SRC::MINISHOGI_PLACE_SE).handleId_;
+	cursorSe_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_WALLMOVE_SE).handleId_;
+	victorySe_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_VICTORY_SE).handleId_;
+	loseSe_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_LOSE_SE).handleId_;
+
 	menuSe_ = resMng_.Load(ResourceManager::SRC::SELECT_MENU_SE).handleId_;
 	cancelSe_ = resMng_.Load(ResourceManager::SRC::SELECT_CANCEL_SE).handleId_;
 	moveSe_ = resMng_.Load(ResourceManager::SRC::SELECT_MOVE_SE).handleId_;
 	decideSEH_ = resMng_.Load(ResourceManager::SRC::QUORIDOR_DICIDE_SE).handleId_;
+	bgm_ = resMng_.Load(ResourceManager::SRC::MINISHOGI_BGM).handleId_;
+	ChangeVolumeSoundMem(160, bgm_);
 
 	isPause_ = false;
 	pauseScreenHandle_ = MakeScreen(
@@ -160,6 +172,25 @@ void MiniShogi::Update(void)
 	if (PauseUpdate())
 	{
 		return;
+	}
+
+	if (isBgm_)
+	{
+		PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP);
+		isBgm_ = false;
+	}
+
+	if (isJdg_)
+	{
+		if (isPlayerTurn_)
+		{
+			PlaySoundMem(loseSe_, DX_PLAYTYPE_BACK);
+		}
+		else
+		{
+			PlaySoundMem(victorySe_, DX_PLAYTYPE_BACK);
+		}
+		isJdg_ = false;
 	}
 
 	floor_->Update();
@@ -186,6 +217,8 @@ void MiniShogi::Update(void)
 		InputUpdate();
 
 		cursor_->Update();
+
+		UpdateSe();
 
 		if (promotionState_ == PromotionState::WAIT_SELECT)
 		{
@@ -1445,6 +1478,10 @@ bool MiniShogi::ExecuteMove(int fromX, int fromY, int toX, int toY)
 		return false;
 	}
 
+	PlaySoundMem(
+		placeSe_,
+		DX_PLAYTYPE_BACK);
+
 	isPlayerTurn_ = !isPlayerTurn_;
 
 	CheckGameOver();
@@ -1514,6 +1551,10 @@ bool MiniShogi::ExecuteDrop(PieceType pieceType, int toX, int toY)
 		testPiece);
 
 	hand.RemovePiece(pieceType);
+
+	PlaySoundMem(
+		placeSe_,
+		DX_PLAYTYPE_BACK);
 
 	isPlayerTurn_ = !isPlayerTurn_;
 
@@ -1609,6 +1650,8 @@ void MiniShogi::CheckGameOver(void)
 	{
 		gameOverReason_ =
 			GameOverReason::CHECKMATE;
+
+		isJdg_ = true;
 	}
 	else
 	{
@@ -1634,6 +1677,8 @@ void MiniShogi::UpdateGameOver(void)
 		return;
 	}
 
+	StopSoundMem(bgm_);
+	StopSoundMem(loseSe_);
 	isReturn_ = true;
 }
 
@@ -1781,6 +1826,10 @@ bool MiniShogi::ExecuteCpuMove(int fromX, int fromY, int toX, int toY, bool isPr
 	board_->SetPiece(toX, toY, realMovePiece);
 	board_->RemovePiece(fromX, fromY);
 
+	PlaySoundMem(
+		placeSe_,
+		DX_PLAYTYPE_BACK);	
+
 	isPlayerTurn_ = !isPlayerTurn_;
 
 	CheckGameOver();
@@ -1810,10 +1859,15 @@ bool MiniShogi::PauseUpdate(void)
 				pauseScreenHandle_);
 
 			PlaySoundMem(menuSe_, DX_PLAYTYPE_BACK);
+			StopSoundMem(bgm_);
 		}
 		else
 		{
 			PlaySoundMem(cancelSe_, DX_PLAYTYPE_BACK);
+			if (!isGameOver_)
+			{
+				PlaySoundMem(bgm_, DX_PLAYTYPE_LOOP, false);
+			}
 		}
 
 		// 開いた・閉じた瞬間は入力を消費
@@ -2033,4 +2087,28 @@ void MiniShogi::PauseDraw(void)
 		GetColor(80, 80, 80));
 
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+}
+
+void MiniShogi::UpdateSe(void)
+{
+	InputManager& ins = InputManager::GetInstance();
+
+	if (ins.IsTrgUp(KEY_INPUT_UP) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_UP) ||
+		ins.IsTrgUp(KEY_INPUT_DOWN) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_DOWN) ||
+		ins.IsTrgUp(KEY_INPUT_LEFT) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_LEFT) ||
+		ins.IsTrgUp(KEY_INPUT_RIGHT) ||
+		ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DPAD_RIGHT))
+	{
+		isCu_ = true;
+	}
+
+	if (isCu_)
+	{
+		PlaySoundMem(cursorSe_, DX_PLAYTYPE_BACK);
+	}
+
+	isCu_ = false;
 }
