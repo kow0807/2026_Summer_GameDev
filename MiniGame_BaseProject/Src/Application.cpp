@@ -5,7 +5,6 @@
 #include "Manager/InputManager.h"
 #include "Manager/ResourceManager.h"
 #include "Manager/SceneManager.h"
-#include "Manager/Setting.h"
 #include "Manager/PythonRuntimeManager.h"
 #include "Application.h"
 
@@ -38,12 +37,9 @@ void Application::Init(void)
 	// アプリケーションの初期設定
 	SetWindowText("ひとあそび");
 
-	// 設定の初期化
-	Setting::CreateInstance();
-
 	// ウィンドウサイズ
-	SetGraphMode(Setting::GetInstance().GetWindowSize().width_, 
-		Setting::GetInstance().GetWindowSize().height_, 32);
+	SetGraphMode(Application::SCREEN_SIZE_X, 
+		Application::SCREEN_SIZE_Y, 32);
 	ChangeWindowMode(true);
 
 	// DxLibの初期化
@@ -135,7 +131,6 @@ void Application::Run(void)
 
 void Application::Destroy(void)
 {
-	Setting::GetInstance().Destroy();
 	InputManager::GetInstance().Destroy();
 	ResourceManager::GetInstance().Destroy();
 	SceneManager::GetInstance().Destroy();

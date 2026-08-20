@@ -1,7 +1,6 @@
 #include "../../Manager/ResourceManager.h"
 #include "../../Manager/InputManager.h"
 #include "../../Manager/SceneManager.h"
-#include "../../Manager/Setting.h"
 #include "../../Application.h"
 #include "ButtonMashGame.h"
 

@@ -4,7 +4,6 @@
 #include "../../Manager/ResourceManager.h"
 #include "../../Manager/InputManager.h"
 #include "../../Manager/SceneManager.h"
-#include "../../Manager/Setting.h"
 
 #include "../../Object/Actor/MiniShogi/Floor.h"
 #include "../../Object/Actor/MiniShogi/Shogiban.h"
@@ -82,14 +81,14 @@ void MiniShogi::Init(void)
 	fontTitle_ =
 		CreateFontToHandle(
 			"游明朝",
-			titleFontSize,
+			28,
 			3,
 			DX_FONTTYPE_ANTIALIASING);
 
 	fontMain_ =
 		CreateFontToHandle(
 			"游明朝",
-			mainFontSize,
+			14,
 			2,
 			DX_FONTTYPE_ANTIALIASING);
 
@@ -267,68 +266,13 @@ void MiniShogi::Draw(void)
 
 void MiniShogi::DrawUI(void)
 {
-	//----------------------------------
-		// 現在の画面サイズを取得
-		//----------------------------------
-	int screenW;
-	int screenH;
+	constexpr int screenW = Application::SCREEN_SIZE_X;
+	constexpr int screenH = Application::SCREEN_SIZE_Y;
 
-	GetWindowSize(
-		&screenW,
-		&screenH);
-
-	//----------------------------------
-	// 解像度変更時にフォントを再作成
-	//----------------------------------
-	static int lastScreenH = -1;
-
-	if (screenH != lastScreenH)
+	if (fontTitle_ == -1 ||
+		fontMain_ == -1)
 	{
-		if (fontTitle_ != -1)
-		{
-			DeleteFontToHandle(fontTitle_);
-		}
-
-		if (fontMain_ != -1)
-		{
-			DeleteFontToHandle(fontMain_);
-		}
-
-		int titleFontSize =
-			static_cast<int>(
-				32.0f *
-				(static_cast<float>(screenH) / 720.0f));
-
-		int mainFontSize =
-			static_cast<int>(
-				14.0f *
-				(static_cast<float>(screenH) / 720.0f));
-
-		if (titleFontSize < 16)
-		{
-			titleFontSize = 16;
-		}
-
-		if (mainFontSize < 10)
-		{
-			mainFontSize = 10;
-		}
-
-		fontTitle_ =
-			CreateFontToHandle(
-				"游明朝",
-				titleFontSize,
-				3,
-				DX_FONTTYPE_ANTIALIASING);
-
-		fontMain_ =
-			CreateFontToHandle(
-				"游明朝",
-				mainFontSize,
-				2,
-				DX_FONTTYPE_ANTIALIASING);
-
-		lastScreenH = screenH;
+		return;
 	}
 
 	//----------------------------------
@@ -359,40 +303,22 @@ void MiniShogi::DrawUI(void)
 		GetColor(125, 100, 70);
 
 	//----------------------------------
-	// 左側UIの座標
+	// 左側UI固定座標
 	//----------------------------------
-	const int panelLeft =
-		static_cast<int>(screenW * 0.015f);
+	const int panelLeft = 15;
+	const int panelTop = 16;
+	const int panelRight = 251;
+	const int panelBottom = 448;
 
-	const int panelTop =
-		static_cast<int>(screenH * 0.025f);
+	const int labelX = 39;
+	const int valueX = 53;
 
-	const int panelRight =
-		static_cast<int>(screenW * 0.245f);
+	const int lineLeft = 31;
+	const int lineRight = 225;
 
-	const int panelBottom =
-		static_cast<int>(screenH * 0.70f);
-
-	const int labelX =
-		static_cast<int>(screenW * 0.038f);
-
-	const int valueX =
-		static_cast<int>(screenW * 0.052f);
-
-	const int lineLeft =
-		static_cast<int>(screenW * 0.030f);
-
-	const int lineRight =
-		static_cast<int>(screenW * 0.220f);
-
-	const int valueGap =
-		static_cast<int>(screenH * 0.040f);
-
-	const int sectionGap =
-		static_cast<int>(screenH * 0.125f);
-
-	const int operationGap =
-		static_cast<int>(screenH * 0.041f);
+	const int valueGap = 26;
+	const int sectionGap = 80;
+	const int operationGap = 26;
 
 	//----------------------------------
 	// 左側背景
@@ -414,12 +340,12 @@ void MiniShogi::DrawUI(void)
 		0);
 
 	//----------------------------------
-	// パネル左側の装飾線
+	// 左側装飾線
 	//----------------------------------
 	DrawBox(
 		panelLeft,
 		panelTop,
-		panelLeft + static_cast<int>(screenW * 0.004f),
+		panelLeft + 4,
 		panelBottom,
 		colorGold,
 		TRUE);
@@ -427,8 +353,7 @@ void MiniShogi::DrawUI(void)
 	//----------------------------------
 	// 現在の手番
 	//----------------------------------
-	const int turnY =
-		static_cast<int>(screenH * 0.075f);
+	const int turnY = 48;
 
 	DrawStringToHandle(
 		labelX,
@@ -461,9 +386,7 @@ void MiniShogi::DrawUI(void)
 	//----------------------------------
 	// 区切り線
 	//----------------------------------
-	const int turnLineY =
-		turnY +
-		static_cast<int>(screenH * 0.095f);
+	const int turnLineY = turnY + 61;
 
 	DrawLine(
 		lineLeft,
@@ -517,8 +440,7 @@ void MiniShogi::DrawUI(void)
 	// 区切り線
 	//----------------------------------
 	const int selectLineY =
-		selectY +
-		static_cast<int>(screenH * 0.095f);
+		selectY + 61;
 
 	DrawLine(
 		lineLeft,
@@ -600,8 +522,7 @@ void MiniShogi::DrawUI(void)
 	//----------------------------------
 	// 操作説明との区切り線
 	//----------------------------------
-	const int operationLineY =
-		static_cast<int>(screenH * 0.505f);
+	const int operationLineY = 323;
 
 	DrawLine(
 		lineLeft,
@@ -613,8 +534,7 @@ void MiniShogi::DrawUI(void)
 	//----------------------------------
 	// 操作説明
 	//----------------------------------
-	const int operationY =
-		static_cast<int>(screenH * 0.530f);
+	const int operationY = 339;
 
 	DrawStringToHandle(
 		labelX,
@@ -705,17 +625,13 @@ void MiniShogi::DrawUI(void)
 		ruleMessage_ != nullptr &&
 		ruleMessage_[0] != '\0')
 	{
-		const int boxW =
-			static_cast<int>(screenW * 0.48f);
-
-		const int boxH =
-			static_cast<int>(screenH * 0.07f);
+		const int boxW = 492;
+		const int boxH = 45;
 
 		const int boxX =
 			(screenW - boxW) / 2;
 
-		const int boxY =
-			static_cast<int>(screenH * 0.88f);
+		const int boxY = 563;
 
 		SetDrawBlendMode(
 			DX_BLENDMODE_ALPHA,
@@ -772,11 +688,8 @@ void MiniShogi::DrawUI(void)
 	//----------------------------------
 	if (isGameOver_)
 	{
-		const int resultWindowW =
-			static_cast<int>(screenW * 0.42f);
-
-		const int resultWindowH =
-			static_cast<int>(screenH * 0.25f);
+		const int resultWindowW = 430;
+		const int resultWindowH = 160;
 
 		const int resultLeft =
 			(screenW - resultWindowW) / 2;
@@ -849,11 +762,11 @@ void MiniShogi::DrawUI(void)
 
 		const int resultTextX =
 			resultLeft +
-			(resultWindowW - resultTextWidth) / 2;
+			(resultWindowW -
+				resultTextWidth) / 2;
 
 		const int resultTextY =
-			resultTop +
-			static_cast<int>(resultWindowH * 0.20f);
+			resultTop + 32;
 
 		DrawStringToHandle(
 			resultTextX,
@@ -875,11 +788,11 @@ void MiniShogi::DrawUI(void)
 
 			const int reasonTextX =
 				resultLeft +
-				(resultWindowW - reasonTextWidth) / 2;
+				(resultWindowW -
+					reasonTextWidth) / 2;
 
 			const int reasonTextY =
-				resultTop +
-				static_cast<int>(resultWindowH * 0.62f);
+				resultTop + 99;
 
 			DrawStringToHandle(
 				reasonTextX,
@@ -913,11 +826,8 @@ void MiniShogi::DrawUI(void)
 	//----------------------------------
 	// 成り選択ウィンドウ
 	//----------------------------------
-	const int promoteWindowW =
-		static_cast<int>(screenW * 0.32f);
-
-	const int promoteWindowH =
-		static_cast<int>(screenH * 0.22f);
+	const int promoteWindowW = 328;
+	const int promoteWindowH = 141;
 
 	const int promoteLeft =
 		(screenW - promoteWindowW) / 2;
@@ -956,7 +866,7 @@ void MiniShogi::DrawUI(void)
 		FALSE);
 
 	//----------------------------------
-	// 成り確認メッセージ
+	// 成り確認
 	//----------------------------------
 	const char* promoteMessage =
 		"成りますか？";
@@ -970,11 +880,11 @@ void MiniShogi::DrawUI(void)
 
 	const int promoteMessageX =
 		promoteLeft +
-		(promoteWindowW - promoteMessageWidth) / 2;
+		(promoteWindowW -
+			promoteMessageWidth) / 2;
 
 	const int promoteMessageY =
-		promoteTop +
-		static_cast<int>(promoteWindowH * 0.18f);
+		promoteTop + 25;
 
 	DrawStringToHandle(
 		promoteMessageX,
@@ -984,7 +894,7 @@ void MiniShogi::DrawUI(void)
 		fontMain_);
 
 	//----------------------------------
-	// 成る・成らないの色
+	// 選択肢
 	//----------------------------------
 	const unsigned int yesColor =
 		promoteSelect_
@@ -1014,54 +924,57 @@ void MiniShogi::DrawUI(void)
 			fontMain_);
 
 	const int yesCenterX =
-		promoteLeft +
-		static_cast<int>(promoteWindowW * 0.30f);
+		promoteLeft + 98;
 
 	const int noCenterX =
-		promoteLeft +
-		static_cast<int>(promoteWindowW * 0.70f);
+		promoteLeft + 230;
 
 	const int selectionY =
-		promoteTop +
-		static_cast<int>(promoteWindowH * 0.62f);
+		promoteTop + 87;
 
 	DrawStringToHandle(
-		yesCenterX - yesTextWidth / 2,
+		yesCenterX -
+		yesTextWidth / 2,
 		selectionY,
 		yesText,
 		yesColor,
 		fontMain_);
 
 	DrawStringToHandle(
-		noCenterX - noTextWidth / 2,
+		noCenterX -
+		noTextWidth / 2,
 		selectionY,
 		noText,
 		noColor,
 		fontMain_);
 
 	//----------------------------------
-	// 選択中の項目に下線を表示
+	// 下線
 	//----------------------------------
 	const int underlineY =
 		selectionY +
 		GetFontSizeToHandle(fontMain_) +
-		static_cast<int>(screenH * 0.008f);
+		5;
 
 	if (promoteSelect_)
 	{
 		DrawLine(
-			yesCenterX - yesTextWidth / 2,
+			yesCenterX -
+			yesTextWidth / 2,
 			underlineY,
-			yesCenterX + yesTextWidth / 2,
+			yesCenterX +
+			yesTextWidth / 2,
 			underlineY,
 			colorGold);
 	}
 	else
 	{
 		DrawLine(
-			noCenterX - noTextWidth / 2,
+			noCenterX -
+			noTextWidth / 2,
 			underlineY,
-			noCenterX + noTextWidth / 2,
+			noCenterX +
+			noTextWidth / 2,
 			underlineY,
 			colorGold);
 	}
@@ -1069,7 +982,6 @@ void MiniShogi::DrawUI(void)
 
 void MiniShogi::Reset(void)
 {
-	Setting::GetInstance().SetFullScreen(FALSE);
 }
 
 void MiniShogi::InputUpdate(void)
@@ -1704,29 +1616,38 @@ void MiniShogi::CpuUpdate(void)
 		return;
 	}
 
+	//----------------------------------
+	// CPU思考
+	//----------------------------------
+
 	CpuMove move =
 		cpu_->Think(
 			*board_,
 			*player1Hand_,
+			*player0Hand_,
 			*rule_);
 
 	//----------------------------------
 	// CPUに指せる手がない
 	//----------------------------------
-	if (move.pieceType == PieceType::NONE)
+
+	if (move.pieceType ==
+		PieceType::NONE)
 	{
 		CheckGameOver();
 
 		//----------------------------------
-		// Rule側では合法手があるのに、
-		// CPUが手を生成できなかった場合
+		// Rule側では合法手があるのに
+		// CPUが生成できなかった
 		//----------------------------------
+
 		if (!isGameOver_)
 		{
 			ruleMessage_ =
 				"CPUの手生成に失敗しました";
 
-			ruleMessageFrame_ = 180;
+			ruleMessageFrame_ =
+				180;
 		}
 
 		return;
@@ -1735,6 +1656,7 @@ void MiniShogi::CpuUpdate(void)
 	//----------------------------------
 	// 持ち駒を打つ
 	//----------------------------------
+
 	if (move.isDrop)
 	{
 		const bool result =
@@ -1748,7 +1670,8 @@ void MiniShogi::CpuUpdate(void)
 			ruleMessage_ =
 				"CPUが不正な駒打ちを選びました";
 
-			ruleMessageFrame_ = 180;
+			ruleMessageFrame_ =
+				180;
 		}
 
 		return;
@@ -1757,6 +1680,7 @@ void MiniShogi::CpuUpdate(void)
 	//----------------------------------
 	// 盤上の駒を動かす
 	//----------------------------------
+
 	const bool result =
 		ExecuteCpuMove(
 			move.fromX,
@@ -1770,7 +1694,8 @@ void MiniShogi::CpuUpdate(void)
 		ruleMessage_ =
 			"CPUが不正な移動を選びました";
 
-		ruleMessageFrame_ = 180;
+		ruleMessageFrame_ =
+			180;
 	}
 }
 

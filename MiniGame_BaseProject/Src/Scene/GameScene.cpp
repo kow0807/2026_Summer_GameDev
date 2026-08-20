@@ -5,7 +5,6 @@
 #include "../Manager/Camera.h"
 #include "../Manager/ResourceManager.h"
 #include "../Manager/InputManager.h"
-#include "../Manager/Setting.h"
 #include "../Renderer/PixelMaterial.h"
 #include "../Renderer/PixelRenderer.h"
 #include "../Scene/MiniGame/GameBase.h"
@@ -1556,11 +1555,8 @@ void GameScene::ExplanationButtonMashDrawUI(void)
 
 void GameScene::ExplanationQuoridorDrawUI(void)
 {
-	const auto& windowSize =
-		Setting::GetInstance().GetWindowSize();
-
-	const int screenW = windowSize.width_;
-	const int screenH = windowSize.height_;
+	const int screenW = Application::SCREEN_SIZE_X;
+	const int screenH = Application::SCREEN_SIZE_Y;
 
 	const int centerX = screenW / 2;
 	const int centerY = screenH / 2;
@@ -2999,8 +2995,7 @@ void GameScene::DrawFade(void)
 		return;
 	}
 
-	auto& size = Setting::GetInstance().GetWindowSize();
-
+	
 	SetDrawBlendMode(
 		DX_BLENDMODE_ALPHA,
 		fadeAlpha_);
@@ -3008,8 +3003,8 @@ void GameScene::DrawFade(void)
 	DrawBox(
 		0,
 		0,
-		size.width_,
-		size.height_,
+		Application::SCREEN_SIZE_X,
+		Application::SCREEN_SIZE_Y,
 		GetColor(0, 0, 0),
 		TRUE);
 

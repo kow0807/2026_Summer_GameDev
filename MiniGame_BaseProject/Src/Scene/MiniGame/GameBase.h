@@ -1,7 +1,6 @@
 #pragma once
 #include "../../Manager/Camera.h"
 class ResourceManager;
-class Setting;
 
 class GameBase
 {
@@ -33,10 +32,6 @@ protected:
 
 	// リソース管理
 	ResourceManager& resMng_;
-
-	// 設定管理
-	// 描画位置とかの設定をここから取る
-	Setting& setting_;
 
 	bool isReturn_;
 };

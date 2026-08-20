@@ -4,7 +4,6 @@
 #include "../../Manager/ResourceManager.h"
 #include "../../Manager/InputManager.h"
 #include "../../Manager/SceneManager.h"
-#include "../../Manager/Setting.h"
 #include "../../Object/Actor/Quoridor/Desk.h"
 #include "../../Object/Actor/Quoridor/QuoridorBoard.h"
 #include "../../Object/Actor/Quoridor/Wall.h"
@@ -135,8 +134,17 @@ void Quoridor::Init(void)
 	int screenW, screenH;
 	GetWindowSize(&screenW, &screenH);
 
-	fontTitle_ = CreateFontToHandle("游明朝", (int)(30.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
-	fontMain_ = CreateFontToHandle("游明朝", (int)(16.0f * ((float)screenH / 720.0f)), -1, DX_FONTTYPE_ANTIALIASING);
+	fontTitle_ = CreateFontToHandle(
+		"BIZ UDPゴシック",
+		24,
+		5,
+		DX_FONTTYPE_ANTIALIASING);
+
+	fontMain_ = CreateFontToHandle(
+		"BIZ UDPゴシック",
+		16,
+		3,
+		DX_FONTTYPE_ANTIALIASING);
 
 	// オブジェクトの初期化
 	desk_ = std::make_unique<Desk>();
@@ -301,58 +309,8 @@ void Quoridor::Draw(void)
 
 void Quoridor::DrawUI(void)
 {
-	int screenW = 0;
-	int screenH = 0;
-	GetWindowSize(&screenW, &screenH);
-
-	// --------------------------------------------------
-	// フォント更新
-	// --------------------------------------------------
-
-	if (screenH != lastUiScreenH_)
-	{
-		if (fontTitle_ != -1)
-		{
-			DeleteFontToHandle(fontTitle_);
-		}
-
-		if (fontMain_ != -1)
-		{
-			DeleteFontToHandle(fontMain_);
-		}
-
-		const float scale = static_cast<float>(screenH) / 720.0f;
-
-		int emphasisFontSize = static_cast<int>(24.0f * scale);
-		int mainFontSize = static_cast<int>(16.0f * scale);
-
-		if (emphasisFontSize < 18)
-		{
-			emphasisFontSize = 18;
-		}
-
-		if (mainFontSize < 12)
-		{
-			mainFontSize = 12;
-		}
-
-		// fontTitle_ はタイトルではなく、強調文字用として使用
-		fontTitle_ = CreateFontToHandle(
-			"BIZ UDPゴシック",
-			emphasisFontSize,
-			5,
-			DX_FONTTYPE_ANTIALIASING
-		);
-
-		fontMain_ = CreateFontToHandle(
-			"BIZ UDPゴシック",
-			mainFontSize,
-			3,
-			DX_FONTTYPE_ANTIALIASING
-		);
-
-		lastUiScreenH_ = screenH;
-	}
+	constexpr int screenW = Application::SCREEN_SIZE_X;
+	constexpr int screenH = Application::SCREEN_SIZE_Y;
 
 	if (fontTitle_ == -1 || fontMain_ == -1)
 	{
@@ -465,14 +423,9 @@ void Quoridor::DrawUI(void)
 			unsigned int activeColor)
 		{
 			const int iconCount = MAX_WALLS;
-			const int iconWidth =
-				static_cast<int>(screenW * 0.008f);
-
-			const int iconHeight =
-				static_cast<int>(screenH * 0.019f);
-
-			const int iconGap =
-				static_cast<int>(screenW * 0.003f);
+			const int iconWidth = 8;
+			const int iconHeight = 12;
+			const int iconGap = 3;
 
 			for (int i = 0; i < iconCount; ++i)
 			{
@@ -517,8 +470,7 @@ void Quoridor::DrawUI(void)
 			// 手番中のアクセントライン
 			if (isActive)
 			{
-				const int accentWidth =
-					static_cast<int>(screenW * 0.004f);
+				const int accentWidth = 4;
 
 				DrawBox(
 					x,
@@ -530,11 +482,8 @@ void Quoridor::DrawUI(void)
 				);
 			}
 
-			const int paddingX =
-				static_cast<int>(screenW * 0.015f);
-
-			const int paddingY =
-				static_cast<int>(screenH * 0.018f);
+			const int paddingX = 15;
+			const int paddingY = 11;
 
 			DrawStringToHandle(
 				x + paddingX,
@@ -576,8 +525,7 @@ void Quoridor::DrawUI(void)
 			);
 
 			DrawFormatStringToHandle(
-				x + width -
-				static_cast<int>(screenW * 0.052f),
+				x + width - 53,
 				gaugeY - 2,
 				colorText,
 				fontMain_,
@@ -598,19 +546,13 @@ void Quoridor::DrawUI(void)
 	}
 
 	// --------------------------------------------------
-// 左上：現在のターン
-// --------------------------------------------------
-	const int turnPanelWidth =
-		static_cast<int>(screenW * 0.25f);
+	// 左上：現在のターン
+	// --------------------------------------------------
+	const int turnPanelX = 30;
+	const int turnPanelY = 22;
 
-	const int turnPanelHeight =
-		static_cast<int>(screenH * 0.105f);
-
-	const int turnPanelX =
-		static_cast<int>(screenW * 0.03f);
-
-	const int turnPanelY =
-		static_cast<int>(screenH * 0.035f);
+	const int turnPanelWidth = 256;
+	const int turnPanelHeight = 67;
 
 	DrawPanel(
 		turnPanelX,
@@ -636,11 +578,11 @@ void Quoridor::DrawUI(void)
 		: "壁を配置";
 
 	const int textX =
-		turnPanelX + static_cast<int>(screenW * 0.018f);
+		turnPanelX + 18;
 
 	DrawStringToHandle(
 		textX,
-		turnPanelY + static_cast<int>(screenH * 0.014f),
+		turnPanelY + 9,
 		turnText,
 		turnColor,
 		fontTitle_
@@ -648,30 +590,20 @@ void Quoridor::DrawUI(void)
 
 	DrawStringToHandle(
 		textX,
-		turnPanelY + static_cast<int>(screenH * 0.060f),
+		turnPanelY + 38,
 		modeText,
 		colorSubText,
 		fontMain_
 	);
-
 	// --------------------------------------------------
 	// 右上：プレイヤー情報
 	// --------------------------------------------------
-	const int cardWidth =
-		static_cast<int>(screenW * 0.205f);
+	const int cardWidth = 210;
+	const int cardHeight = 67;
 
-	const int cardHeight =
-		static_cast<int>(screenH * 0.105f);
-
-	const int cardX =
-		screenW - cardWidth -
-		static_cast<int>(screenW * 0.025f);
-
-	const int cardTop =
-		static_cast<int>(screenH * 0.17f);
-
-	const int cardGap =
-		static_cast<int>(screenH * 0.018f);
+	const int cardX = 789;
+	const int cardTop = 109;
+	const int cardGap = 11;
 
 	DrawPlayerCard(
 		cardX,
@@ -701,18 +633,14 @@ void Quoridor::DrawUI(void)
 	const bool isPadConnected =
 		(GetJoypadNum() > 0);
 
-	const int guideWidth =
-		static_cast<int>(screenW * 0.61f);
-
-	const int guideHeight =
-		static_cast<int>(screenH * 0.075f);
+	const int guideWidth = 625;
+	const int guideHeight = 48;
 
 	const int guideX =
-		(screenW - guideWidth) / 2;
+		(1024 - guideWidth) / 2;
 
 	const int guideY =
-		screenH - guideHeight -
-		static_cast<int>(screenH * 0.025f);
+		640 - guideHeight - 16;
 
 	DrawPanel(
 		guideX,
@@ -765,8 +693,8 @@ void Quoridor::DrawUI(void)
 	}
 
 	DrawCenteredText(
-		screenW / 2,
-		guideY + static_cast<int>(screenH * 0.024f),
+		Application::SCREEN_SIZE_X / 2,
+		guideY + 15,
 		guideText.c_str(),
 		colorSubText,
 		fontMain_
@@ -789,18 +717,14 @@ void Quoridor::DrawUI(void)
 			thinkingText += ".";
 		}
 
-		const int thinkingWidth =
-			static_cast<int>(screenW * 0.25f);
-
-		const int thinkingHeight =
-			static_cast<int>(screenH * 0.06f);
+		const int thinkingWidth = 256;
+		const int thinkingHeight = 38;
 
 		const int thinkingX =
-			(screenW - thinkingWidth) / 2;
+			(1024 - thinkingWidth) / 2;
 
 		const int thinkingY =
-			turnPanelY + turnPanelHeight +
-			static_cast<int>(screenH * 0.012f);
+			turnPanelY + turnPanelHeight + 8;
 
 		DrawPanel(
 			thinkingX,
@@ -824,19 +748,14 @@ void Quoridor::DrawUI(void)
 	// --------------------------------------------------
 	if (isWallWarningActive_)
 	{
-		const int warningWidth =
-			static_cast<int>(screenW * 0.38f);
-
-		const int warningHeight =
-			static_cast<int>(screenH * 0.065f);
+		const int warningWidth = 389;
+		const int warningHeight = 41;
 
 		const int warningX =
-			(screenW - warningWidth) / 2;
+			(1024 - warningWidth) / 2;
 
 		const int warningY =
-			guideY -
-			warningHeight -
-			static_cast<int>(screenH * 0.015f);
+			guideY - warningHeight - 10;
 
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 220);
 
@@ -1309,72 +1228,161 @@ void Quoridor::DrawWallAndGrid(void)
 
 void Quoridor::DrawGameOver(void)
 {
-	// 1. 現在の画面サイズを動的に取得
-	int screenW, screenH;
-	GetWindowSize(&screenW, &screenH);
+	constexpr int screenW = Application::SCREEN_SIZE_X;
+	constexpr int screenH = Application::SCREEN_SIZE_Y;
 
-	// 2. 画面全体のトーンを落とす（半透明の黒で全画面を覆う）
+	// 画面全体を暗くする
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
-	DrawBox(0, 0, screenW, screenH, GetColor(10, 10, 10), TRUE);
 
-	// 3. 中央に文字を際立たせるための「焦げ茶色の帯」を描画
-	int bandH = (int)(screenH * 0.22f);           // 画面の高さの22%の太さ
-	int bandY = (screenH - bandH) / 2;            // 画面の垂直中央
-	DrawBox(0, bandY, screenW, bandY + bandH, GetColor(35, 25, 20), TRUE);
-	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	DrawBox(
+		0,
+		0,
+		screenW,
+		screenH,
+		GetColor(10, 10, 10),
+		TRUE
+	);
 
-	// 4. 勝者に応じた演出色の決定
-	// 目標画面のイメージに合わせ、上品なゴールド寄りの発色にします
-	unsigned int colorWinText = GetColor(245, 220, 180);
-	if (winner_ == 0) {
-		// プレイヤー1（あなた）が勝った場合
-		colorWinText = GetColor(255, 150, 150); // 落ち着いたライトレッド
+	// 中央の帯
+	const int bandH = 141;	// 640 * 0.22 ≒ 141
+	const int bandY =
+		(screenH - bandH) / 2;
+
+	DrawBox(
+		0,
+		bandY,
+		screenW,
+		bandY + bandH,
+		GetColor(35, 25, 20),
+		TRUE
+	);
+
+	SetDrawBlendMode(
+		DX_BLENDMODE_NOBLEND,
+		0
+	);
+
+	// -----------------------------
+	// 勝者に応じた文字色
+	// -----------------------------
+	unsigned int colorWinText =
+		GetColor(245, 220, 180);
+
+	if (winner_ == 0)
+	{
+		colorWinText =
+			GetColor(255, 150, 150);
 	}
-	else if (winner_ == 1) {
-		// プレイヤー2（CPU）が勝った場合
-		colorWinText = GetColor(150, 200, 255); // さわやかなライトブルー
+	else if (winner_ == 1)
+	{
+		colorWinText =
+			GetColor(150, 200, 255);
 	}
 
-	// 5. 勝者メッセージのテキスト作成と中央揃え描画
+	// -----------------------------
+	// 勝者メッセージ
+	// -----------------------------
 	char winText[64];
-	if (winner_ == 0) {
-		sprintf_s(winText, "PLAYER 1 (YOU) WINS!");
+
+	if (winner_ == 0)
+	{
+		sprintf_s(
+			winText,
+			"PLAYER 1 (YOU) WINS!"
+		);
 	}
-	else {
-		sprintf_s(winText, "PLAYER 2 (CPU) WINS!");
+	else
+	{
+		sprintf_s(
+			winText,
+			"PLAYER 2 (CPU) WINS!"
+		);
 	}
 
-	// 大きなフォント（fontTitle_）を使って中央に配置
-	int textW = GetDrawStringWidthToHandle(winText, (int)strlen(winText), fontTitle_);
-	int textX = (screenW - textW) / 2;
-	int textY = bandY + (bandH - (int)(40.0f * ((float)screenH / 720.0f))) / 2 - 10; // 帯のやや上寄り
-	DrawFormatStringToHandle(textX, textY, colorWinText, fontTitle_, "%s", winText);
+	const int textW =
+		GetDrawStringWidthToHandle(
+			winText,
+			static_cast<int>(strlen(winText)),
+			fontTitle_
+		);
 
+	const int textX =
+		(screenW - textW) / 2;
+
+	// 元の位置に近い固定値
+	const int textY =
+		bandY + 43;
+
+	DrawFormatStringToHandle(
+		textX,
+		textY,
+		colorWinText,
+		fontTitle_,
+		"%s",
+		winText
+	);
+
+	// -----------------------------
+	// 下部メッセージ
+	// -----------------------------
 	char bottomText[64] = "";
 
 #ifdef _DEBUG
-	// 【デバッグモード】Rキーで即時リセットできる案内
-	sprintf_s(bottomText, "- Press [ R ] to Restart Game -");
-	unsigned int textColor = GetColor(170, 160, 150); // デバッグ用グレー
+
+	sprintf_s(
+		bottomText,
+		"- Press [ R ] to Restart Game -"
+	);
+
+	const unsigned int textColor =
+		GetColor(170, 160, 150);
+
 #else
-	// 【リリースモード】時間経過で終了する案内（残り秒数を動的に計算）
-	int remainingFrames = 180 - rFrameCount_;
-	if (remainingFrames < 0) remainingFrames = 0;
 
-	// 60FPS想定で秒数に変換（少数を切り上げて綺麗に見せる）
-	int remainingSeconds = (remainingFrames + 59) / 60;
+	int remainingFrames =
+		180 - rFrameCount_;
 
-	sprintf_s(bottomText, "Returning to menu in %d seconds...", remainingSeconds);
-	unsigned int textColor = GetColor(150, 160, 150); // リリース用、少し落ち着いたセージ色
+	if (remainingFrames < 0)
+	{
+		remainingFrames = 0;
+	}
+
+	const int remainingSeconds =
+		(remainingFrames + 59) / 60;
+
+	sprintf_s(
+		bottomText,
+		"Returning to menu in %d seconds...",
+		remainingSeconds
+	);
+
+	const unsigned int textColor =
+		GetColor(150, 160, 150);
+
 #endif
 
-	// 計算したテキストを画面中央下部に描画
-	int bottomW = GetDrawStringWidthToHandle(bottomText, (int)strlen(bottomText), fontMain_);
-	int bottomX = (screenW - bottomW) / 2;
-	int bottomY = bandY + bandH - (int)(30.0f * ((float)screenH / 720.0f)); // 帯の下寄り
+	const int bottomW =
+		GetDrawStringWidthToHandle(
+			bottomText,
+			static_cast<int>(strlen(bottomText)),
+			fontMain_
+		);
 
-	// 修正された変数（textColor）を使って文字を描画
-	DrawFormatStringToHandle(bottomX, bottomY, textColor, fontMain_, "%s", bottomText);
+	const int bottomX =
+		(screenW - bottomW) / 2;
+
+	// 帯の下側
+	const int bottomY =
+		bandY + bandH - 27;
+
+	DrawFormatStringToHandle(
+		bottomX,
+		bottomY,
+		textColor,
+		fontMain_,
+		"%s",
+		bottomText
+	);
 }
 
 VECTOR Quoridor::MakeMin(VECTOR a, VECTOR b)

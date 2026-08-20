@@ -48,7 +48,6 @@
     <ClCompile Include="Src\Scene\MiniGame\FirstPressGame.cpp" />
     <ClCompile Include="Src\Scene\MiniGame\GameBase.cpp" />
     <ClCompile Include="Src\Scene\SettingScene.cpp" />
-    <ClCompile Include="Src\Manager\Setting.cpp" />
     <ClCompile Include="Src\Object\Actor\ActorBase.cpp" />
     <ClCompile Include="Src\Application.cpp" />
     <ClCompile Include="Src\Common\Fader.cpp" />
@@ -113,7 +112,6 @@
     <ClInclude Include="Src\Scene\MiniGame\FirstPressGame.h" />
     <ClInclude Include="Src\Scene\MiniGame\GameBase.h" />
     <ClInclude Include="Src\Scene\SettingScene.h" />
-    <ClInclude Include="Src\Manager\Setting.h" />
     <ClInclude Include="Src\Object\Actor\ActorBase.h" />
     <ClInclude Include="Src\Application.h" />
     <ClInclude Include="Src\Common\Fader.h" />

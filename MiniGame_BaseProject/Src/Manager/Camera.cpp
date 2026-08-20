@@ -7,7 +7,6 @@
 #include "../Manager/InputManager.h"
 #include "../Manager/ResourceManager.h"
 #include "../Manager/SceneManager.h"
-#include "../Manager/Setting.h"
 #include "../Object/Common/Transform.h"
 #include "Camera.h"
 
@@ -570,8 +569,8 @@ void Camera::SetBeforeDrawFree(void)
 	int mouseX, mouseY;
 	GetMousePoint(&mouseX, &mouseY);
 
-	int centerX = Setting::GetInstance().GetWindowSize().width_ / 2;
-	int centerY = Setting::GetInstance().GetWindowSize().height_ / 2;
+	int centerX = Application::SCREEN_SIZE_X / 2;
+	int centerY = Application::SCREEN_SIZE_Y / 2;
 
 	int dx = mouseX - centerX;
 	int dy = mouseY - centerY;
